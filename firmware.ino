@@ -8,13 +8,9 @@ void setup() {
 }
 
 void loop() {
-#if 0
   uint16_t left, right;
   driver::encoder::angle(left, right);
   Serial.printf("\r\n%d, %d", left, right);
 
   delay(1);
-#endif
-
-
 }

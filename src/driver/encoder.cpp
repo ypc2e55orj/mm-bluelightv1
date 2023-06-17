@@ -53,6 +53,7 @@ namespace driver::encoder
     return (res & 0x4000) != 0;
   }
 
+  static as5050a_command as5050a_command;
   static spi_transaction_t spi_trans = {0};
   static spi_device_handle_t spi_handle_left = {0};
   static spi_device_handle_t spi_handle_right = {0};
@@ -67,27 +68,13 @@ namespace driver::encoder
 
   static void dma_callback_pre(spi_transaction_t *trans)
   {
-    as5050a_command cmd = {
-        .word = as5050a_read(AS5050A_ANGULAR_DATA)};
-
     trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
-    trans->tx_data[0] = cmd.bytes.msb;
-    trans->tx_data[1] = cmd.bytes.lsb;
+    trans->tx_data[0] = as5050a_command.bytes.msb;
+    trans->tx_data[1] = as5050a_command.bytes.lsb;
     trans->length = 16;
   }
-  static void dma_callback_post_left(spi_transaction_t *trans)
+  static void dma_callback_post(spi_transaction_t *trans)
   {
-    uint16_t res = (trans->rx_data[0] << 8) | trans->rx_data[1];
-    angle_left = as5050a_angle(res);
-    alarm_hi_left = as5050a_alarm_hi(res);
-    alarm_lo_left = as5050a_alarm_lo(res);
-  }
-  static void dma_callback_post_right(spi_transaction_t *trans)
-  {
-    uint16_t res = (trans->rx_data[0] << 8) | trans->rx_data[1];
-    angle_right = as5050a_angle(res);
-    alarm_hi_right = as5050a_alarm_hi(res);
-    alarm_lo_right = as5050a_alarm_lo(res);
   }
 
   void init()
@@ -109,24 +96,41 @@ namespace driver::encoder
         .spics_io_num = AS5050A_CS_LEFT,
         .queue_size = 1,
         .pre_cb = dma_callback_pre,
-        .post_cb = dma_callback_post_left};
+        .post_cb = dma_callback_post};
 
     ESP_ERROR_CHECK(spi_bus_add_device(AS5050A_HOST, &spi_dev_if_cfg, &spi_handle_left));
 
     spi_dev_if_cfg.spics_io_num = AS5050A_CS_RIGHT;
-    spi_dev_if_cfg.post_cb = dma_callback_post_right;
     ESP_ERROR_CHECK(spi_bus_add_device(AS5050A_HOST, &spi_dev_if_cfg, &spi_handle_right));
+
+    spi_transaction_t *trans;
+    as5050a_command.word = as5050a_write(AS5050A_MASTER_RESET);
+
+    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans, portMAX_DELAY));
+    spi_device_get_trans_result(spi_handle_left, &trans, portMAX_DELAY);
+
+    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans, portMAX_DELAY));
+    spi_device_get_trans_result(spi_handle_right, &trans, portMAX_DELAY);
   }
 
   void angle(uint16_t &left, uint16_t &right)
   {
     spi_transaction_t *trans;
+    uint16_t res;
+    as5050a_command.word = as5050a_read(AS5050A_ANGULAR_DATA);
+
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans, portMAX_DELAY));
     spi_device_get_trans_result(spi_handle_left, &trans, portMAX_DELAY);
+    res = (trans->rx_data[0] << 8) | trans->rx_data[1];
+    left = angle_left = as5050a_angle(res);
+    alarm_hi_left = as5050a_alarm_hi(res);
+    alarm_lo_left = as5050a_alarm_lo(res);
+
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans, portMAX_DELAY));
     spi_device_get_trans_result(spi_handle_right, &trans, portMAX_DELAY);
-
-    left = angle_left;
-    right = angle_right;
+    res = (trans->rx_data[0] << 8) | trans->rx_data[1];
+    right = angle_right = as5050a_angle(res);
+    alarm_hi_right = as5050a_alarm_hi(res);
+    alarm_lo_right = as5050a_alarm_lo(res);
   }
 }
