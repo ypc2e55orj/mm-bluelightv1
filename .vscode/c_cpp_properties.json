@@ -13,7 +13,9 @@
             "browse": {
                 "path": [
                     "${workspaceFolder}/**",
-                    "C:/Espressif/frameworks/esp-idf-v5.0.1/components/**"
+                    "C:/Espressif/frameworks/esp-idf-v5.0.1/components/**",
+                    "C:/Users/${env:USERNAME}/AppData/Local/Arduino15/packages/esp32/hardware/esp32/2.0.9/cores/esp32/**",
+                    "C:/Users/${env:USERNAME}/AppData/Local/Arduino15/packages/esp32/hardware/esp32/2.0.9/libraries/**"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
