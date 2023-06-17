@@ -30,11 +30,6 @@ namespace driver::imu
   }
   static void dma_callback_post(spi_transaction_t *trans)
   {
-    Serial.printf("\r\n");
-    for (int i = 0; i < LSM6DSRX_TRANS_MAX; i++)
-    {
-      Serial.printf("%x, ", rx_buffer[i]);
-    }
   }
 
   static int32_t lsm6dsrx_platform_write(void *unused, uint8_t reg, const uint8_t *bufp, uint16_t len)
@@ -106,10 +101,5 @@ namespace driver::imu
 
     tx_buffer = (uint8_t *)heap_caps_malloc(LSM6DSRX_TRANS_MAX, MALLOC_CAP_DMA);
     rx_buffer = (uint8_t *)heap_caps_malloc(LSM6DSRX_TRANS_MAX, MALLOC_CAP_DMA);
-
-    uint8_t whoami;
-    lsm6dsrx_device_id_get(&lsm6dsrx_ctx, &whoami);
-    lsm6dsrx_device_id_get(&lsm6dsrx_ctx, &whoami);
-    Serial.printf("\r\nlsm6dsrx whoami: %x, %x", whoami, LSM6DSRX_ID);
   }
 }
