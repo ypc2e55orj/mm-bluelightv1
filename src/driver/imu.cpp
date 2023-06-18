@@ -4,8 +4,7 @@
 #include <driver/gpio.h>
 #include "../third-party/lsm6dsrx-pid/lsm6dsrx_reg.h"
 
-// Debug
-#include <Arduino.h>
+#include <cstring>
 
 #define LSM6DSRX_HOST SPI3_HOST // VSPI
 #define LSM6DSRX_MISO GPIO_NUM_48
