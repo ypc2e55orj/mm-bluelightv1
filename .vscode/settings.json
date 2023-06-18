@@ -3,10 +3,12 @@
   "files.associations": {
     "regex": "cpp",
     "cstdint": "cpp",
-    "string_view": "cpp"
+    "string_view": "cpp",
+    "iostream": "cpp"
   },
   "idf.adapterTargetName": "esp32s3",
   "idf.openOcdConfigs": [
     "board/esp32s3-bridge.cfg"
-  ]
+  ],
+  "idf.flashType": "UART"
 }
