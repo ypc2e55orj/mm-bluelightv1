@@ -44,6 +44,10 @@ namespace driver::encoder
   {
     return (res & 0x3FFE) >> 2;
   }
+  inline bool as5050a_parity(uint16_t res)
+  {
+    return __builtin_parity(res & (~0x1)) != (res & 0x1);
+  }
   inline bool as5050a_alarm_lo(uint16_t res)
   {
     return (res & 0x8000) != 0;
@@ -54,17 +58,21 @@ namespace driver::encoder
   }
 
   static as5050a_command as5050a_command;
-  static spi_transaction_t spi_trans = {0};
+  static spi_transaction_t spi_trans_left = {0};
+  static spi_transaction_t spi_trans_right = {0};
+
   static spi_device_handle_t spi_handle_left = {0};
   static spi_device_handle_t spi_handle_right = {0};
 
   static uint16_t angle_left = 0;
-  static bool alarm_lo_left = false;
-  static bool alarm_hi_left = false;
+  static bool error_parity_left = false;
+  static bool error_alarm_lo_left = false;
+  static bool error_alarm_hi_left = false;
 
   static uint16_t angle_right = 0;
-  static bool alarm_lo_right = false;
-  static bool alarm_hi_right = false;
+  static bool error_parity_right = false;
+  static bool error_alarm_lo_right = false;
+  static bool error_alarm_hi_right = false;
 
   static void dma_callback_pre(spi_transaction_t *trans)
   {
@@ -106,31 +114,41 @@ namespace driver::encoder
     spi_transaction_t *trans;
     as5050a_command.word = as5050a_write(AS5050A_MASTER_RESET);
 
-    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans, portMAX_DELAY));
+    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans_left, portMAX_DELAY));
+    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans_right, portMAX_DELAY));
     spi_device_get_trans_result(spi_handle_left, &trans, portMAX_DELAY);
-
-    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans, portMAX_DELAY));
     spi_device_get_trans_result(spi_handle_right, &trans, portMAX_DELAY);
   }
 
   void angle(uint16_t &left, uint16_t &right)
   {
-    spi_transaction_t *trans;
-    uint16_t res;
     as5050a_command.word = as5050a_read(AS5050A_ANGULAR_DATA);
 
-    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans, portMAX_DELAY));
-    spi_device_get_trans_result(spi_handle_left, &trans, portMAX_DELAY);
-    res = (trans->rx_data[0] << 8) | trans->rx_data[1];
-    left = angle_left = as5050a_angle(res);
-    alarm_hi_left = as5050a_alarm_hi(res);
-    alarm_lo_left = as5050a_alarm_lo(res);
+    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans_left, portMAX_DELAY));
+    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans_right, portMAX_DELAY));
 
-    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans, portMAX_DELAY));
+    spi_transaction_t *trans;
+    spi_device_get_trans_result(spi_handle_left, &trans, portMAX_DELAY);
     spi_device_get_trans_result(spi_handle_right, &trans, portMAX_DELAY);
-    res = (trans->rx_data[0] << 8) | trans->rx_data[1];
+
+    uint16_t res;
+    res = (spi_trans_left.rx_data[0] << 8) | spi_trans_left.rx_data[1];
+    left = angle_left = as5050a_angle(res);
+    error_parity_left = as5050a_parity(res);
+    error_alarm_hi_left = as5050a_alarm_hi(res);
+    error_alarm_lo_left = as5050a_alarm_lo(res);
+
+    res = (spi_trans_right.rx_data[0] << 8) | spi_trans_right.rx_data[1];
     right = angle_right = as5050a_angle(res);
-    alarm_hi_right = as5050a_alarm_hi(res);
-    alarm_lo_right = as5050a_alarm_lo(res);
+    error_parity_right = as5050a_parity(res);
+    error_alarm_hi_right = as5050a_alarm_hi(res);
+    error_alarm_lo_right = as5050a_alarm_lo(res);
+  }
+
+  std::pair<uint16_t, uint16_t> angle()
+  {
+    uint16_t left, right;
+    angle(left, right);
+    return {left, right};
   }
 }
