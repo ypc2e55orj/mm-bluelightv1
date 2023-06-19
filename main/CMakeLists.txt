@@ -4,6 +4,7 @@ idf_component_register(
   "../src/driver/encoder.cpp"
   "../src/driver/imu.cpp"
   "../src/third-party/lsm6dsrx-pid/lsm6dsrx_reg.c"
+  "../src/driver/speaker.cpp"
   INCLUDE_DIRS
   "."
   "../src/"
