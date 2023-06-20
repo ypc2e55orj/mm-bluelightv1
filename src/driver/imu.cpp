@@ -2,9 +2,11 @@
 
 #include <driver/spi_master.h>
 #include <driver/gpio.h>
+
 #include "../third-party/lsm6dsrx-pid/lsm6dsrx_reg.h"
 
 #include <cstring>
+#include <cassert>
 
 #define LSM6DSRX_HOST SPI3_HOST // VSPI
 #define LSM6DSRX_MISO GPIO_NUM_48
@@ -34,16 +36,14 @@ namespace driver::imu
   static int32_t lsm6dsrx_platform_write(void *unused, uint8_t reg, const uint8_t *bufp, uint16_t len)
   {
     spi_transaction_t *trans;
-
-    memset(tx_buffer, 0, LSM6DSRX_TRANS_MAX);
-    memset(rx_buffer, 0, LSM6DSRX_TRANS_MAX);
-    spi_trans.flags = 0;
-    spi_trans.rx_buffer = rx_buffer;
-    spi_trans.tx_buffer = tx_buffer;
-    spi_trans.length = 8 * (len + 1);
-
+    // write bufp
     tx_buffer[0] = reg;
     memcpy(tx_buffer + 1, bufp, len);
+
+    spi_trans.flags = 0;
+    spi_trans.tx_buffer = tx_buffer;
+    spi_trans.rx_buffer = rx_buffer;
+    spi_trans.length = 8 * (len + 1); // reg + data
 
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle, &spi_trans, portMAX_DELAY));
     spi_device_get_trans_result(spi_handle, &trans, portMAX_DELAY);
@@ -53,15 +53,15 @@ namespace driver::imu
   static int32_t lsm6dsrx_platform_read(void *unused, uint8_t reg, uint8_t *bufp, uint16_t len)
   {
     spi_transaction_t *trans;
-
-    memset(tx_buffer, 0, LSM6DSRX_TRANS_MAX);
-    memset(rx_buffer, 0, LSM6DSRX_TRANS_MAX);
-    spi_trans.flags = 0;
-    spi_trans.rx_buffer = rx_buffer;
-    spi_trans.tx_buffer = tx_buffer;
-    spi_trans.length = 8 * (len + 1);
-
+    // read to bufp
     tx_buffer[0] = reg | 0x80;
+    memset(tx_buffer + 1, 0, len);
+
+    spi_trans.flags = 0;
+    spi_trans.tx_buffer = tx_buffer;
+    spi_trans.rx_buffer = rx_buffer;
+    spi_trans.length = 8 * (len + 1);
+    spi_trans.rxlength = 8 * (len + 1);
 
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle, &spi_trans, portMAX_DELAY));
     spi_device_get_trans_result(spi_handle, &trans, portMAX_DELAY);
@@ -100,5 +100,30 @@ namespace driver::imu
 
     tx_buffer = (uint8_t *)heap_caps_malloc(LSM6DSRX_TRANS_MAX, MALLOC_CAP_DMA);
     rx_buffer = (uint8_t *)heap_caps_malloc(LSM6DSRX_TRANS_MAX, MALLOC_CAP_DMA);
+
+    uint8_t id;
+    lsm6dsrx_device_id_get(&lsm6dsrx_ctx, &id);
+    assert(id == LSM6DSRX_ID);
+
+    lsm6dsrx_reset_set(&lsm6dsrx_ctx, PROPERTY_ENABLE);
+    lsm6dsrx_i3c_disable_set(&lsm6dsrx_ctx, LSM6DSRX_I3C_DISABLE);
+
+    lsm6dsrx_block_data_update_set(&lsm6dsrx_ctx, PROPERTY_ENABLE);
+    lsm6dsrx_xl_data_rate_set(&lsm6dsrx_ctx, LSM6DSRX_XL_ODR_1666Hz);
+    lsm6dsrx_gy_data_rate_set(&lsm6dsrx_ctx, LSM6DSRX_GY_ODR_1666Hz);
+    lsm6dsrx_gy_full_scale_set(&lsm6dsrx_ctx, LSM6DSRX_2000dps);
+  }
+
+  std::tuple<float, float, float> gyro()
+  {
+    int16_t val[3];
+    lsm6dsrx_angular_rate_raw_get(&lsm6dsrx_ctx, val);
+    return {lsm6dsrx_from_fs2000dps_to_mdps(val[0]), lsm6dsrx_from_fs2000dps_to_mdps(val[1]), lsm6dsrx_from_fs2000dps_to_mdps(val[2])};
+  }
+  std::tuple<float, float, float> accel()
+  {
+    int16_t val[3];
+    lsm6dsrx_acceleration_raw_get(&lsm6dsrx_ctx, val);
+    return {lsm6dsrx_from_fs2g_to_mg(val[0]), lsm6dsrx_from_fs2g_to_mg(val[1]), lsm6dsrx_from_fs2g_to_mg(val[2])};
   }
 }
