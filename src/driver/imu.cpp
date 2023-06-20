@@ -5,6 +5,7 @@
 
 #include "../third-party/lsm6dsrx-pid/lsm6dsrx_reg.h"
 
+#include <cstdint>
 #include <cstring>
 #include <cassert>
 

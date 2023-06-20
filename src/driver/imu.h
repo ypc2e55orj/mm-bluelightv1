@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <tuple>
 
 namespace driver::imu
