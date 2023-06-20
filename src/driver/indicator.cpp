@@ -1,0 +1,57 @@
+#include "indicator.h"
+
+#include <driver/gpio.h>
+#include <driver/rmt_tx.h>
+#include <freertos/FreeRTOS.h>
+
+#include "../third-party/led_strip/led_strip_encoder.h"
+
+#define WS2812C_PIN GPIO_NUM_45
+#define WS2812C_RMT RMT_CHANNEL_0
+#define WS2812C_NUM 4
+#define WS2812C_RESOLUTION_HZ 10000000
+
+// https://github.com/adafruit/Adafruit_NeoPixel/blob/master/esp.c#L57
+#define WS2812_T0H_NS (400)
+#define WS2812_T0L_NS (850)
+#define WS2812_T1H_NS (800)
+#define WS2812_T1L_NS (450)
+
+namespace driver::indicator
+{
+  static rmt_channel_handle_t led_chan = nullptr;
+  static rmt_encoder_handle_t led_encoder = nullptr;
+  static rmt_transmit_config_t tx_config = {};
+  static uint8_t pixels[WS2812C_NUM * 3] = {};
+
+  void init()
+  {
+    rmt_tx_channel_config_t tx_chan_cfg = {};
+    tx_chan_cfg.clk_src = RMT_CLK_SRC_DEFAULT;
+    tx_chan_cfg.gpio_num = WS2812C_PIN;
+    tx_chan_cfg.mem_block_symbols = 64;
+    tx_chan_cfg.resolution_hz = WS2812C_RESOLUTION_HZ;
+    tx_chan_cfg.trans_queue_depth = 4;
+
+    ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_cfg, &led_chan));
+
+    led_strip_encoder_config_t encoder_cfg = {};
+    encoder_cfg.resolution = WS2812C_RESOLUTION_HZ;
+    ESP_ERROR_CHECK(rmt_new_led_strip_encoder(&encoder_cfg, &led_encoder));
+
+    ESP_ERROR_CHECK(rmt_enable(led_chan));
+  }
+
+  void set(uint8_t pos, uint8_t r, uint8_t g, uint8_t b)
+  {
+    pixels[pos * 3] = g;
+    pixels[pos * 3 + 1] = r;
+    pixels[pos * 3 + 2] = b;
+  }
+
+  void show()
+  {
+    ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));
+    ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
+  }
+}

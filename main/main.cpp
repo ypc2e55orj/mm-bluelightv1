@@ -5,13 +5,20 @@
 #include <iostream>
 #include "../src/driver/encoder.h"
 #include "../src/driver/imu.h"
+#include "../src/driver/indicator.h"
 #include "../src/driver/speaker.h"
 
 void mainTask(void *unused)
 {
   driver::imu::init();
   driver::encoder::init();
-  driver::speaker::play();
+  driver::indicator::init();
+
+  driver::indicator::set(0, 255, 0, 0);
+  driver::indicator::set(1, 0, 255, 0);
+  driver::indicator::set(2, 0, 0, 255);
+  driver::indicator::set(3, 255, 0, 0);
+  driver::indicator::show();
 
   while (true)
   {
