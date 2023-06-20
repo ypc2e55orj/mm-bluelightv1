@@ -11,12 +11,6 @@
 #define WS2812C_NUM 4
 #define WS2812C_RESOLUTION_HZ 10000000
 
-// https://github.com/adafruit/Adafruit_NeoPixel/blob/master/esp.c#L57
-#define WS2812_T0H_NS (400)
-#define WS2812_T0L_NS (850)
-#define WS2812_T1H_NS (800)
-#define WS2812_T1L_NS (450)
-
 namespace driver::indicator
 {
   static rmt_channel_handle_t led_chan = nullptr;
