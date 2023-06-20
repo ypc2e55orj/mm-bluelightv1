@@ -15,7 +15,7 @@
 #define LSM6DSRX_PIN_SCLK GPIO_NUM_33
 #define LSM6DSRX_PIN_CS GPIO_NUM_34
 
-#define LSM6DSRX_TRANS_MAX 16
+#define LSM6DSRX_BUFFER_SIZE 16
 
 namespace driver::imu
 {
@@ -67,7 +67,7 @@ namespace driver::imu
     spi_bus_cfg.sclk_io_num = LSM6DSRX_PIN_SCLK;
     spi_bus_cfg.quadwp_io_num = -1;
     spi_bus_cfg.quadhd_io_num = -1;
-    spi_bus_cfg.max_transfer_sz = LSM6DSRX_TRANS_MAX;
+    spi_bus_cfg.max_transfer_sz = LSM6DSRX_BUFFER_SIZE;
     spi_bus_cfg.flags = SPICOMMON_BUSFLAG_MASTER;
 
     ESP_ERROR_CHECK(spi_bus_initialize(LSM6DSRX_HOST, &spi_bus_cfg, SPI_DMA_CH_AUTO));
@@ -84,8 +84,8 @@ namespace driver::imu
     lsm6dsrx_ctx.read_reg = lsm6dsrx_platform_read;
     lsm6dsrx_ctx.handle = nullptr;
 
-    tx_buffer = (uint8_t *)heap_caps_malloc(LSM6DSRX_TRANS_MAX, MALLOC_CAP_DMA);
-    rx_buffer = (uint8_t *)heap_caps_malloc(LSM6DSRX_TRANS_MAX, MALLOC_CAP_DMA);
+    tx_buffer = (uint8_t *)heap_caps_malloc(LSM6DSRX_BUFFER_SIZE, MALLOC_CAP_DMA);
+    rx_buffer = (uint8_t *)heap_caps_malloc(LSM6DSRX_BUFFER_SIZE, MALLOC_CAP_DMA);
     spi_trans.flags = 0;
     spi_trans.tx_buffer = tx_buffer;
     spi_trans.rx_buffer = rx_buffer;
