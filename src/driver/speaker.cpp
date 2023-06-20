@@ -2,7 +2,7 @@
 
 #include <driver/gpio.h>
 
-#define SPEAKER GPIO_NUM_21
+#define SPEAKER_PIN GPIO_NUM_21
 
 namespace driver::speaker
 {

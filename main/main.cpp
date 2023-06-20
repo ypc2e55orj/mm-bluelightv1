@@ -18,9 +18,9 @@ void mainTask(void *unused)
     auto [left, right] = driver::encoder::angle();
     auto [gyro_x, gyro_y, gyro_z] = driver::imu::gyro();
     auto [accel_x, accel_y, accel_z] = driver::imu::accel();
+    std::cout << "encoder_left: " << left << ", encoder_right: " << right << std::endl;
     std::cout << "gyro_x:" << gyro_x << ", gyro_y: " << gyro_y << ", gyro_z: " << gyro_z << std::endl;
     std::cout << "accel_x:" << accel_x << ", accel_y: " << accel_y << ", accel_z: " << accel_z << std::endl;
-    vTaskDelay(100 / portTICK_PERIOD_MS);
   }
 }
 
