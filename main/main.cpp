@@ -14,11 +14,21 @@ void mainTask(void *unused)
   driver::encoder::init();
   driver::indicator::init();
 
-  driver::indicator::set(0, 0xFF0000);
-  driver::indicator::set(1, 0x00FF00);
-  driver::indicator::set(2, 0x0000FF);
-  driver::indicator::set(3, 0x000000);
-
+  for (int i = 0; i < driver::indicator::num(); i++)
+  {
+    driver::indicator::clear();
+    driver::indicator::set(i, 0x0000FF);
+    driver::indicator::show();
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
+  for (int i = driver::indicator::num() - 1; i > -1; i--)
+  {
+    driver::indicator::clear();
+    driver::indicator::set(i, 0x0000FF);
+    driver::indicator::show();
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
+  driver::indicator::clear();
   driver::indicator::show();
 
   while (true)

@@ -6,9 +6,12 @@
 
 #include "../third-party/led_strip/led_strip_encoder.h"
 
+#include <cstring>
+
 #define WS2812C_PIN GPIO_NUM_45
 #define WS2812C_RMT RMT_CHANNEL_0
 #define WS2812C_NUM 4
+#define WS2812C_COLOR_DEPTH 3
 #define WS2812C_RESOLUTION_HZ 10000000
 
 namespace driver::indicator
@@ -16,7 +19,7 @@ namespace driver::indicator
   static rmt_channel_handle_t led_chan = nullptr;
   static rmt_encoder_handle_t led_encoder = nullptr;
   static rmt_transmit_config_t tx_config = {};
-  static uint8_t pixels[WS2812C_NUM * 3] = {};
+  static uint8_t pixels[WS2812C_NUM * WS2812C_COLOR_DEPTH] = {};
 
   void init()
   {
@@ -38,20 +41,30 @@ namespace driver::indicator
 
   void set(uint8_t pos, uint8_t r, uint8_t g, uint8_t b)
   {
-    pixels[pos * 3] = g;
-    pixels[pos * 3 + 1] = r;
-    pixels[pos * 3 + 2] = b;
+    pixels[pos * WS2812C_COLOR_DEPTH] = g;
+    pixels[pos * WS2812C_COLOR_DEPTH + 1] = r;
+    pixels[pos * WS2812C_COLOR_DEPTH + 2] = b;
   }
   void set(uint8_t pos, uint32_t rgb)
   {
-    pixels[pos * 3] = (rgb & 0xFF00) >> 8;        // green
-    pixels[pos * 3 + 1] = (rgb & 0xFF0000) >> 16; // red
-    pixels[pos * 3 + 2] = (rgb & 0xFF);           // blue
+    pixels[pos * WS2812C_COLOR_DEPTH] = (rgb & 0xFF00) >> 8;        // green
+    pixels[pos * WS2812C_COLOR_DEPTH + 1] = (rgb & 0xFF0000) >> 16; // red
+    pixels[pos * WS2812C_COLOR_DEPTH + 2] = (rgb & 0xFF);           // blue
+  }
+
+  void clear()
+  {
+    memset(pixels, 0, WS2812C_NUM * WS2812C_COLOR_DEPTH);
   }
 
   void show()
   {
     ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));
     ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
+  }
+
+  uint8_t num()
+  {
+    return WS2812C_NUM;
   }
 }
