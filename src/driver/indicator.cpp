@@ -19,7 +19,10 @@ namespace driver::indicator
   static rmt_channel_handle_t led_chan = nullptr;
   static rmt_encoder_handle_t led_encoder = nullptr;
   static rmt_transmit_config_t tx_config = {};
+
   static uint8_t pixels[WS2812C_NUM * WS2812C_COLOR_DEPTH] = {};
+
+  uint8_t num() { return WS2812C_NUM; }
 
   void init()
   {
@@ -34,6 +37,7 @@ namespace driver::indicator
 
     led_strip_encoder_config_t encoder_cfg = {};
     encoder_cfg.resolution = WS2812C_RESOLUTION_HZ;
+
     ESP_ERROR_CHECK(rmt_new_led_strip_encoder(&encoder_cfg, &led_encoder));
 
     ESP_ERROR_CHECK(rmt_enable(led_chan));
@@ -61,10 +65,5 @@ namespace driver::indicator
   {
     ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));
     ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
-  }
-
-  uint8_t num()
-  {
-    return WS2812C_NUM;
   }
 }

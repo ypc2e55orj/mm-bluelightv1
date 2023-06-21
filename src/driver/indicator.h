@@ -4,6 +4,8 @@
 
 namespace driver::indicator
 {
+  uint8_t num();
+
   void init();
 
   void set(uint8_t pos, uint8_t r, uint8_t g, uint8_t b);
@@ -11,6 +13,4 @@ namespace driver::indicator
   void clear();
 
   void show();
-
-  uint8_t num();
 }
