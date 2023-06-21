@@ -42,6 +42,12 @@ namespace driver::indicator
     pixels[pos * 3 + 1] = r;
     pixels[pos * 3 + 2] = b;
   }
+  void set(uint8_t pos, uint32_t rgb)
+  {
+    pixels[pos * 3] = (rgb & 0xFF00) >> 8;        // green
+    pixels[pos * 3 + 1] = (rgb & 0xFF0000) >> 16; // red
+    pixels[pos * 3 + 2] = (rgb & 0xFF);           // blue
+  }
 
   void show()
   {

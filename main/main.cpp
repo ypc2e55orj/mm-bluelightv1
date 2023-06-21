@@ -14,10 +14,11 @@ void mainTask(void *unused)
   driver::encoder::init();
   driver::indicator::init();
 
-  driver::indicator::set(0, 255, 0, 0);
-  driver::indicator::set(1, 0, 255, 0);
-  driver::indicator::set(2, 0, 0, 255);
-  driver::indicator::set(3, 255, 0, 0);
+  driver::indicator::set(0, 0xFF0000);
+  driver::indicator::set(1, 0x00FF00);
+  driver::indicator::set(2, 0x0000FF);
+  driver::indicator::set(3, 0x000000);
+
   driver::indicator::show();
 
   while (true)
