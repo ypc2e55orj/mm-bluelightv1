@@ -1,6 +1,16 @@
 #pragma once
 
+#include <cstdint>
+
 namespace driver::speaker
 {
-  void play();
+  struct note_t
+  {
+    uint32_t freq;
+    int64_t ms;
+  };
+
+  void init();
+  void play(note_t *notes, int size);
+  void tone(uint32_t freq, int64_t ms);
 }
