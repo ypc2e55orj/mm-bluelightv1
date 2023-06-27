@@ -67,7 +67,8 @@
     "thread": "cpp",
     "cinttypes": "cpp",
     "typeinfo": "cpp",
-    "cassert": "cpp"
+    "cassert": "cpp",
+    "scoped_allocator": "cpp"
   },
   "idf.adapterTargetName": "esp32s3",
   "idf.openOcdConfigs": [
