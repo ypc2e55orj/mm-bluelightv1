@@ -12,5 +12,5 @@ namespace driver::indicator
   void set(uint8_t pos, uint32_t rgb);
   void clear();
 
-  void show();
+  void update();
 }

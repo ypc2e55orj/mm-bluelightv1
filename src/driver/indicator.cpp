@@ -61,9 +61,8 @@ namespace driver::indicator
     memset(pixels, 0, WS2812C_NUM * WS2812C_COLOR_DEPTH);
   }
 
-  void show()
+  void update()
   {
     ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));
-    ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
   }
 }
