@@ -11,34 +11,35 @@
 void mainTask(void *unused)
 {
   driver::imu::init();
-  driver::encoder::init();
   driver::indicator::init();
+  driver::speaker::init();
 
   for (int i = 0; i < driver::indicator::num(); i++)
   {
+    driver::speaker::tone(4000, 100);
     driver::indicator::clear();
     driver::indicator::set(i, 0x0000FF);
-    driver::indicator::show();
+    driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(100));
   }
   for (int i = driver::indicator::num() - 1; i > -1; i--)
   {
+    driver::speaker::tone(4000, 100);
     driver::indicator::clear();
     driver::indicator::set(i, 0x0000FF);
-    driver::indicator::show();
+    driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(100));
   }
   driver::indicator::clear();
-  driver::indicator::show();
+  driver::indicator::update();
 
   while (true)
   {
-    auto [left, right] = driver::encoder::angle();
     auto [gyro_x, gyro_y, gyro_z] = driver::imu::gyro();
     auto [accel_x, accel_y, accel_z] = driver::imu::accel();
-    std::cout << "encoder_left: " << left << ", encoder_right: " << right << std::endl;
     std::cout << "gyro_x:" << gyro_x << ", gyro_y: " << gyro_y << ", gyro_z: " << gyro_z << std::endl;
     std::cout << "accel_x:" << accel_x << ", accel_y: " << accel_y << ", accel_z: " << accel_z << std::endl;
+    vTaskDelay(pdMS_TO_TICKS(1));
   }
 }
 
