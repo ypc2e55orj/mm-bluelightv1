@@ -2,6 +2,7 @@
 
 #include <driver/spi_master.h>
 #include <driver/gpio.h>
+#include <esp_intr_alloc.h>
 
 #include "../third-party/lsm6dsrx-pid/lsm6dsrx_reg.h"
 
@@ -25,7 +26,34 @@ namespace driver::imu
   static uint8_t *tx_buffer = nullptr;
   static uint8_t *rx_buffer = nullptr;
 
+  static EventGroupHandle_t xEvent = nullptr;
+  static EventBits_t xEventBit = 0;
+  static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
   static stmdev_ctx_t lsm6dsrx_ctx = {};
+
+  static bool initialized = false;
+  static int16_t intr_gyro_buff[3] = {};
+  static int16_t intr_accel_buff[3] = {};
+
+  static void IRAM_ATTR dma_callback_post(spi_transaction_t *trans)
+  {
+    if (!initialized)
+      return;
+
+    intr_gyro_buff[0] = (rx_buffer[2] << 8) | rx_buffer[1];
+    intr_gyro_buff[1] = (rx_buffer[4] << 8) | rx_buffer[3];
+    intr_gyro_buff[2] = (rx_buffer[6] << 8) | rx_buffer[5];
+
+    intr_accel_buff[0] = (rx_buffer[8] << 8) | rx_buffer[7];
+    intr_accel_buff[1] = (rx_buffer[10] << 8) | rx_buffer[9];
+    intr_accel_buff[2] = (rx_buffer[12] << 8) | rx_buffer[11];
+
+    xHigherPriorityTaskWoken = pdFALSE;
+
+    if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdTRUE)
+      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+  }
 
   static int32_t lsm6dsrx_platform_write(void *unused, uint8_t reg, const uint8_t *bufp, uint16_t len)
   {
@@ -59,8 +87,11 @@ namespace driver::imu
     return 0;
   }
 
-  void init()
+  void init(EventGroupHandle_t xHandle, EventBits_t xBit)
   {
+    xEvent = xHandle;
+    xEventBit = xBit;
+
     spi_bus_config_t spi_bus_cfg = {};
     spi_bus_cfg.mosi_io_num = LSM6DSRX_PIN_MOSI;
     spi_bus_cfg.miso_io_num = LSM6DSRX_PIN_MISO;
@@ -69,6 +100,7 @@ namespace driver::imu
     spi_bus_cfg.quadhd_io_num = -1;
     spi_bus_cfg.max_transfer_sz = LSM6DSRX_BUFFER_SIZE;
     spi_bus_cfg.flags = SPICOMMON_BUSFLAG_MASTER;
+    spi_bus_cfg.intr_flags = ESP_INTR_FLAG_IRAM;
 
     ESP_ERROR_CHECK(spi_bus_initialize(LSM6DSRX_HOST, &spi_bus_cfg, SPI_DMA_CH_AUTO));
 
@@ -77,6 +109,7 @@ namespace driver::imu
     spi_dev_if_cfg.clock_speed_hz = SPI_MASTER_FREQ_10M;
     spi_dev_if_cfg.spics_io_num = LSM6DSRX_PIN_CS;
     spi_dev_if_cfg.queue_size = 1;
+    spi_dev_if_cfg.post_cb = dma_callback_post;
 
     ESP_ERROR_CHECK(spi_bus_add_device(LSM6DSRX_HOST, &spi_dev_if_cfg, &spi_handle));
 
@@ -102,18 +135,43 @@ namespace driver::imu
     lsm6dsrx_xl_data_rate_set(&lsm6dsrx_ctx, LSM6DSRX_XL_ODR_1666Hz);
     lsm6dsrx_gy_data_rate_set(&lsm6dsrx_ctx, LSM6DSRX_GY_ODR_1666Hz);
     lsm6dsrx_gy_full_scale_set(&lsm6dsrx_ctx, LSM6DSRX_2000dps);
+
+    tx_buffer[0] = LSM6DSRX_OUTX_L_G | 0x80;
+    memset(tx_buffer + 1, 0, 12);
+    spi_trans.length = 8 * 13;
+    spi_trans.rxlength = 8 * 13; // gyro + accel
+
+    initialized = true;
   }
 
   std::tuple<float, float, float> gyro()
   {
-    int16_t val[3] = {};
-    lsm6dsrx_angular_rate_raw_get(&lsm6dsrx_ctx, val);
-    return {lsm6dsrx_from_fs2000dps_to_mdps(val[0]), lsm6dsrx_from_fs2000dps_to_mdps(val[1]), lsm6dsrx_from_fs2000dps_to_mdps(val[2])};
+    float gyro_buff[3] = {};
+
+    for (int i = 0; i < 3; i++)
+    {
+      gyro_buff[i] = lsm6dsrx_from_fs2000dps_to_mdps(intr_gyro_buff[i]);
+    }
+
+    return {gyro_buff[0], gyro_buff[1], gyro_buff[2]};
   }
   std::tuple<float, float, float> accel()
   {
-    int16_t val[3] = {};
-    lsm6dsrx_acceleration_raw_get(&lsm6dsrx_ctx, val);
-    return {lsm6dsrx_from_fs2g_to_mg(val[0]), lsm6dsrx_from_fs2g_to_mg(val[1]), lsm6dsrx_from_fs2g_to_mg(val[2])};
+    float accel_buff[3] = {};
+
+    for (int i = 0; i < 3; i++)
+    {
+      accel_buff[i] = lsm6dsrx_from_fs2g_to_mg(intr_accel_buff[i]);
+    }
+
+    return {accel_buff[0], accel_buff[1], accel_buff[2]};
+  }
+
+  void update()
+  {
+    if (!initialized)
+      return;
+
+    ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle, &spi_trans, portMAX_DELAY));
   }
 }
