@@ -48,8 +48,6 @@ namespace driver::encoder
   static bool initialized = false;
   static EventGroupHandle_t xEvent = nullptr;
   static EventBits_t xEventBit = 0;
-  static EventBits_t xEventBitLeft = 0;
-  static EventBits_t xEventBitRight = 0;
   static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
   static as5050a_command as5050a_command = {};
@@ -79,26 +77,20 @@ namespace driver::encoder
     xHigherPriorityTaskWoken = pdFALSE;
 
     if (trans == &spi_trans_left)
-    {
       angle_left = as5050a_angle(rx_data);
-      xEventBit = xEventBitLeft;
-    }
     else // if (trans == &spi_trans_right)
     {
       angle_right = as5050a_angle(rx_data);
-      xEventBit = xEventBitRight;
+      if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdTRUE)
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
-
-    if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdTRUE)
-      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
   }
 
-  void init(EventGroupHandle_t xHandle, EventBits_t xBitLeft, EventBits_t xBitRight)
+  void init(EventGroupHandle_t xHandle, EventBits_t xBit)
   {
     // notify handle
     xEvent = xHandle;
-    xEventBitLeft = xBitLeft;
-    xEventBitRight = xBitRight;
+    xEventBit = xBit;
 
     // bus
     spi_bus_config_t spi_bus_cfg = {};

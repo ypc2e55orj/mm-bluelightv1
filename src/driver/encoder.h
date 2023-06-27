@@ -7,7 +7,7 @@
 
 namespace driver::encoder
 {
-  void init(EventGroupHandle_t xHandle, EventBits_t xBitLeft, EventBits_t xBitRight);
+  void init(EventGroupHandle_t xHandle, EventBits_t xBit);
   void update();
 
   std::pair<uint16_t, uint16_t> get();
