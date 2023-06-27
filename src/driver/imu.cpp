@@ -169,9 +169,6 @@ namespace driver::imu
 
   void update()
   {
-    if (!initialized)
-      return;
-
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle, &spi_trans, portMAX_DELAY));
   }
 }

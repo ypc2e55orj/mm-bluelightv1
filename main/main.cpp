@@ -25,13 +25,12 @@ void sensorTask(void *unused)
     driver::imu::update();
     driver::encoder::update();
     driver::indicator::update();
-    vTaskDelay(pdMS_TO_TICKS(1));
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 
 void mainTask(void *unused)
 {
-
   for (int i = 0; i < driver::indicator::nums(); i++)
   {
     driver::speaker::tone(4000, 100);
@@ -50,14 +49,15 @@ void mainTask(void *unused)
 
   while (true)
   {
-    EventBits_t uBits = xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_ALL, pdTRUE, pdFALSE, pdMS_TO_TICKS(100));
+    EventBits_t uBits = xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_ALL, pdTRUE, pdTRUE, pdMS_TO_TICKS(100));
     if (uBits == EVENT_GROUP_SENSOR_ALL)
     {
       auto [angle_left, angle_right] = driver::encoder::get();
       auto [gyro_x, gyro_y, gyro_z] = driver::imu::gyro();
       auto [accel_x, accel_y, accel_z] = driver::imu::accel();
 
-      std::cout << "Left    : " << angle_left << std::endl
+      std::cout << "\x1b[2J\x1b[0;0H"
+                << "Left    : " << angle_left << std::endl
                 << "Right   : " << angle_right << std::endl
                 << "Gyro  X : " << gyro_x << std::endl
                 << "Gyro  Y : " << gyro_y << std::endl
@@ -66,10 +66,7 @@ void mainTask(void *unused)
                 << "Accel Y : " << accel_y << std::endl
                 << "Accel Z : " << accel_z << std::endl
                 << std::flush;
-    }
-    else
-    {
-      std::cout << "uBits : " << uBits << std::endl;
+      vTaskDelay(pdMS_TO_TICKS(100));
     }
   }
 }

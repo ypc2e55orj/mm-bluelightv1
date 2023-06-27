@@ -132,9 +132,6 @@ namespace driver::encoder
 
   void update()
   {
-    if (!initialized)
-      return;
-
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans_left, portMAX_DELAY));
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans_right, portMAX_DELAY));
   }
