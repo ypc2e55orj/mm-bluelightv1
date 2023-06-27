@@ -59,12 +59,12 @@ void mainTask(void *unused)
       std::cout << "\x1b[2J\x1b[0;0H"
                 << "Left    : " << angle_left << std::endl
                 << "Right   : " << angle_right << std::endl
-                << "Gyro  X : " << gyro_x << std::endl
-                << "Gyro  Y : " << gyro_y << std::endl
-                << "Gyro  Z : " << gyro_z << std::endl
-                << "Accel X : " << accel_x << std::endl
-                << "Accel Y : " << accel_y << std::endl
-                << "Accel Z : " << accel_z << std::endl
+                << "Gyro  X [mdps]: " << gyro_x << std::endl
+                << "Gyro  Y [mdps]: " << gyro_y << std::endl
+                << "Gyro  Z [mdps]: " << gyro_z << std::endl
+                << "Accel X   [mg]: " << accel_x << std::endl
+                << "Accel Y   [mg]: " << accel_y << std::endl
+                << "Accel Z   [mg]: " << accel_z << std::endl
                 << std::flush;
       vTaskDelay(pdMS_TO_TICKS(100));
     }
