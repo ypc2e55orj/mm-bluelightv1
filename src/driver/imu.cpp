@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <cmath>
 #include <cassert>
 
 #define LSM6DSRX_HOST SPI3_HOST // VSPI
@@ -26,15 +27,16 @@ namespace driver::imu
   static uint8_t *tx_buffer = nullptr;
   static uint8_t *rx_buffer = nullptr;
 
+  static stmdev_ctx_t lsm6dsrx_ctx = {};
+
   static EventGroupHandle_t xEvent = nullptr;
   static EventBits_t xEventBit = 0;
   static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-  static stmdev_ctx_t lsm6dsrx_ctx = {};
-
-  static bool initialized = false;
   static int16_t intr_gyro_buff[3] = {};
   static int16_t intr_accel_buff[3] = {};
+
+  static bool initialized = false;
 
   static void IRAM_ATTR dma_callback_post(spi_transaction_t *trans)
   {
@@ -150,7 +152,7 @@ namespace driver::imu
 
     for (int i = 0; i < 3; i++)
     {
-      gyro_buff[i] = lsm6dsrx_from_fs2000dps_to_mdps(intr_gyro_buff[i]);
+      gyro_buff[i] = (lsm6dsrx_from_fs2000dps_to_mdps(intr_gyro_buff[i]) / 1000.0f) * (M_PI / 180.0f);
     }
 
     return {gyro_buff[0], gyro_buff[1], gyro_buff[2]};
@@ -161,7 +163,7 @@ namespace driver::imu
 
     for (int i = 0; i < 3; i++)
     {
-      accel_buff[i] = lsm6dsrx_from_fs2g_to_mg(intr_accel_buff[i]);
+      accel_buff[i] = (lsm6dsrx_from_fs2g_to_mg(intr_accel_buff[i]) / 1000.0f) * 9.80665f;
     }
 
     return {accel_buff[0], accel_buff[1], accel_buff[2]};

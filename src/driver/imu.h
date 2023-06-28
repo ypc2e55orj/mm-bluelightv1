@@ -9,6 +9,6 @@ namespace driver::imu
   void init(EventGroupHandle_t xHandle, EventBits_t xBit);
   void update();
 
-  std::tuple<float, float, float> gyro();
-  std::tuple<float, float, float> accel();
+  std::tuple<float, float, float> gyro(); // [rad/s]
+  std::tuple<float, float, float> accel(); // [m/s^2]
 }
