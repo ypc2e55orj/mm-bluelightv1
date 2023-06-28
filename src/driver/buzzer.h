@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "../third-party/musical_buzzer/musical_score_encoder.h"
 
 namespace driver::buzzer
 {

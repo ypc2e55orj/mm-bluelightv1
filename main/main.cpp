@@ -23,6 +23,7 @@ void sensorTask(void *unused)
   {
     driver::imu::update();
     driver::encoder::update();
+    driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
@@ -78,8 +79,6 @@ extern "C" void app_main(void)
   driver::encoder::init(xEventGroupSensor, EVENT_GROUP_SENSOR_IMU);
   driver::buzzer::init();
   driver::indicator::init();
-
-  vTaskDelay(pdMS_TO_TICKS(2000));
 
   xTaskCreatePinnedToCore(sensorTask, "sensorTask", 8192, xTaskGetCurrentTaskHandle(), 10, NULL, 0);
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, xTaskGetCurrentTaskHandle(), 10, NULL, 1);

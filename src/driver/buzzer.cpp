@@ -3,6 +3,8 @@
 #include <driver/gpio.h>
 #include <driver/rmt_tx.h>
 
+#include "../third-party/musical_buzzer/musical_score_encoder.h"
+
 #define BUZZER_PIN GPIO_NUM_21
 #define BUZZER_RESOLUTION_HZ 1000000
 
@@ -10,9 +12,9 @@ namespace driver::buzzer
 {
   static rmt_channel_handle_t buzzer_chan = nullptr;
   static rmt_encoder_handle_t score_encoder = nullptr;
+  static rmt_transmit_config_t tx_config = {};
 
   static buzzer_musical_score_t score = {};
-  static rmt_transmit_config_t tx_config = {};
 
   void init()
   {
@@ -21,7 +23,7 @@ namespace driver::buzzer
     tx_chan_cfg.gpio_num = BUZZER_PIN;
     tx_chan_cfg.mem_block_symbols = 64;
     tx_chan_cfg.resolution_hz = BUZZER_RESOLUTION_HZ;
-    tx_chan_cfg.trans_queue_depth = 10;
+    tx_chan_cfg.trans_queue_depth = 4;
 
     ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_cfg, &buzzer_chan));
 
