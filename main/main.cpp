@@ -11,7 +11,7 @@
 #include "../src/driver/encoder.h"
 #include "../src/driver/imu.h"
 #include "../src/driver/indicator.h"
-#include "../src/driver/speaker.h"
+#include "../src/driver/buzzer.h"
 
 #include "../src/core.h"
 #include "../src/priority.h"
@@ -42,13 +42,13 @@ void mainTask(void *pv)
   {
     driver::indicator::clear();
     driver::indicator::set(i, 0x0000FF);
-    driver::speaker::tone(4000, 100);
+    driver::buzzer::tone(4000, 100);
   }
   for (int i = driver::indicator::nums() - 1; i > -1; i--)
   {
     driver::indicator::clear();
     driver::indicator::set(i, 0x0000FF);
-    driver::speaker::tone(4000, 100);
+    driver::buzzer::tone(4000, 100);
   }
   driver::indicator::clear();
 
@@ -86,7 +86,7 @@ extern "C" void app_main(void)
   driver::imu::init(xEventGroupSensor, EVENT_GROUP_SENSOR_ENCODER);
   driver::encoder::init(xEventGroupSensor, EVENT_GROUP_SENSOR_IMU);
   driver::indicator::init();
-  driver::speaker::init();
+  driver::buzzer::init();
 
   xTaskCreatePinnedToCore(sensorTask, "sensorTask", 8192, xTaskGetCurrentTaskHandle(), PRIORITY_HIGH, nullptr, CORE_SENSE);
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, xTaskGetCurrentTaskHandle(), PRIORITY_HIGH, nullptr, CORE_MAIN);

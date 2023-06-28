@@ -3,12 +3,14 @@ idf_component_register(
   "main.cpp"
   "../src/driver/encoder.cpp"
   "../src/driver/imu.cpp"
-  "../src/driver/speaker.cpp"
+  "../src/driver/buzzer.cpp"
   "../src/driver/indicator.cpp"
   "../src/third-party/lsm6dsrx-pid/lsm6dsrx_reg.c"
+  "../src/third-party/musical_buzzer/musical_score_encoder.c"
   INCLUDE_DIRS
   "."
   "../src/"
   "../src/driver"
-  "../src/third-party/lsm6dsrx-pid")
+  "../src/third-party/lsm6dsrx-pid"
+  "../src/third-party/musical_buzzer")
 target_compile_options(${COMPONENT_LIB} PRIVATE -std=gnu++17)
