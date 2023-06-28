@@ -45,6 +45,7 @@ namespace driver::encoder
       uint8_t msb;
     } bytes;
   } as5050a_command = {};
+
   static spi_transaction_t spi_trans_left = {};
   static spi_transaction_t spi_trans_right = {};
 
