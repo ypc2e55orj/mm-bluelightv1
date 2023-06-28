@@ -4,7 +4,7 @@
 #include <driver/rmt_tx.h>
 #include <freertos/FreeRTOS.h>
 
-#include "../third-party/led_strip/led_strip_encoder.h"
+#include <led_strip.h>
 
 #include <cstring>
 
@@ -16,53 +16,43 @@
 
 namespace driver::indicator
 {
-  static rmt_channel_handle_t led_chan = nullptr;
-  static rmt_encoder_handle_t led_encoder = nullptr;
-  static rmt_transmit_config_t tx_config = {};
-
-  static uint8_t pixels[WS2812C_NUM * WS2812C_COLOR_DEPTH] = {};
+  static led_strip_handle_t led_strip = nullptr;
 
   uint8_t nums() { return WS2812C_NUM; }
 
   void init()
   {
-    rmt_tx_channel_config_t tx_chan_cfg = {};
-    tx_chan_cfg.clk_src = RMT_CLK_SRC_DEFAULT;
-    tx_chan_cfg.gpio_num = WS2812C_PIN;
-    tx_chan_cfg.mem_block_symbols = 64;
-    tx_chan_cfg.resolution_hz = WS2812C_RESOLUTION_HZ;
-    tx_chan_cfg.trans_queue_depth = 4;
+    led_strip_config_t strip_cfg = {};
+    strip_cfg.strip_gpio_num = WS2812C_PIN;
+    strip_cfg.max_leds = WS2812C_NUM;
+    strip_cfg.led_pixel_format = LED_PIXEL_FORMAT_GRB;
+    strip_cfg.led_model = LED_MODEL_WS2812;
+    strip_cfg.flags.invert_out = false;
 
-    ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_cfg, &led_chan));
+    led_strip_rmt_config_t rmt_cfg = {};
+    rmt_cfg.clk_src = RMT_CLK_SRC_DEFAULT;
+    rmt_cfg.resolution_hz = WS2812C_RESOLUTION_HZ;
+    rmt_cfg.flags.with_dma = true;
 
-    led_strip_encoder_config_t encoder_cfg = {};
-    encoder_cfg.resolution = WS2812C_RESOLUTION_HZ;
-
-    ESP_ERROR_CHECK(rmt_new_led_strip_encoder(&encoder_cfg, &led_encoder));
-
-    ESP_ERROR_CHECK(rmt_enable(led_chan));
+    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_cfg, &rmt_cfg, &led_strip));
   }
 
   void set(uint8_t pos, uint8_t r, uint8_t g, uint8_t b)
   {
-    pixels[pos * WS2812C_COLOR_DEPTH] = g;
-    pixels[pos * WS2812C_COLOR_DEPTH + 1] = r;
-    pixels[pos * WS2812C_COLOR_DEPTH + 2] = b;
+    ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, pos, r, g, b));
   }
   void set(uint8_t pos, uint32_t rgb)
   {
-    pixels[pos * WS2812C_COLOR_DEPTH] = (rgb & 0xFF00) >> 8;        // green
-    pixels[pos * WS2812C_COLOR_DEPTH + 1] = (rgb & 0xFF0000) >> 16; // red
-    pixels[pos * WS2812C_COLOR_DEPTH + 2] = (rgb & 0xFF);           // blue
+    ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, pos, (rgb & 0xFF0000) >> 16, (rgb & 0xFF00) >> 8, (rgb & 0xFF)));
   }
 
   void clear()
   {
-    memset(pixels, 0, WS2812C_NUM * WS2812C_COLOR_DEPTH);
+    ESP_ERROR_CHECK(led_strip_clear(led_strip));
   }
 
   void update()
   {
-    ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));
+    ESP_ERROR_CHECK(led_strip_refresh(led_strip));
   }
 }
