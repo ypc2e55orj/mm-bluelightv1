@@ -7,7 +7,7 @@ namespace driver::speaker
   struct note_t
   {
     uint32_t freq;
-    int64_t ms;
+    int32_t ms;
   };
 
   void init();
