@@ -11,6 +11,9 @@ namespace driver::buzzer
   static rmt_channel_handle_t buzzer_chan = nullptr;
   static rmt_encoder_handle_t score_encoder = nullptr;
 
+  static buzzer_musical_score_t score = {};
+  static rmt_transmit_config_t tx_config = {};
+
   void init()
   {
     rmt_tx_channel_config_t tx_chan_cfg = {};
@@ -26,7 +29,6 @@ namespace driver::buzzer
     encoder_cfg.resolution = BUZZER_RESOLUTION_HZ;
 
     ESP_ERROR_CHECK(rmt_new_musical_score_encoder(&encoder_cfg, &score_encoder));
-
     ESP_ERROR_CHECK(rmt_enable(buzzer_chan));
   }
 
@@ -40,11 +42,8 @@ namespace driver::buzzer
 
   void tone(uint32_t freq, uint32_t ms)
   {
-    buzzer_musical_score_t score = {};
     score.duration_ms = ms;
     score.freq_hz = freq;
-
-    rmt_transmit_config_t tx_config = {};
     tx_config.loop_count = ms * freq / 1000;
 
     ESP_ERROR_CHECK(rmt_transmit(buzzer_chan, score_encoder, &score, sizeof(buzzer_musical_score_t), &tx_config));

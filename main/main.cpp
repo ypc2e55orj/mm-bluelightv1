@@ -5,7 +5,6 @@
 #include <esp_timer.h>
 
 #include <iostream>
-
 #include <cassert>
 
 #include "../src/driver/encoder.h"
@@ -30,7 +29,6 @@ void sensorTask(void *pv)
     int64_t start = esp_timer_get_time();
     driver::imu::update();
     driver::encoder::update();
-    driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(10));
     diff = esp_timer_get_time() - start;
   }
@@ -40,17 +38,18 @@ void mainTask(void *pv)
 {
   for (int i = 0; i < driver::indicator::nums(); i++)
   {
-    driver::indicator::clear();
     driver::indicator::set(i, 0x0000FF);
     driver::buzzer::tone(4000, 100);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    driver::indicator::clear();
   }
   for (int i = driver::indicator::nums() - 1; i > -1; i--)
   {
-    driver::indicator::clear();
     driver::indicator::set(i, 0x0000FF);
     driver::buzzer::tone(4000, 100);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    driver::indicator::clear();
   }
-  driver::indicator::clear();
 
   while (true)
   {
@@ -85,8 +84,10 @@ extern "C" void app_main(void)
 
   driver::imu::init(xEventGroupSensor, EVENT_GROUP_SENSOR_ENCODER);
   driver::encoder::init(xEventGroupSensor, EVENT_GROUP_SENSOR_IMU);
-  driver::indicator::init();
   driver::buzzer::init();
+  driver::indicator::init();
+
+  vTaskDelay(pdMS_TO_TICKS(2000));
 
   xTaskCreatePinnedToCore(sensorTask, "sensorTask", 8192, xTaskGetCurrentTaskHandle(), PRIORITY_HIGH, nullptr, CORE_SENSE);
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, xTaskGetCurrentTaskHandle(), PRIORITY_HIGH, nullptr, CORE_MAIN);
