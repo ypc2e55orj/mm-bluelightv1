@@ -8,16 +8,6 @@
 
 #define SPEAKER_PIN GPIO_NUM_21
 
-#define C7 2093
-#define D7 2349
-#define E7 2637
-#define F7 2793
-#define G7 3135
-#define A7 3520
-#define B7 3951
-#define C8 4186
-#define D8 4698
-
 namespace driver::speaker
 {
   void init()
