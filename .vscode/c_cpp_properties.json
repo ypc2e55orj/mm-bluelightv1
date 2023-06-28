@@ -3,23 +3,17 @@
         {
             "name": "ESP32-S3",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/build/config",
+                "C:/Espressif/frameworks/esp-idf-v5.0.1/components/**"
             ],
             "defines": [
                 "_DEBUG"
             ],
             "compilerPath": "C:/Espressif/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/bin/xtensa-esp32s3-elf-g++.exe",
             "intelliSenseMode": "gcc-x64",
-            "cppStandard": "c++17",
-            "browse": {
-                "path": [
-                    "${workspaceFolder}/**",
-                    "${workspaceFolder}/build/config",
-                    "C:/Espressif/frameworks/esp-idf-v5.0.1/components/**"
-                ],
-                "limitSymbolsToIncludedHeaders": true,
-                "databaseFilename": ""
-            }
+            "cppStandard": "c++17"
         }
     ],
     "version": 4
