@@ -22,15 +22,6 @@
 
 namespace driver::encoder
 {
-  union as5050a_command
-  {
-    uint16_t word;
-    struct
-    {
-      uint8_t lsb;
-      uint8_t msb;
-    } bytes;
-  };
   constexpr uint16_t as5050a_write(uint16_t reg)
   {
     return ((reg << 1) | __builtin_parity(reg));
@@ -45,20 +36,29 @@ namespace driver::encoder
     return (res & 0x3FFE) >> 2;
   }
 
-  static bool initialized = false;
-  static EventGroupHandle_t xEvent = nullptr;
-  static EventBits_t xEventBit = 0;
-  static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-  static as5050a_command as5050a_command = {};
+  static union as5050a_command
+  {
+    uint16_t word;
+    struct
+    {
+      uint8_t lsb;
+      uint8_t msb;
+    } bytes;
+  } as5050a_command = {};
   static spi_transaction_t spi_trans_left = {};
   static spi_transaction_t spi_trans_right = {};
 
   static spi_device_handle_t spi_handle_left = nullptr;
   static spi_device_handle_t spi_handle_right = nullptr;
 
+  static EventGroupHandle_t xEvent = nullptr;
+  static EventBits_t xEventBit = 0;
+  static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
   static uint16_t angle_left = 0;
   static uint16_t angle_right = 0;
+
+  static bool initialized = false;
 
   static void IRAM_ATTR dma_callback_pre(spi_transaction_t *trans)
   {
