@@ -38,7 +38,7 @@ namespace driver::speaker
     }
   }
 
-  void tone(uint32_t freq, int64_t ms)
+  void tone(uint32_t freq, int32_t ms)
   {
     if (freq == 0)
     {
@@ -46,14 +46,14 @@ namespace driver::speaker
       return;
     }
 
-    uint32_t delay = 1000000 / freq;
+    uint32_t delay = 500000 / freq;
     int64_t until = (esp_timer_get_time() + ms * 1000);
     while (esp_timer_get_time() < until)
     {
       gpio_set_level(SPEAKER_PIN, 1);
-      ets_delay_us(delay / 2);
+      ets_delay_us(delay);
       gpio_set_level(SPEAKER_PIN, 0);
-      ets_delay_us(delay / 2);
+      ets_delay_us(delay);
     }
 
     gpio_set_level(SPEAKER_PIN, 0);
