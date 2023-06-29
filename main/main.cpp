@@ -2,6 +2,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 #include <freertos/task.h>
+#include <esp_timer.h>
 
 #include <iostream>
 #include <cassert>
@@ -16,15 +17,18 @@
 #define EVENT_GROUP_SENSOR_ALL (EVENT_GROUP_SENSOR_IMU | EVENT_GROUP_SENSOR_ENCODER)
 
 EventGroupHandle_t xEventGroupSensor = nullptr;
+uint32_t sensorTaskDiff = 0;
 
 void sensorTask(void *unused)
 {
   while (true)
   {
+    int64_t start = esp_timer_get_time();
     driver::imu::update();
     driver::encoder::update();
     driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(10));
+    sensorTaskDiff = esp_timer_get_time() - start;
   }
 }
 
@@ -55,14 +59,15 @@ void mainTask(void *unused)
       auto [accel_x, accel_y, accel_z] = driver::imu::accel();
 
       std::cout << "\x1b[2J\x1b[0;0H"
-                << "Left    : " << angle_left << std::endl
-                << "Right   : " << angle_right << std::endl
-                << "Gyro  X [mdps]: " << gyro_x << std::endl
-                << "Gyro  Y [mdps]: " << gyro_y << std::endl
-                << "Gyro  Z [mdps]: " << gyro_z << std::endl
-                << "Accel X   [mg]: " << accel_x << std::endl
-                << "Accel Y   [mg]: " << accel_y << std::endl
-                << "Accel Z   [mg]: " << accel_z << std::endl
+                << "SensorTask Diff: " << sensorTaskDiff << std::endl
+                << "Encoder Left   : " << angle_left << std::endl
+                << "Encoder Right  : " << angle_right << std::endl
+                << "Gyro  X   [dps]: " << gyro_x << std::endl
+                << "Gyro  Y   [dps]: " << gyro_y << std::endl
+                << "Gyro  Z   [dps]: " << gyro_z << std::endl
+                << "Accel X [m/s^2]: " << accel_x << std::endl
+                << "Accel Y [m/s^2]: " << accel_y << std::endl
+                << "Accel Z [m/s^2]: " << accel_z << std::endl
                 << std::flush;
       vTaskDelay(pdMS_TO_TICKS(100));
     }
