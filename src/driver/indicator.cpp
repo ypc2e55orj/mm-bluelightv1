@@ -31,6 +31,7 @@ namespace driver::indicator
     tx_chan_cfg.mem_block_symbols = 64;
     tx_chan_cfg.resolution_hz = WS2812C_RESOLUTION_HZ;
     tx_chan_cfg.trans_queue_depth = 4;
+    tx_chan_cfg.flags.with_dma = 1;
 
     ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_cfg, &led_chan));
 

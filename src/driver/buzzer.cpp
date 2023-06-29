@@ -34,14 +34,6 @@ namespace driver::buzzer
     ESP_ERROR_CHECK(rmt_enable(buzzer_chan));
   }
 
-  void play(note_t *notes, int size)
-  {
-    for (int i = 0; i < size; i++)
-    {
-      tone(notes[i].freq, notes[i].ms);
-    }
-  }
-
   void tone(uint32_t freq, uint32_t ms)
   {
     score.duration_ms = ms;
