@@ -62,9 +62,9 @@ void mainTask(void *unused)
                 << "SensorTask Diff: " << sensorTaskDiff << std::endl
                 << "Encoder Left   : " << angle_left << std::endl
                 << "Encoder Right  : " << angle_right << std::endl
-                << "Gyro  X   [dps]: " << gyro_x << std::endl
-                << "Gyro  Y   [dps]: " << gyro_y << std::endl
-                << "Gyro  Z   [dps]: " << gyro_z << std::endl
+                << "Gyro  X [rad/s]: " << gyro_x << std::endl
+                << "Gyro  Y [rad/s]: " << gyro_y << std::endl
+                << "Gyro  Z [rad/s]: " << gyro_z << std::endl
                 << "Accel X [m/s^2]: " << accel_x << std::endl
                 << "Accel Y [m/s^2]: " << accel_y << std::endl
                 << "Accel Z [m/s^2]: " << accel_z << std::endl
