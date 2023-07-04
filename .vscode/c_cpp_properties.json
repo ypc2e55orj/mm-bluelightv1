@@ -9,7 +9,8 @@
                 "C:/Espressif/frameworks/esp-idf-v5.0.1/components/**"
             ],
             "defines": [
-                "_DEBUG"
+                "_DEBUG",
+                "ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED"
             ],
             "compilerPath": "C:/Espressif/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/bin/xtensa-esp32s3-elf-g++.exe",
             "intelliSenseMode": "gcc-x64",
