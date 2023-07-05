@@ -72,7 +72,7 @@ namespace driver::photo
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_cfg, &adc1_cali));
   }
 
-  void sampling1(uint32_t charge_us)
+  inline static void sampling1(uint32_t charge_us)
   {
     gpio_set_level(photo_pins[PHOTO_LEFT_90].ir, 0);
     gpio_set_level(photo_pins[PHOTO_RIGHT_45].ir, 0);
@@ -88,7 +88,7 @@ namespace driver::photo
     ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[PHOTO_RIGHT_45].photo, &result_raw[PHOTO_RIGHT_45]));
   }
 
-  void sampling2(uint32_t charge_us)
+  inline static void sampling2(uint32_t charge_us)
   {
     gpio_set_level(photo_pins[PHOTO_LEFT_45].ir, 0);
     gpio_set_level(photo_pins[PHOTO_RIGHT_90].ir, 0);
