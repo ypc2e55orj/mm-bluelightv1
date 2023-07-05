@@ -10,7 +10,10 @@
 
 namespace driver::photo
 {
+  uint8_t nums();
+
   void init();
+
   void sampling(uint32_t charge_us);
   void get(int *result);
 }

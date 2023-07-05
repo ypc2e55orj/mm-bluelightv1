@@ -31,6 +31,10 @@ namespace driver::photo
   static int result_raw[4] = {};
   static int result_vol[4] = {};
 
+  uint8_t nums() {
+    return PHOTO_NUMS;
+  }
+
   void init()
   {
     // GPIO config
@@ -44,7 +48,7 @@ namespace driver::photo
 
     for (int i = 0; i < PHOTO_NUMS; i++)
     {
-      gpio_set_level(photo_pins[i].ir, 0);
+      gpio_set_level(photo_pins[i].ir, 1);
     }
 
     // adc1

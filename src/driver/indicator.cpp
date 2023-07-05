@@ -21,6 +21,11 @@ namespace driver::indicator
 
   static uint8_t pixels[WS2812C_NUM * WS2812C_COLOR_DEPTH] = {};
 
+  inline static void update()
+  {
+    ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));
+  }
+
   uint8_t nums() { return WS2812C_NUM; }
 
   void init()
@@ -48,21 +53,19 @@ namespace driver::indicator
     pixels[pos * WS2812C_COLOR_DEPTH] = g;
     pixels[pos * WS2812C_COLOR_DEPTH + 1] = r;
     pixels[pos * WS2812C_COLOR_DEPTH + 2] = b;
+    update();
   }
   void set(uint8_t pos, uint32_t rgb)
   {
     pixels[pos * WS2812C_COLOR_DEPTH] = (rgb & 0xFF00) >> 8;        // green
     pixels[pos * WS2812C_COLOR_DEPTH + 1] = (rgb & 0xFF0000) >> 16; // red
     pixels[pos * WS2812C_COLOR_DEPTH + 2] = (rgb & 0xFF);           // blue
+    update();
   }
 
   void clear()
   {
     memset(pixels, 0, WS2812C_NUM * WS2812C_COLOR_DEPTH);
-  }
-
-  void update()
-  {
-    ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));
+    update();
   }
 }

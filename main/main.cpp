@@ -27,7 +27,6 @@ void sensorTask(void *unused)
     int64_t start = esp_timer_get_time();
     driver::imu::update();
     driver::encoder::update();
-    driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(1));
     sensorTaskDiff = esp_timer_get_time() - start;
   }
@@ -38,23 +37,29 @@ void mainTask(void *unused)
   for (int i = 0; i < driver::indicator::nums(); i++)
   {
     driver::indicator::set(i, 0x0000FF);
-    driver::buzzer::tone(4000, 100);
+    // driver::buzzer::tone(4000, 100);
     vTaskDelay(pdMS_TO_TICKS(100));
     driver::indicator::clear();
   }
   for (int i = driver::indicator::nums() - 1; i > -1; i--)
   {
     driver::indicator::set(i, 0x0000FF);
-    driver::buzzer::tone(4000, 100);
+    // driver::buzzer::tone(4000, 100);
     vTaskDelay(pdMS_TO_TICKS(100));
     driver::indicator::clear();
   }
 
+  bool blink = true;
   while (true)
   {
     EventBits_t uBits = xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_ALL, pdTRUE, pdTRUE, pdMS_TO_TICKS(100));
     if (uBits == EVENT_GROUP_SENSOR_ALL)
     {
+      for (int i = 0; i < driver::indicator::nums(); i++)
+        driver::indicator::set(i, blink ? 0x00000F : 0x000000);
+
+      blink = !blink;
+
       auto [angle_left, angle_right] = driver::encoder::get();
       auto [gyro_x, gyro_y, gyro_z] = driver::imu::gyro();
       auto [accel_x, accel_y, accel_z] = driver::imu::accel();
