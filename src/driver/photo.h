@@ -14,6 +14,6 @@ namespace driver::photo
 
   void init();
 
-  void sampling(uint32_t charge_us);
+  void update();
   void get(int *result);
 }

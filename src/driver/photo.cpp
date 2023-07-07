@@ -74,62 +74,20 @@ namespace driver::photo
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_cfg, &adc1_cali));
   }
 
-  inline static void sampling1(uint32_t charge_us)
+  inline static void sampling(uint8_t pos)
   {
-    gpio_set_level(photo_pins[PHOTO_LEFT_90].ir, 1);
-    gpio_set_level(photo_pins[PHOTO_RIGHT_45].ir, 1);
-
-    ets_delay_us(100); // TODO: タイマー割り込みに変更
-
-    gpio_set_level(photo_pins[PHOTO_LEFT_90].ir, 0);
-    gpio_set_level(photo_pins[PHOTO_RIGHT_45].ir, 0);
-
-    ets_delay_us(charge_us); // TODO: タイマー割り込みに変更
-
-    gpio_set_level(photo_pins[PHOTO_LEFT_90].ir, 1);
-    gpio_set_level(photo_pins[PHOTO_RIGHT_45].ir, 1);
-
-    ets_delay_us(10); // TODO: タイマー割り込みに変更
-
-    ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[PHOTO_LEFT_90].photo, &result_raw[PHOTO_LEFT_90]));
-    ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[PHOTO_RIGHT_45].photo, &result_raw[PHOTO_RIGHT_45]));
-
-    gpio_set_level(photo_pins[PHOTO_LEFT_90].ir, 0);
-    gpio_set_level(photo_pins[PHOTO_RIGHT_45].ir, 0);
+    gpio_set_level(photo_pins[pos].ir, 1);
+    ets_delay_us(10);
+    ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[pos].photo, &result_raw[pos]));
+    gpio_set_level(photo_pins[pos].ir, 0);
+    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali, result_raw[pos], &result_vol[pos]));
   }
 
-  inline static void sampling2(uint32_t charge_us)
+  void update()
   {
-    gpio_set_level(photo_pins[PHOTO_LEFT_45].ir, 1);
-    gpio_set_level(photo_pins[PHOTO_RIGHT_90].ir, 1);
-
-    ets_delay_us(100); // TODO: タイマー割り込みに変更
-
-    gpio_set_level(photo_pins[PHOTO_LEFT_45].ir, 0);
-    gpio_set_level(photo_pins[PHOTO_RIGHT_90].ir, 0);
-
-    ets_delay_us(charge_us); // TODO: タイマー割り込みに変更
-
-    gpio_set_level(photo_pins[PHOTO_LEFT_45].ir, 1);
-    gpio_set_level(photo_pins[PHOTO_RIGHT_90].ir, 1);
-
-    ets_delay_us(10); // TODO: タイマー割り込みに変更
-
-    ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[PHOTO_LEFT_45].photo, &result_raw[PHOTO_LEFT_45]));
-    ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[PHOTO_RIGHT_90].photo, &result_raw[PHOTO_RIGHT_90]));
-
-    gpio_set_level(photo_pins[PHOTO_LEFT_45].ir, 0);
-    gpio_set_level(photo_pins[PHOTO_RIGHT_90].ir, 0);
-  }
-
-  void sampling(uint32_t charge_us)
-  {
-    sampling1(charge_us);
-    sampling2(charge_us);
-
     for (int i = 0; i < PHOTO_NUMS; i++)
     {
-      ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali, result_raw[i], &result_vol[i]));
+      sampling(i);
     }
   }
 

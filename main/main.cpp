@@ -27,6 +27,7 @@ void sensorTask(void *unused)
     int64_t start = esp_timer_get_time();
     driver::imu::update();
     driver::encoder::update();
+    driver::photo::update();
     driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(1));
     sensorTaskDiff = esp_timer_get_time() - start;
@@ -68,7 +69,6 @@ void mainTask(void *unused)
       auto [accel_x, accel_y, accel_z] = driver::imu::accel();
 
       int result[4] = {};
-      driver::photo::sampling(1000);
       driver::photo::get(result);
 
       std::cout << "\x1b[2J\x1b[0;0H"
