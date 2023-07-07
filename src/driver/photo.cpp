@@ -31,9 +31,7 @@ namespace driver::photo
   static int result_raw[4] = {};
   static int result_vol[4] = {};
 
-  uint8_t nums() {
-    return PHOTO_NUMS;
-  }
+  uint8_t nums() { return PHOTO_NUMS; }
 
   void init()
   {
@@ -74,6 +72,11 @@ namespace driver::photo
 
   inline static void sampling1(uint32_t charge_us)
   {
+    gpio_set_level(photo_pins[PHOTO_LEFT_90].ir, 1);
+    gpio_set_level(photo_pins[PHOTO_RIGHT_45].ir, 1);
+
+    ets_delay_us(100); // TODO: タイマー割り込みに変更
+
     gpio_set_level(photo_pins[PHOTO_LEFT_90].ir, 0);
     gpio_set_level(photo_pins[PHOTO_RIGHT_45].ir, 0);
 
@@ -86,10 +89,18 @@ namespace driver::photo
 
     ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[PHOTO_LEFT_90].photo, &result_raw[PHOTO_LEFT_90]));
     ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[PHOTO_RIGHT_45].photo, &result_raw[PHOTO_RIGHT_45]));
+
+    gpio_set_level(photo_pins[PHOTO_LEFT_90].ir, 0);
+    gpio_set_level(photo_pins[PHOTO_RIGHT_45].ir, 0);
   }
 
   inline static void sampling2(uint32_t charge_us)
   {
+    gpio_set_level(photo_pins[PHOTO_LEFT_45].ir, 1);
+    gpio_set_level(photo_pins[PHOTO_RIGHT_90].ir, 1);
+
+    ets_delay_us(100); // TODO: タイマー割り込みに変更
+
     gpio_set_level(photo_pins[PHOTO_LEFT_45].ir, 0);
     gpio_set_level(photo_pins[PHOTO_RIGHT_90].ir, 0);
 
@@ -102,6 +113,9 @@ namespace driver::photo
 
     ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[PHOTO_LEFT_45].photo, &result_raw[PHOTO_LEFT_45]));
     ESP_ERROR_CHECK(adc_oneshot_read(adc1, photo_pins[PHOTO_RIGHT_90].photo, &result_raw[PHOTO_RIGHT_90]));
+
+    gpio_set_level(photo_pins[PHOTO_LEFT_45].ir, 0);
+    gpio_set_level(photo_pins[PHOTO_RIGHT_90].ir, 0);
   }
 
   void sampling(uint32_t charge_us)

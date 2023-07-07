@@ -27,6 +27,7 @@ void sensorTask(void *unused)
     int64_t start = esp_timer_get_time();
     driver::imu::update();
     driver::encoder::update();
+    driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(1));
     sensorTaskDiff = esp_timer_get_time() - start;
   }
@@ -37,14 +38,14 @@ void mainTask(void *unused)
   for (int i = 0; i < driver::indicator::nums(); i++)
   {
     driver::indicator::set(i, 0x0000FF);
-    // driver::buzzer::tone(4000, 100);
+    driver::buzzer::tone(4000, 100);
     vTaskDelay(pdMS_TO_TICKS(100));
     driver::indicator::clear();
   }
   for (int i = driver::indicator::nums() - 1; i > -1; i--)
   {
     driver::indicator::set(i, 0x0000FF);
-    // driver::buzzer::tone(4000, 100);
+    driver::buzzer::tone(4000, 100);
     vTaskDelay(pdMS_TO_TICKS(100));
     driver::indicator::clear();
   }
