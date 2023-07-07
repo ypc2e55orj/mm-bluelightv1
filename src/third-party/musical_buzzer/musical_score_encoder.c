@@ -1,4 +1,4 @@
-// Original: https://github.com/espressif/esp-idf/tree/b19a3e3e568588a8e2856f2c61c257ce47761787/examples/peripherals/rmt/musical_buzzer
+// Original: https://github.com/espressif/esp-idf/blob/release/v5.1/examples/peripherals/rmt/musical_buzzer/main/musical_score_encoder.c
 /*
  * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
  *

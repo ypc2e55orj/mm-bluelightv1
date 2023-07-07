@@ -1,3 +1,4 @@
+// Original: https://github.com/espressif/esp-idf/blob/release/v5.1/examples/peripherals/rmt/led_strip/main/led_strip_encoder.c
 /*
  * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
  *
