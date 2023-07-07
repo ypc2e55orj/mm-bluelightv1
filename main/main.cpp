@@ -57,7 +57,9 @@ void mainTask(void *unused)
     if (uBits == EVENT_GROUP_SENSOR_ALL)
     {
       for (int i = 0; i < driver::indicator::nums(); i++)
+      {
         driver::indicator::set(i, blink ? 0x00000F : 0x000000);
+      }
 
       blink = !blink;
 

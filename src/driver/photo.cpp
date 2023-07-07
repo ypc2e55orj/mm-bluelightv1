@@ -40,7 +40,9 @@ namespace driver::photo
     gpio_cfg.mode = GPIO_MODE_OUTPUT;
 
     for (int i = 0; i < PHOTO_NUMS; i++)
+    {
       gpio_cfg.pin_bit_mask |= (1UL << photo_pins[i].ir);
+    }
 
     gpio_config(&gpio_cfg);
 
@@ -60,7 +62,9 @@ namespace driver::photo
     chan_cfg.bitwidth = ADC_BITWITH_PHOTO;
 
     for (int i = 0; i < PHOTO_NUMS; i++)
+    {
       ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1, photo_pins[i].photo, &chan_cfg));
+    }
 
     adc_cali_curve_fitting_config_t cali_cfg = {};
     cali_cfg.unit_id = ADC_UNIT_PHOTO;
@@ -124,7 +128,9 @@ namespace driver::photo
     sampling2(charge_us);
 
     for (int i = 0; i < PHOTO_NUMS; i++)
+    {
       ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali, result_raw[i], &result_vol[i]));
+    }
   }
 
   void get(int *result)

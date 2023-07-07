@@ -41,7 +41,9 @@ namespace driver::imu
   static void IRAM_ATTR dma_callback_post(spi_transaction_t *trans)
   {
     if (!initialized)
+    {
       return;
+    }
 
     intr_gyro_buff[0] = (rx_buffer[2] << 8) | rx_buffer[1];
     intr_gyro_buff[1] = (rx_buffer[4] << 8) | rx_buffer[3];
@@ -54,7 +56,9 @@ namespace driver::imu
     xHigherPriorityTaskWoken = pdFALSE;
 
     if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdTRUE)
+    {
       portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
   }
 
   static int32_t lsm6dsrx_platform_write(void *unused, uint8_t reg, const uint8_t *bufp, uint16_t len)

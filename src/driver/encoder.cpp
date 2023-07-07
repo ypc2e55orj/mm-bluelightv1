@@ -72,13 +72,17 @@ namespace driver::encoder
   static void IRAM_ATTR dma_callback_post(spi_transaction_t *trans)
   {
     if (!initialized)
+    {
       return;
+    }
 
     uint16_t rx_data = (trans->rx_data[0] << 8) | trans->rx_data[1];
     xHigherPriorityTaskWoken = pdFALSE;
 
     if (trans == &spi_trans_left)
+    {
       angle_left = as5050a_angle(rx_data);
+    }
     else // if (trans == &spi_trans_right)
     {
       angle_right = as5050a_angle(rx_data);
