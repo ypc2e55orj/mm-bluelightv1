@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cassert>
 
+#include "../src/driver/battery.h"
 #include "../src/driver/encoder.h"
 #include "../src/driver/imu.h"
 #include "../src/driver/indicator.h"
@@ -73,6 +74,7 @@ void mainTask(void *unused)
 
       std::cout << "\x1b[2J\x1b[0;0H"
                 << "SensorTask Diff: " << sensorTaskDiff << std::endl
+                << "Battery        : " << driver::battery::get() << std::endl
                 << "Encoder Left   : " << angle_left << std::endl
                 << "Encoder Right  : " << angle_right << std::endl
                 << "Gyro  X [rad/s]: " << gyro_x << std::endl
@@ -81,10 +83,10 @@ void mainTask(void *unused)
                 << "Accel X [m/s^2]: " << accel_x << std::endl
                 << "Accel Y [m/s^2]: " << accel_y << std::endl
                 << "Accel Z [m/s^2]: " << accel_z << std::endl
-                << "Photo Left  90 : " << result[PHOTO_LEFT_90] << std::endl
-                << "Photo Left  45 : " << result[PHOTO_LEFT_45] << std::endl
-                << "Photo Right 45 : " << result[PHOTO_RIGHT_45] << std::endl
-                << "Photo Right 90 : " << result[PHOTO_RIGHT_90] << std::endl
+                << "Photo Left  90 : " << result[driver::photo::LEFT_90] << std::endl
+                << "Photo Left  45 : " << result[driver::photo::LEFT_45] << std::endl
+                << "Photo Right 45 : " << result[driver::photo::RIGHT_45] << std::endl
+                << "Photo Right 90 : " << result[driver::photo::RIGHT_90] << std::endl
                 << std::flush;
       vTaskDelay(pdMS_TO_TICKS(100));
     }
@@ -97,6 +99,7 @@ extern "C" void app_main(void)
   xEventGroupSensor = xEventGroupCreate();
   assert(xEventGroupSensor != NULL);
 
+  driver::battery::init();
   driver::imu::init(xEventGroupSensor, EVENT_GROUP_SENSOR_ENCODER);
   driver::encoder::init(xEventGroupSensor, EVENT_GROUP_SENSOR_IMU);
   driver::buzzer::init();
