@@ -87,7 +87,9 @@ namespace driver::encoder
     {
       angle_right = as5050a_angle(rx_data);
       if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdTRUE)
+      {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+      }
     }
   }
 
