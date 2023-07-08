@@ -8,6 +8,7 @@ idf_component_register(
   "../src/driver/adc.cpp"
   "../src/driver/battery.cpp"
   "../src/driver/photo.cpp"
+  "../src/driver/motor.cpp"
   "../src/third-party/led_strip/led_strip_encoder.c"
   "../src/third-party/lsm6dsrx-pid/lsm6dsrx_reg.c"
   "../src/third-party/musical_buzzer/musical_score_encoder.c"
