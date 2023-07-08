@@ -48,9 +48,10 @@ namespace driver::photo
 
   inline static void sampling(uint8_t pos)
   {
+    int ambient = driver::adc::voltage(photo_pins[pos].photo);
     gpio_set_level(photo_pins[pos].ir, 1);
     ets_delay_us(10);
-    result[pos] = driver::adc::voltage(photo_pins[pos].photo);
+    result[pos] = (driver::adc::voltage(photo_pins[pos].photo) - ambient);
     gpio_set_level(photo_pins[pos].ir, 0);
   }
 
