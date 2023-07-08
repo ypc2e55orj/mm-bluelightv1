@@ -11,7 +11,7 @@
 #define WS2812C_PIN GPIO_NUM_45
 #define WS2812C_NUM 4
 #define WS2812C_COLOR_DEPTH 3
-#define WS2812C_RESOLUTION_HZ 10000000
+#define WS2812C_RESOLUTION_HZ 10'000'000
 
 namespace driver::indicator
 {

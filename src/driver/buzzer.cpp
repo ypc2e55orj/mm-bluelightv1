@@ -6,7 +6,7 @@
 #include "../third-party/musical_buzzer/musical_score_encoder.h"
 
 #define BUZZER_PIN GPIO_NUM_21
-#define BUZZER_RESOLUTION_HZ 1000000
+#define BUZZER_RESOLUTION_HZ 1'000'000
 
 namespace driver::buzzer
 {
