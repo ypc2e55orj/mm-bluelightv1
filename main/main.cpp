@@ -27,9 +27,9 @@ void sensorTask(void *unused)
   while (true)
   {
     int64_t start = esp_timer_get_time();
+    driver::photo::update();
     driver::imu::update();
     driver::encoder::update();
-    driver::photo::update();
     driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(1));
     sensorTaskDiff = esp_timer_get_time() - start;
@@ -54,7 +54,6 @@ void mainTask(void *unused)
   }
 
   bool blink = true;
-  uint32_t motor = 0;
   while (true)
   {
     EventBits_t uBits = xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_ALL, pdTRUE, pdTRUE, pdMS_TO_TICKS(100));
@@ -79,7 +78,6 @@ void mainTask(void *unused)
       std::cout << "\x1b[2J\x1b[0;0H"
                 << "SensorTask Diff: " << sensorTaskDiff << std::endl
                 << "Battery        : " << driver::battery::get() << std::endl
-                << "Motor Speed    : " << motor << std::endl
                 << "Encoder Left   : " << angle_left << std::endl
                 << "Encoder Right  : " << angle_right << std::endl
                 << "Gyro  X [rad/s]: " << gyro_x << std::endl
@@ -102,7 +100,7 @@ void mainTask(void *unused)
 extern "C" void app_main(void)
 {
   xEventGroupSensor = xEventGroupCreate();
-  assert(xEventGroupSensor != NULL);
+  assert(xEventGroupSensor != nullptr);
 
   driver::battery::init();
   driver::imu::init(xEventGroupSensor, EVENT_GROUP_SENSOR_ENCODER);
@@ -112,6 +110,6 @@ extern "C" void app_main(void)
   driver::photo::init();
   driver::motor::init();
 
-  xTaskCreatePinnedToCore(sensorTask, "sensorTask", 8192, xTaskGetCurrentTaskHandle(), 10, NULL, 0);
-  xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, xTaskGetCurrentTaskHandle(), 10, NULL, 1);
+  xTaskCreatePinnedToCore(sensorTask, "sensorTask", 8192, nullptr, 10, nullptr, 0);
+  xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 10, nullptr, 1);
 }
