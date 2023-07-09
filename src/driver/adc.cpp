@@ -6,14 +6,14 @@
 
 namespace driver::adc
 {
-  static bool initialized_ = false;
+  static bool initialized = false;
 
   static adc_oneshot_unit_handle_t adc1 = nullptr;
   static adc_cali_handle_t adc1_cali = nullptr;
 
   void init()
   {
-    if (initialized_)
+    if (initialized)
     {
       return;
     }
@@ -30,7 +30,7 @@ namespace driver::adc
 
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_cfg, &adc1_cali));
 
-    initialized_ = true;
+    initialized = true;
   }
 
   void chan(adc_channel_t channel)

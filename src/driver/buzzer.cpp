@@ -5,11 +5,11 @@
 
 #include "../third-party/musical_buzzer/musical_score_encoder.h"
 
-#define BUZZER_PIN GPIO_NUM_21
-#define BUZZER_RESOLUTION_HZ 1'000'000
-
 namespace driver::buzzer
 {
+  static const gpio_num_t BUZZER_PIN = GPIO_NUM_21;
+  static const uint32_t BUZZER_RESOLUTION_HZ = 1'000'000;
+
   static rmt_channel_handle_t buzzer_chan = nullptr;
   static rmt_encoder_handle_t score_encoder = nullptr;
   static rmt_transmit_config_t tx_config = {};

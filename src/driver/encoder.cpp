@@ -3,25 +3,18 @@
 #include <driver/spi_master.h>
 #include <driver/gpio.h>
 
-#define AS5050A_HOST SPI2_HOST // HSPI
-#define AS5050A_PIN_MISO GPIO_NUM_37
-#define AS5050A_PIN_MOSI GPIO_NUM_35
-#define AS5050A_PIN_SCLK GPIO_NUM_36
-#define AS5050A_PIN_CS_LEFT GPIO_NUM_26
-#define AS5050A_PIN_CS_RIGHT GPIO_NUM_39
-
-#define AS5050A_REG_POR_OFF 0x3F22
-#define AS5050A_REG_SOFTWARE_RESET 0x3C00
-#define AS5050A_REG_MASTER_RESET 0x33A5
-#define AS5050A_REG_CLEAR_EF 0x3380
-#define AS5050A_REG_NOP 0x0000
-#define AS5050A_REG_AGC 0x3FF8
-#define AS5050A_REG_ANGULAR_DATA 0x3FFF
-#define AS5050A_REG_ERROR_STATUS 0x335A
-#define AS5050A_REG_SYSTEM_CONFIG 0x3F20
-
 namespace driver::encoder
 {
+  static const spi_host_device_t AS5050A_HOST = SPI2_HOST; // HSPI
+  static const gpio_num_t AS5050A_PIN_MISO = GPIO_NUM_37;
+  static const gpio_num_t AS5050A_PIN_MOSI = GPIO_NUM_35;
+  static const gpio_num_t AS5050A_PIN_SCLK = GPIO_NUM_36;
+  static const gpio_num_t AS5050A_PIN_CS_LEFT = GPIO_NUM_26;
+  static const gpio_num_t AS5050A_PIN_CS_RIGHT = GPIO_NUM_39;
+
+  static const uint16_t AS5050A_REG_MASTER_RESET = 0x33A5;
+  static const uint16_t AS5050A_REG_ANGULAR_DATA = 0x3FFF;
+
   constexpr uint16_t as5050a_write(uint16_t reg)
   {
     return ((reg << 1) | __builtin_parity(reg));

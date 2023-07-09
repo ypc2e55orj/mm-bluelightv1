@@ -3,18 +3,17 @@
 #include <driver/gpio.h>
 #include <bdc_motor.h>
 
-#define BDC_MCPWM_TIMER_RESOLUTION_HZ 80'000'000 // 80MHz
-#define BDC_MCPWM_FREQ_HZ 100'000                // 100kHz
-#define BDC_MCPWM_DUTY_TICK_MAX (BDC_MCPWM_TIMER_RESOLUTION_HZ / BDC_MCPWM_FREQ_HZ)
-
-#define AIN1 GPIO_NUM_42
-#define AIN2 GPIO_NUM_41
-
-#define BIN1 GPIO_NUM_40
-#define BIN2 GPIO_NUM_38
-
 namespace driver::motor
 {
+  static const uint32_t BDC_MCPWM_TIMER_RESOLUTION_HZ = 80'000'000; // 80MHz
+  static const uint32_t BDC_MCPWM_FREQ_HZ = 100'000;                // 100kHz
+  static constexpr uint32_t BDC_MCPWM_DUTY_TICK_MAX = BDC_MCPWM_TIMER_RESOLUTION_HZ / BDC_MCPWM_FREQ_HZ;
+
+  static const gpio_num_t AIN1 = GPIO_NUM_42;
+  static const gpio_num_t AIN2 = GPIO_NUM_41;
+  static const gpio_num_t BIN1 = GPIO_NUM_40;
+  static const gpio_num_t BIN2 = GPIO_NUM_38;
+
   static bdc_motor_handle_t bdc_position[NUMS] = {};
   static esp_err_t (*bdc_direction[])(bdc_motor_handle_t) = {
       bdc_motor_forward,

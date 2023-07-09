@@ -11,16 +11,16 @@
 #include <cmath>
 #include <cassert>
 
-#define LSM6DSRX_HOST SPI3_HOST // VSPI
-#define LSM6DSRX_PIN_MISO GPIO_NUM_48
-#define LSM6DSRX_PIN_MOSI GPIO_NUM_47
-#define LSM6DSRX_PIN_SCLK GPIO_NUM_33
-#define LSM6DSRX_PIN_CS GPIO_NUM_34
-
-#define LSM6DSRX_BUFFER_SIZE 16
-
 namespace driver::imu
 {
+  static const spi_host_device_t LSM6DSRX_HOST = SPI3_HOST; // VSPI
+  static const gpio_num_t LSM6DSRX_PIN_MISO = GPIO_NUM_48;
+  static const gpio_num_t LSM6DSRX_PIN_MOSI = GPIO_NUM_47;
+  static const gpio_num_t LSM6DSRX_PIN_SCLK = GPIO_NUM_33;
+  static const gpio_num_t LSM6DSRX_PIN_CS = GPIO_NUM_34;
+
+  static const uint32_t LSM6DSRX_BUFFER_SIZE = 16;
+
   static spi_transaction_t spi_trans = {};
   static spi_device_handle_t spi_handle = {};
 

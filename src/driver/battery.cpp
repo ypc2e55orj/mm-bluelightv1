@@ -1,10 +1,10 @@
 #include "battery.h"
 #include "adc.h"
 
-#define BATTERY_CHAN ADC_CHANNEL_4
-
 namespace driver::battery
 {
+  static const adc_channel_t BATTERY_CHAN = ADC_CHANNEL_4;
+
   void init()
   {
     driver::adc::init();

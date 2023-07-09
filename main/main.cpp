@@ -72,8 +72,6 @@ void mainTask(void *unused)
 
       int result[4] = {};
       driver::photo::get(result);
-      driver::motor::brake();
-      driver::motor::brake();
 
       std::cout << "\x1b[2J\x1b[0;0H"
                 << "SensorTask Diff: " << sensorTaskDiff << std::endl

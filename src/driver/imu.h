@@ -2,6 +2,7 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
+
 #include <tuple>
 
 namespace driver::imu

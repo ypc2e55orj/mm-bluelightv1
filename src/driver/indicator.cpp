@@ -8,13 +8,13 @@
 
 #include <cstring>
 
-#define WS2812C_PIN GPIO_NUM_45
-#define WS2812C_NUM 4
-#define WS2812C_COLOR_DEPTH 3
-#define WS2812C_RESOLUTION_HZ 10'000'000
-
 namespace driver::indicator
 {
+  static const gpio_num_t WS2812C_PIN = GPIO_NUM_45;
+  static const uint32_t WS2812C_NUM = 4;
+  static const uint32_t WS2812C_COLOR_DEPTH = 3;
+  static const uint32_t WS2812C_RESOLUTION_HZ = 10'000'000;
+
   static rmt_channel_handle_t led_chan = nullptr;
   static rmt_encoder_handle_t led_encoder = nullptr;
   static rmt_transmit_config_t tx_config = {};
