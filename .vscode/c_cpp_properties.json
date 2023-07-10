@@ -29,8 +29,8 @@
                 "ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED"
             ],
             "compilerPath": "~/.espressif/tools/xtensa-esp32s3-elf/esp-12.2.0_20230208/xtensa-esp32s3-elf/bin/xtensa-esp32s3-elf-g++",
-            "intelliSenseMode": "gcc-x64",
-            "cppStandard": "c++17"
+            "intelliSenseMode": "linux-gcc-x64",
+            "cppStandard": "gnu++17"
         }
     ],
     "version": 4
