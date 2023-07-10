@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/build/config",
+                "${workspaceFolder}/build/config/",
                 "C:/Espressif/frameworks/esp-idf-v5.0.1/components/**",
                 "C:/Espressif/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/xtensa-esp32s3-elf/include/**",
                 "C:/Espressif/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/xtensa-esp32s3-elf/sys-include/**"
@@ -23,7 +23,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/build/config",
+                "${workspaceFolder}/build/config/",
                 "/opt/esp-idf/components/**",
                 "~/.espressif/tools/xtensa-esp32s3-elf/esp-12.2.0_20230208/xtensa-esp32s3-elf/xtensa-esp32s3-elf/include/**",
                 "~/.espressif/tools/xtensa-esp32s3-elf/esp-12.2.0_20230208/xtensa-esp32s3-elf/xtensa-esp32s3-elf/sys-include/**"
