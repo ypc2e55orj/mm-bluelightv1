@@ -5,6 +5,7 @@
 #include <driver/gpio.h>
 
 #include <cstring>
+#include <algorithm>
 
 namespace driver::photo
 {
@@ -19,6 +20,7 @@ namespace driver::photo
       [RIGHT_90] = {GPIO_NUM_10, ADC_CHANNEL_0},
   };
 
+  static int ambient[4] = {};
   static int result[4] = {};
 
   void init()
@@ -48,12 +50,13 @@ namespace driver::photo
 
   void IRAM_ATTR tx(uint8_t pos)
   {
+    ambient[pos] = driver::adc::voltage(photo_pins[pos].photo);
     gpio_set_level(photo_pins[pos].ir, 1);
   }
 
   void IRAM_ATTR rx(uint8_t pos)
   {
-    result[pos] = driver::adc::voltage(photo_pins[pos].photo);
+    result[pos] = std::max(driver::adc::voltage(photo_pins[pos].photo) - ambient[pos], 0);
     gpio_set_level(photo_pins[pos].ir, 0);
   }
 
