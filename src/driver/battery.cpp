@@ -4,6 +4,7 @@
 namespace driver::battery
 {
   static const adc_channel_t BATTERY_CHAN = ADC_CHANNEL_4;
+  static int voltage = 0;
 
   void init()
   {
@@ -11,8 +12,10 @@ namespace driver::battery
     driver::adc::chan(BATTERY_CHAN);
   }
 
-  int IRAM_ATTR get()
+  void IRAM_ATTR update()
   {
-    return (driver::adc::voltage(BATTERY_CHAN) * 2) + 100;
+    voltage = (driver::adc::voltage(BATTERY_CHAN) * 2) + 100;
   }
+
+  int get() { return voltage; }
 }

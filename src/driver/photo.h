@@ -15,6 +15,8 @@ namespace driver::photo
 
   void init();
 
-  void update();
+  void tx(uint8_t pos);
+  void rx(uint8_t pos);
+
   void get(int *dest);
 }

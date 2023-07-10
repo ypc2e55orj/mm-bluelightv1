@@ -46,20 +46,15 @@ namespace driver::photo
     }
   }
 
-  static void IRAM_ATTR sampling(uint8_t pos)
+  void IRAM_ATTR tx(uint8_t pos)
   {
     gpio_set_level(photo_pins[pos].ir, 1);
-    ets_delay_us(10);
-    result[pos] = driver::adc::voltage(photo_pins[pos].photo);
-    gpio_set_level(photo_pins[pos].ir, 0);
   }
 
-  void IRAM_ATTR update()
+  void IRAM_ATTR rx(uint8_t pos)
   {
-    for (int i = 0; i < NUMS; i++)
-    {
-      sampling(i);
-    }
+    result[pos] = driver::adc::voltage(photo_pins[pos].photo);
+    gpio_set_level(photo_pins[pos].ir, 0);
   }
 
   void get(int *dest)
