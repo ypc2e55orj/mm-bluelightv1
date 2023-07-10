@@ -42,7 +42,7 @@ namespace driver::adc
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1, channel, &chan_cfg));
   }
 
-  int raw(adc_channel_t channel)
+  int IRAM_ATTR raw(adc_channel_t channel)
   {
     int raw_val = 0;
     ESP_ERROR_CHECK(adc_oneshot_read(adc1, channel, &raw_val));
@@ -50,7 +50,7 @@ namespace driver::adc
     return raw_val;
   }
 
-  int voltage(adc_channel_t channel)
+  int IRAM_ATTR voltage(adc_channel_t channel)
   {
     int voltage = 0;
     ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali, raw(channel), &voltage));

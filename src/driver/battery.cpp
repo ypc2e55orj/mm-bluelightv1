@@ -11,7 +11,7 @@ namespace driver::battery
     driver::adc::chan(BATTERY_CHAN);
   }
 
-  int get()
+  int IRAM_ATTR get()
   {
     return (driver::adc::voltage(BATTERY_CHAN) * 2) + 100;
   }

@@ -61,7 +61,7 @@ namespace driver::imu
     }
   }
 
-  static int32_t lsm6dsrx_platform_write(void *unused, uint8_t reg, const uint8_t *bufp, uint16_t len)
+  static int32_t lsm6dsrx_platform_write(void *, uint8_t reg, const uint8_t *bufp, uint16_t len)
   {
     spi_transaction_t *trans = nullptr;
     // write bufp
@@ -75,7 +75,7 @@ namespace driver::imu
 
     return 0;
   }
-  static int32_t lsm6dsrx_platform_read(void *unused, uint8_t reg, uint8_t *bufp, uint16_t len)
+  static int32_t lsm6dsrx_platform_read(void *, uint8_t reg, uint8_t *bufp, uint16_t len)
   {
     spi_transaction_t *trans = nullptr;
     // read to bufp
@@ -173,7 +173,7 @@ namespace driver::imu
     return {accel_buff[0], accel_buff[1], accel_buff[2]};
   }
 
-  void update()
+  void IRAM_ATTR update()
   {
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle, &spi_trans, portMAX_DELAY));
   }

@@ -39,8 +39,8 @@ namespace driver::encoder
     } bytes;
   } as5050a_command = {};
 
-  static spi_transaction_t spi_trans_left = {};
-  static spi_transaction_t spi_trans_right = {};
+  DMA_ATTR static spi_transaction_t spi_trans_left = {};
+  DMA_ATTR static spi_transaction_t spi_trans_right = {};
 
   static spi_device_handle_t spi_handle_left = nullptr;
   static spi_device_handle_t spi_handle_right = nullptr;
@@ -130,7 +130,7 @@ namespace driver::encoder
     initialized = true;
   }
 
-  void update()
+  void IRAM_ATTR update()
   {
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans_left, portMAX_DELAY));
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans_right, portMAX_DELAY));

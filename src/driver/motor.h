@@ -19,7 +19,6 @@ namespace driver::motor
 
   void init();
 
-
   void brake();
   void brake(position pos);
 

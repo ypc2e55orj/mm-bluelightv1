@@ -46,7 +46,7 @@ namespace driver::photo
     }
   }
 
-  inline static void sampling(uint8_t pos)
+  static void IRAM_ATTR sampling(uint8_t pos)
   {
     gpio_set_level(photo_pins[pos].ir, 1);
     ets_delay_us(10);
@@ -54,7 +54,7 @@ namespace driver::photo
     gpio_set_level(photo_pins[pos].ir, 0);
   }
 
-  void update()
+  void IRAM_ATTR update()
   {
     for (int i = 0; i < NUMS; i++)
     {
