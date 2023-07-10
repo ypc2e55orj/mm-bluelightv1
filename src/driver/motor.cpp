@@ -73,6 +73,6 @@ namespace driver::motor
   {
     direction dir = duty < 0.0f ? REVERSE : FORWARD;
     ESP_ERROR_CHECK(bdc_direction[dir](bdc_position[pos]));
-    ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_position[pos], (uint32_t)(((float)(BDC_MCPWM_DUTY_TICK_MAX)) * duty)));
+    ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_position[pos], static_cast<uint32_t>(static_cast<float>(BDC_MCPWM_DUTY_TICK_MAX) * duty)));
   }
 }
