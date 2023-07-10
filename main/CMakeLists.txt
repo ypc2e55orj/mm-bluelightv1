@@ -1,14 +1,15 @@
 idf_component_register(
   SRCS
   "main.cpp"
-  "../src/driver/encoder.cpp"
-  "../src/driver/imu.cpp"
-  "../src/driver/buzzer.cpp"
-  "../src/driver/indicator.cpp"
+  "../src/sensor.cpp"
   "../src/driver/adc.cpp"
   "../src/driver/battery.cpp"
-  "../src/driver/photo.cpp"
+  "../src/driver/buzzer.cpp"
+  "../src/driver/encoder.cpp"
+  "../src/driver/imu.cpp"
+  "../src/driver/indicator.cpp"
   "../src/driver/motor.cpp"
+  "../src/driver/photo.cpp"
   "../src/third-party/led_strip/led_strip_encoder.c"
   "../src/third-party/lsm6dsrx-pid/lsm6dsrx_reg.c"
   "../src/third-party/musical_buzzer/musical_score_encoder.c"
@@ -16,7 +17,7 @@ idf_component_register(
   "."
   "../src/"
   "../src/driver"
-  "../src/third-party/lsm6dsrx-pid"
   "../src/third-party/led_strip"
+  "../src/third-party/lsm6dsrx-pid"
   "../src/third-party/musical_buzzer")
 target_compile_options(${COMPONENT_LIB} PRIVATE -std=gnu++17)

@@ -15,6 +15,8 @@
 #include "../src/driver/photo.h"
 #include "../src/driver/motor.h"
 
+#include "../src/sensor.h"
+
 #define EVENT_GROUP_SENSOR_IMU (1UL << 1)
 #define EVENT_GROUP_SENSOR_ENCODER (1UL << 2)
 #define EVENT_GROUP_SENSOR_ALL (EVENT_GROUP_SENSOR_IMU | EVENT_GROUP_SENSOR_ENCODER)
@@ -24,12 +26,11 @@ uint32_t sensorTaskDiff = 0;
 
 void sensorTask(void *unused)
 {
+  sensor::start();
+
   while (true)
   {
     int64_t start = esp_timer_get_time();
-    driver::photo::update();
-    driver::imu::update();
-    driver::encoder::update();
     driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(1));
     sensorTaskDiff = esp_timer_get_time() - start;
@@ -56,41 +57,37 @@ void mainTask(void *unused)
   bool blink = true;
   while (true)
   {
-    EventBits_t uBits = xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_ALL, pdTRUE, pdTRUE, pdMS_TO_TICKS(100));
-    if (uBits == EVENT_GROUP_SENSOR_ALL)
+    for (int i = 0; i < driver::indicator::nums(); i++)
     {
-      for (int i = 0; i < driver::indicator::nums(); i++)
-      {
-        driver::indicator::set(i, blink ? 0x00000F : 0x000000);
-      }
-
-      blink = !blink;
-
-      auto [angle_left, angle_right] = driver::encoder::get();
-      auto [gyro_x, gyro_y, gyro_z] = driver::imu::gyro();
-      auto [accel_x, accel_y, accel_z] = driver::imu::accel();
-
-      int result[4] = {};
-      driver::photo::get(result);
-
-      std::cout << "\x1b[2J\x1b[0;0H"
-                << "SensorTask Diff: " << sensorTaskDiff << std::endl
-                << "Battery        : " << driver::battery::get() << std::endl
-                << "Encoder Left   : " << angle_left << std::endl
-                << "Encoder Right  : " << angle_right << std::endl
-                << "Gyro  X [rad/s]: " << gyro_x << std::endl
-                << "Gyro  Y [rad/s]: " << gyro_y << std::endl
-                << "Gyro  Z [rad/s]: " << gyro_z << std::endl
-                << "Accel X [m/s^2]: " << accel_x << std::endl
-                << "Accel Y [m/s^2]: " << accel_y << std::endl
-                << "Accel Z [m/s^2]: " << accel_z << std::endl
-                << "Photo Left  90 : " << result[driver::photo::LEFT_90] << std::endl
-                << "Photo Left  45 : " << result[driver::photo::LEFT_45] << std::endl
-                << "Photo Right 45 : " << result[driver::photo::RIGHT_45] << std::endl
-                << "Photo Right 90 : " << result[driver::photo::RIGHT_90] << std::endl
-                << std::flush;
-      vTaskDelay(pdMS_TO_TICKS(100));
+      driver::indicator::set(i, blink ? 0x00000F : 0x000000);
     }
+
+    blink = !blink;
+
+    auto [angle_left, angle_right] = driver::encoder::get();
+    auto [gyro_x, gyro_y, gyro_z] = driver::imu::gyro();
+    auto [accel_x, accel_y, accel_z] = driver::imu::accel();
+
+    int result[4] = {};
+    driver::photo::get(result);
+
+    std::cout << "\x1b[2J\x1b[0;0H"
+              << "SensorTask Diff: " << sensorTaskDiff << std::endl
+              << "Battery        : " << driver::battery::get() << std::endl
+              << "Encoder Left   : " << angle_left << std::endl
+              << "Encoder Right  : " << angle_right << std::endl
+              << "Gyro  X [rad/s]: " << gyro_x << std::endl
+              << "Gyro  Y [rad/s]: " << gyro_y << std::endl
+              << "Gyro  Z [rad/s]: " << gyro_z << std::endl
+              << "Accel X [m/s^2]: " << accel_x << std::endl
+              << "Accel Y [m/s^2]: " << accel_y << std::endl
+              << "Accel Z [m/s^2]: " << accel_z << std::endl
+              << "Photo Left  90 : " << result[driver::photo::LEFT_90] << std::endl
+              << "Photo Left  45 : " << result[driver::photo::LEFT_45] << std::endl
+              << "Photo Right 45 : " << result[driver::photo::RIGHT_45] << std::endl
+              << "Photo Right 90 : " << result[driver::photo::RIGHT_90] << std::endl
+              << std::flush;
+    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
 
