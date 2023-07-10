@@ -1,8 +1,36 @@
 {
     "configurations": [
         {
-            "name": "ESP32-S3",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "name": "ESP32-S3 (Windows)",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Espressif/frameworks/esp-idf-v5.0.1/components/**",
+                "C:/Espressif/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/xtensa-esp32s3-elf/include/**",
+                "C:/Espressif/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/xtensa-esp32s3-elf/sys-include/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED"
+            ],
+            "compilerPath": "C:/Espressif/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/bin/xtensa-esp32s3-elf-g++.exe",
+            "intelliSenseMode": "gcc-x64",
+            "cppStandard": "c++17"
+        },
+        {
+            "name": "ESP32-S3 (Linux)",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/esp-idf/components/**",
+                "~/.espressif/tools/xtensa-esp32s3-elf/esp-12.2.0_20230208/xtensa-esp32s3-elf/xtensa-esp32s3-elf/include/**",
+                "~/.espressif/tools/xtensa-esp32s3-elf/esp-12.2.0_20230208/xtensa-esp32s3-elf/xtensa-esp32s3-elf/sys-include/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED"
+            ],
+            "compilerPath": "~/.espressif/tools/xtensa-esp32s3-elf/esp-12.2.0_20230208/xtensa-esp32s3-elf/bin/xtensa-esp32s3-elf-g++",
+            "intelliSenseMode": "linux-gcc-x64",
+            "cppStandard": "gnu++17"
         }
     ],
     "version": 4
