@@ -2,6 +2,7 @@ idf_component_register(
   SRCS
   "main.cpp"
   "../src/sensor.cpp"
+  "../src/control.cpp"
   "../src/driver/adc.cpp"
   "../src/driver/battery.cpp"
   "../src/driver/buzzer.cpp"

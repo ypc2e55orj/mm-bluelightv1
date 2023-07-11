@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <utility>
 
 namespace driver::motor
 {
@@ -25,5 +26,6 @@ namespace driver::motor
   void coast();
   void coast(position pos);
 
-  void speed(position pos, float duty);
+  void duty(position pos, float val);
+  std::pair<float, float> duty(std::pair<float, float> val);
 }

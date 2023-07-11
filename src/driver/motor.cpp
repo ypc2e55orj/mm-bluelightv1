@@ -3,6 +3,8 @@
 #include <driver/gpio.h>
 #include <bdc_motor.h>
 
+#include <cmath>
+
 namespace driver::motor
 {
   static const uint32_t BDC_MCPWM_TIMER_RESOLUTION_HZ = 80'000'000; // 80MHz
@@ -69,10 +71,18 @@ namespace driver::motor
     ESP_ERROR_CHECK(bdc_motor_coast(bdc_position[pos]));
   }
 
-  void speed(position pos, float duty)
+  void duty(position pos, float val)
   {
-    direction dir = duty < 0.0f ? REVERSE : FORWARD;
+    direction dir = val < 0.0f ? REVERSE : FORWARD;
     ESP_ERROR_CHECK(bdc_direction[dir](bdc_position[pos]));
-    ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_position[pos], static_cast<uint32_t>(static_cast<float>(BDC_MCPWM_DUTY_TICK_MAX) * duty)));
+    ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_position[pos], static_cast<uint32_t>(static_cast<float>(BDC_MCPWM_DUTY_TICK_MAX) * std::abs(val))));
+  }
+
+  std::pair<float, float> duty(std::pair<float, float> val)
+  {
+    auto [left, right] = val;
+    duty(position::LEFT, left);
+    duty(position::RIGHT, right);
+    return val;
   }
 }
