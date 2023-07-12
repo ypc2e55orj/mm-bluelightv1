@@ -7,8 +7,11 @@ namespace driver::motor
 {
   void init();
 
+  void enable();
+  void disable();
+
   void brake();
   void coast();
 
-  std::pair<float, float> duty(std::pair<float, float> val);
+  void duty(std::pair<float, float> val);
 }

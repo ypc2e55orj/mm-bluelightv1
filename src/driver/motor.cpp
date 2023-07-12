@@ -16,6 +16,8 @@ namespace driver::motor
   static const gpio_num_t BIN1 = GPIO_NUM_40;
   static const gpio_num_t BIN2 = GPIO_NUM_38;
 
+  static bool enabled = false;
+
   static bdc_motor_handle_t bdc_position[2] = {};
   static esp_err_t (*bdc_direction[])(bdc_motor_handle_t) = {
       bdc_motor_forward,
@@ -63,22 +65,37 @@ namespace driver::motor
     ESP_ERROR_CHECK(bdc_motor_coast(bdc_position[1]));
   }
 
-  void duty(uint8_t pos, float val)
+  static void duty(uint8_t pos, float val)
   {
     if (std::isnan(val))
     {
       return;
     }
     uint32_t duty_tick = static_cast<uint32_t>(static_cast<float>(BDC_MCPWM_DUTY_TICK_MAX) * std::abs(val));
-    //ESP_ERROR_CHECK(bdc_direction[val < 0.0f ? 1 : 0](bdc_position[pos]));
-    //ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_position[pos], duty_tick));
+    ESP_ERROR_CHECK(bdc_direction[val < 0.0f ? 1 : 0](bdc_position[pos]));
+    ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_position[pos], duty_tick));
   }
 
-  std::pair<float, float> duty(std::pair<float, float> val)
+  void enable()
   {
+    enabled = true;
+  }
+  void disable()
+  {
+    enabled = false;
+    duty(0, 0);
+    duty(1, 0);
+  }
+
+  void duty(std::pair<float, float> val)
+  {
+    if (!enabled)
+    {
+      return;
+    }
+
     auto [left, right] = val;
     duty(0, left);
     duty(1, right);
-    return val;
   }
 }
