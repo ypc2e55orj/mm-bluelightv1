@@ -45,13 +45,13 @@ namespace driver::imu
       return;
     }
 
-    intr_gyro_buff[0] = (rx_buffer[2] << 8) | rx_buffer[1];
-    intr_gyro_buff[1] = (rx_buffer[4] << 8) | rx_buffer[3];
-    intr_gyro_buff[2] = (rx_buffer[6] << 8) | rx_buffer[5];
+    intr_gyro_buff[0] = ((int16_t)rx_buffer[2] << 8) | (int16_t)rx_buffer[1];
+    intr_gyro_buff[1] = ((int16_t)rx_buffer[4] << 8) | (int16_t)rx_buffer[3];
+    intr_gyro_buff[2] = ((int16_t)rx_buffer[6] << 8) | (int16_t)rx_buffer[5];
 
-    intr_accel_buff[0] = (rx_buffer[8] << 8) | rx_buffer[7];
-    intr_accel_buff[1] = (rx_buffer[10] << 8) | rx_buffer[9];
-    intr_accel_buff[2] = (rx_buffer[12] << 8) | rx_buffer[11];
+    intr_accel_buff[0] = ((int16_t)rx_buffer[8] << 8) | (int16_t)rx_buffer[7];
+    intr_accel_buff[1] = ((int16_t)rx_buffer[10] << 8) | (int16_t)rx_buffer[9];
+    intr_accel_buff[2] = ((int16_t)rx_buffer[12] << 8) | (int16_t)rx_buffer[11];
 
     xHigherPriorityTaskWoken = pdFALSE;
 
@@ -161,6 +161,11 @@ namespace driver::imu
 
     return {gyro_buff[0], gyro_buff[1], gyro_buff[2]};
   }
+  std::tuple<int16_t, int16_t, int16_t> gyro_raw()
+  {
+    return {intr_gyro_buff[0], intr_gyro_buff[1], intr_gyro_buff[2]};
+  }
+
   std::tuple<float, float, float> accel()
   {
     float accel_buff[3] = {};
@@ -171,6 +176,10 @@ namespace driver::imu
     }
 
     return {accel_buff[0], accel_buff[1], accel_buff[2]};
+  }
+  std::tuple<int16_t, int16_t, int16_t> accel_raw()
+  {
+    return {intr_accel_buff[0], intr_accel_buff[1], intr_accel_buff[2]};
   }
 
   void IRAM_ATTR update()

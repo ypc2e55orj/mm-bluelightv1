@@ -12,5 +12,8 @@ namespace driver::imu
   void update();
 
   std::tuple<float, float, float> gyro(); // [rad/s]
+  std::tuple<int16_t, int16_t, int16_t> gyro_raw();
+
   std::tuple<float, float, float> accel(); // [m/s^2]
+  std::tuple<int16_t, int16_t, int16_t> accel_raw();
 }

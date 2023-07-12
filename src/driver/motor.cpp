@@ -16,7 +16,7 @@ namespace driver::motor
   static const gpio_num_t BIN1 = GPIO_NUM_40;
   static const gpio_num_t BIN2 = GPIO_NUM_38;
 
-  static bdc_motor_handle_t bdc_position[NUMS] = {};
+  static bdc_motor_handle_t bdc_position[2] = {};
   static esp_err_t (*bdc_direction[])(bdc_motor_handle_t) = {
       bdc_motor_forward,
       bdc_motor_reverse,
@@ -35,54 +35,50 @@ namespace driver::motor
     motor_cfg.pwmb_gpio_num = AIN2;
     mcpwm_cfg.group_id = 0;
 
-    ESP_ERROR_CHECK(bdc_motor_new_mcpwm_device(&motor_cfg, &mcpwm_cfg, &bdc_position[LEFT]));
+    ESP_ERROR_CHECK(bdc_motor_new_mcpwm_device(&motor_cfg, &mcpwm_cfg, &bdc_position[0]));
 
     // right
     motor_cfg.pwma_gpio_num = BIN1;
     motor_cfg.pwmb_gpio_num = BIN2;
     mcpwm_cfg.group_id = 1;
 
-    ESP_ERROR_CHECK(bdc_motor_new_mcpwm_device(&motor_cfg, &mcpwm_cfg, &bdc_position[RIGHT]));
+    ESP_ERROR_CHECK(bdc_motor_new_mcpwm_device(&motor_cfg, &mcpwm_cfg, &bdc_position[1]));
 
     // enable
-    ESP_ERROR_CHECK(bdc_motor_enable(bdc_position[LEFT]));
-    ESP_ERROR_CHECK(bdc_motor_enable(bdc_position[RIGHT]));
+    ESP_ERROR_CHECK(bdc_motor_enable(bdc_position[0]));
+    ESP_ERROR_CHECK(bdc_motor_enable(bdc_position[1]));
 
     brake();
   }
 
   void brake()
   {
-    brake(LEFT);
-    brake(RIGHT);
-  }
-  void brake(position pos)
-  {
-    ESP_ERROR_CHECK(bdc_motor_brake(bdc_position[pos]));
+    ESP_ERROR_CHECK(bdc_motor_brake(bdc_position[0]));
+    ESP_ERROR_CHECK(bdc_motor_brake(bdc_position[1]));
   }
 
   void coast()
   {
-    coast(LEFT);
-    coast(RIGHT);
-  }
-  void coast(position pos)
-  {
-    ESP_ERROR_CHECK(bdc_motor_coast(bdc_position[pos]));
+    ESP_ERROR_CHECK(bdc_motor_coast(bdc_position[0]));
+    ESP_ERROR_CHECK(bdc_motor_coast(bdc_position[1]));
   }
 
-  void duty(position pos, float val)
+  void duty(uint8_t pos, float val)
   {
-    direction dir = val < 0.0f ? REVERSE : FORWARD;
-    ESP_ERROR_CHECK(bdc_direction[dir](bdc_position[pos]));
-    ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_position[pos], static_cast<uint32_t>(static_cast<float>(BDC_MCPWM_DUTY_TICK_MAX) * std::abs(val))));
+    if (std::isnan(val))
+    {
+      return;
+    }
+    uint32_t duty_tick = static_cast<uint32_t>(static_cast<float>(BDC_MCPWM_DUTY_TICK_MAX) * std::abs(val));
+    //ESP_ERROR_CHECK(bdc_direction[val < 0.0f ? 1 : 0](bdc_position[pos]));
+    //ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_position[pos], duty_tick));
   }
 
   std::pair<float, float> duty(std::pair<float, float> val)
   {
     auto [left, right] = val;
-    duty(position::LEFT, left);
-    duty(position::RIGHT, right);
+    duty(0, left);
+    duty(1, right);
     return val;
   }
 }
