@@ -67,10 +67,6 @@ namespace driver::motor
 
   static void duty(uint8_t pos, float val)
   {
-    if (std::isnan(val))
-    {
-      return;
-    }
     uint32_t duty_tick = static_cast<uint32_t>(static_cast<float>(BDC_MCPWM_DUTY_TICK_MAX) * std::abs(val));
     ESP_ERROR_CHECK(bdc_direction[val < 0.0f ? 1 : 0](bdc_position[pos]));
     ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_position[pos], duty_tick));
