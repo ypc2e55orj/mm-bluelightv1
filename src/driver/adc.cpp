@@ -50,10 +50,10 @@ namespace driver::adc
     return raw_val;
   }
 
-  int IRAM_ATTR voltage(adc_channel_t channel)
+  int calibrate(int raw)
   {
     int voltage = 0;
-    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali, raw(channel), &voltage));
+    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali, raw, &voltage));
 
     return voltage;
   }

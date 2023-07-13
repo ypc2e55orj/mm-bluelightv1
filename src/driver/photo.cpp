@@ -21,7 +21,7 @@ namespace driver::photo
   };
 
   static int ambient[4] = {};
-  static int result[4] = {};
+  static int flush[4] = {};
 
   void init()
   {
@@ -50,18 +50,21 @@ namespace driver::photo
 
   void IRAM_ATTR tx(uint8_t pos)
   {
-    ambient[pos] = driver::adc::voltage(photo_pins[pos].photo);
+    ambient[pos] = driver::adc::raw(photo_pins[pos].photo);
     gpio_set_level(photo_pins[pos].ir, 1);
   }
 
   void IRAM_ATTR rx(uint8_t pos)
   {
-    result[pos] = std::max(driver::adc::voltage(photo_pins[pos].photo) - ambient[pos], 0);
+    flush[pos] = driver::adc::raw(photo_pins[pos].photo);
     gpio_set_level(photo_pins[pos].ir, 0);
   }
 
   void get(int *dest)
   {
-    memcpy(dest, result, sizeof(int) * NUMS);
+    for (int i = 0; i < NUMS; i++)
+    {
+      dest[i] = std::max(driver::adc::calibrate(flush[i]) - driver::adc::calibrate(ambient[i]), 0);
+    }
   }
 }

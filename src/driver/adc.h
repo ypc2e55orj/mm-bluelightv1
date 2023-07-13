@@ -8,5 +8,5 @@ namespace driver::adc
   void chan(adc_channel_t channel);
 
   int raw(adc_channel_t channel);
-  int voltage(adc_channel_t channel);
+  int calibrate(int raw);
 }
