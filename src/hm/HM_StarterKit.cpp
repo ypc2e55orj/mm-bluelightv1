@@ -25,9 +25,9 @@
 #include <iostream>
 
 #include "../driver/motor.h"
-
-void search_mode(bool is_slalom)
+void search_mode(void)
 {
+	BEEP();
 	degree = 0;
 	timer = 0;
 	log_timer = 0;
@@ -37,39 +37,30 @@ void search_mode(bool is_slalom)
 	mypos.dir = north;		 // 方角を初期化
 	log_flag = 1;
 	log_timer = 0;
-	if (is_slalom)
-	{
-		search_adachi_sla(GOAL_X, GOAL_Y); // ゴールまで足立法
-	}
-	else
-	{
-		search_adachi(GOAL_X, GOAL_Y);
-	}
-	adjust_turn();																						 // ゴールしたら180度回転する
+	search_adachi_sla(GOAL_X, GOAL_Y);												// ゴールまで足立法
+	adjust_turn();																						// ゴールしたら180度回転する
 	mypos.dir = static_cast<t_direction>((mypos.dir + 6) % 4); // 方角を更新
+	I_tar_ang_vel = 0;
+	I_ang_vel = 0;
+	I_tar_speed = 0;
+	I_speed = 0;
 	map_write();
 	BEEP();
 	wait_ms(100);
-	BEEP(); // ゴールしたことをアピール
+	BEEP(); // ゴールしたことをアピールmot
 	wait_ms(100);
-	BEEP(); // ゴールしたことをアピール
-	if (is_slalom)
-	{
-		search_adachi_sla(0, 0); // ゴールまで足立法
-	}
-	else
-	{
-		search_adachi(0, 0);
-	}
-	adjust_turn(); // 帰ってきたら180度回転
-	driver::motor::brake();
+	BEEP();									 // ゴールしたことをアピール
+	search_adachi_sla(0, 0); // スタート地点まで足立法で帰ってくる
+	adjust_turn();					 // 帰ってきたら180度回転
 	driver::motor::disable();
 	map_write();
 	log_flag = 0;
+	BEEP();
 }
 
-void fast_mode(bool is_slalom)
+void fast_mode()
 {
+	BEEP();
 	map_copy();
 	degree = 0;
 	timer = 0;
@@ -79,45 +70,34 @@ void fast_mode(bool is_slalom)
 	mypos.dir = north;		 // 方角を初期化
 	log_flag = 1;
 	log_timer = 0;
-	if (is_slalom)
-	{
-		fast_run_sla(GOAL_X, GOAL_Y); // ゴールまで足立法
-	}
-	else
-	{
-		fast_run(GOAL_X, GOAL_Y); // ゴールまで足立法
-	}
-	adjust_turn();																						 // ゴールしたら180度回転する
+	fast_run_sla(GOAL_X, GOAL_Y);															// ゴールまで足立法
+	adjust_turn();																						// ゴールしたら180度回転する
 	mypos.dir = static_cast<t_direction>((mypos.dir + 6) % 4); // 方角を更新
+	I_tar_ang_vel = 0;
+	I_ang_vel = 0;
+	I_tar_speed = 0;
+	I_speed = 0;
 	map_write();
 	BEEP();
 	wait_ms(100);
 	BEEP(); // ゴールしたことをアピール
 	wait_ms(100);
-	BEEP(); // ゴールしたことをアピール
-	if (is_slalom)
-	{
-		search_adachi_sla(0, 0); // スタート地点まで足立法で帰ってくる
-	}
-	else
-	{
-		search_adachi(0, 0);
-	}
-	adjust_turn();
-	driver::motor::brake();
+	BEEP();									 // ゴールしたことをアピール
+	search_adachi_sla(0, 0); // スタート地点まで足立法で帰ってくる
+	adjust_turn();					 // 帰ってきたら180度回転
 	driver::motor::disable();
 	map_write();
 	log_flag = 0;
+	BEEP();
 }
 
 void HM_StarterKit(void)
 {
-
+	init_all();
 	unsigned long i = 0;
 
 	std::cout << "HMStarterKit main()" << std::endl;
 
-	init_all();
 	// ブザー
 	BEEP();
 	// 最初は0しておく
@@ -150,19 +130,19 @@ void HM_StarterKit(void)
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
 				BEEP();
-				wait_ms(1000);
-				BEEP();
+				wait_ms(2500);
 				start_position();
-				BEEP();
-				search_mode(true);
-				BEEP();
-				for (i = 0; i < 4; i++)
+				for (i = 0; i < 5; i++)
 				{
+					I_tar_ang_vel = 0;
+					I_ang_vel = 0;
+					I_tar_speed = 0;
+					I_speed = 0;
+					search_mode();
 					wait_ms(2500);
-					BEEP();
-					fast_mode(true);
-					BEEP();
 				}
+				while (true)
+					BEEP();
 			}
 
 			break;
@@ -180,12 +160,9 @@ void HM_StarterKit(void)
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
 				BEEP();
-				wait_ms(1000);
-				BEEP();
+				wait_ms(2500);
 				start_position();
-				BEEP();
-				search_mode(true);
-				BEEP();
+				search_mode();
 			}
 
 			break;
@@ -203,11 +180,9 @@ void HM_StarterKit(void)
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
 				BEEP();
-				wait_ms(1000);
-				BEEP();
+				wait_ms(2500);
 				start_position();
-				BEEP();
-				fast_mode(true);
+				fast_mode();
 			}
 
 			break;
@@ -225,11 +200,30 @@ void HM_StarterKit(void)
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
 				BEEP();
-				wait_ms(1000);
+				degree = 0;
+				timer = 0;
+				log_timer = 0;
+				gyro_get_ref();
 				BEEP();
+				mypos.x = mypos.y = 0; // 座標を初期化
+				mypos.dir = north;		 // 方角を初期化
+				log_flag = 1;
+				log_timer = 0;
 				start_position();
+				search_adachi(GOAL_X, GOAL_Y);	 // ゴールまで足立法
+				adjust_turn();									 // ゴールしたら180度回転する
+				mypos.dir = static_cast<t_direction>((mypos.dir + 6) % 4); // 方角を更新
+				map_write();
 				BEEP();
-				search_mode(false);
+				wait_ms(100);
+				BEEP(); // ゴールしたことをアピール
+				wait_ms(100);
+				BEEP();							 // ゴールしたことをアピール
+				search_adachi(0, 0); // スタート地点まで足立法で帰ってくる
+				adjust_turn();			 // 帰ってきたら180度回転
+				driver::motor::disable();
+				map_write();
+				log_flag = 0;
 				BEEP();
 			}
 
@@ -248,11 +242,30 @@ void HM_StarterKit(void)
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
 				BEEP();
-				wait_ms(1000);
+				map_copy();
+				degree = 0;
+				timer = 0;
+				gyro_get_ref();
 				BEEP();
+				mypos.x = mypos.y = 0; // 座標を初期化
+				mypos.dir = north;		 // 方角を初期化
+				log_flag = 1;
+				log_timer = 0;
 				start_position();
+				fast_run(GOAL_X, GOAL_Y);				 // ゴールまで足立法
+				adjust_turn();									 // ゴールしたら180度回転する
+				mypos.dir = static_cast<t_direction>((mypos.dir + 6) % 4); // 方角を更新
+				map_write();
 				BEEP();
-				fast_mode(false);
+				wait_ms(100);
+				BEEP(); // ゴールしたことをアピール
+				wait_ms(100);
+				BEEP();							 // ゴールしたことをアピール
+				search_adachi(0, 0); // スタート地点まで足立法で帰ってくる
+				adjust_turn();			 // 帰ってきたら180度回転
+				driver::motor::disable();
+				map_write();
+				log_flag = 0;
 				BEEP();
 			}
 
@@ -452,7 +465,7 @@ void HM_StarterKit(void)
 
 			break;
 
-		// mode0‾15以外の場合。何もしない。
+		// mode0~15以外の場合。何もしない。
 		default:
 			break;
 		}
@@ -486,5 +499,6 @@ void HM_StarterKit(void)
 			BEEP();
 		}
 		LED(mode);
+		driver::motor::disable();
 	}
 }

@@ -55,7 +55,7 @@ void mainTask(void *)
   {
     driver::indicator::set(i, 0x0000FF);
     driver::indicator::update();
-    // driver::buzzer::tone(4000, 100);
+    driver::buzzer::tone(4000, 100);
     vTaskDelay(pdMS_TO_TICKS(100));
     driver::indicator::clear();
   }
@@ -63,7 +63,7 @@ void mainTask(void *)
   {
     driver::indicator::set(i, 0x0000FF);
     driver::indicator::update();
-    // driver::buzzer::tone(4000, 100);
+    driver::buzzer::tone(4000, 100);
     vTaskDelay(pdMS_TO_TICKS(100));
     driver::indicator::clear();
   }

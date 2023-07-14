@@ -65,6 +65,7 @@ void adjust(void)
 					SCI_printf("sen_fr.th_wall: %d\n\r", sen_fr.th_wall);
 					SCI_printf("sen_fl.th_wall: %d\n\r", sen_fl.th_wall);
 					SCI_printf("con_wall.omega: %f\n\r", con_wall.omega);
+					SCI_printf("con_fwall.omega: %f\n\r", con_fwall.omega);
 					// motor
 					SCI_printf("accel: %f\n\r", accel);
 					SCI_printf("tar_speed: %f\n\r", tar_speed);
@@ -118,11 +119,21 @@ void adjust(void)
 				log_flag = 1;
 				log_timer = 0;
 				len_mouse = 0;
-				straight(SECTION, SEARCH_ACCEL, SEARCH_SPEED, 0);
+				con_wall.enable = true;
+				straight(HALF_SECTION, SEARCH_ACCEL, SEARCH_SPEED, SEARCH_SPEED);
+				check_straight(SEARCH_SPEED);
+				straight(HALF_SECTION, SEARCH_ACCEL, SEARCH_SPEED, 0);
 				log_flag = 0;
 				driver::motor::disable();
 				driver::motor::brake();
 				BEEP();
+				float r, l;
+				get_adjust_len(&r, &l);
+				while(true)
+				{
+					printf("%f, %f\n\r", r, l);
+					wait_ms(1);
+				}
 				wait_ms(500);
 			}
 
@@ -146,7 +157,7 @@ void adjust(void)
 				log_flag = 1;
 				log_timer = 0;
 				log_flag = 0;
-				turn(90,TURN_ACCEL,TURN_SPEED,RIGHT);
+				turn(360,TURN_ACCEL,TURN_SPEED,RIGHT);
 				driver::motor::disable();
 				driver::motor::brake();
 				BEEP();
@@ -168,19 +179,10 @@ void adjust(void)
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
 				BEEP();
-				gyro_get_ref();
-				BEEP();
-				log_flag = 1;
-				log_timer = 0;
-				while (true)
-				{
-					adjust_fwall();
-				}
-				log_flag = 0;
-				driver::motor::disable();
-				driver::motor::brake();
-				BEEP();
 				wait_ms(500);
+				BEEP();
+				start_position();
+				BEEP();
 			}
 			break;
 
@@ -201,41 +203,12 @@ void adjust(void)
 				BEEP();
 				log_flag = 1;
 				log_timer = 0;
-				log_flag = 0;
-				driver::motor::enable();
-				run_mode = TURN_MODE;
-				while(true)
+				while (true)
 				{
-					SCI_printf("accel: %f\n\r", accel);
-					SCI_printf("tar_speed: %f\n\r", tar_speed);
-					SCI_printf("I_tar_speed: %f\n\r", I_tar_speed);
-					SCI_printf("max_speed: %f\n\r", max_speed);
-					SCI_printf("ang_acc: %f\n\r", ang_acc);
-					SCI_printf("tar_ang_vel: %f\n\r", tar_ang_vel);
-					SCI_printf("I_tar_ang_vel: %f\n\r", I_tar_ang_vel);
-					SCI_printf("max_ang_vel: %f\n\r", max_ang_vel);
-					SCI_printf("tar_degree: %f\n\r", tar_degree);
-					SCI_printf("max_degree: %f\n\r", max_degree);
-					SCI_printf("speed_r: %f\n\r", speed_r);
-					SCI_printf("speed_l: %f\n\r", speed_l);
-					SCI_printf("V_bat: %f\n\r", V_bat);
-					SCI_printf("V_r: %f\n\r", V_r);
-					SCI_printf("V_l: %f\n\r", V_l);
-					SCI_printf("Duty_r: %f\n\r", Duty_r);
-					SCI_printf("Duty_l: %f\n\r", Duty_l);
-					// gyro
-					SCI_printf("degree: %f\n\r", degree);
-					;
-					SCI_printf("gyro: %f\n\r", ang_vel);
-					// encoder
-					SCI_printf("locate_r: %d\n\r", locate_r);
-					SCI_printf("locate_l: %d\n\r", locate_l);
-
-					wait_ms(100);
-					// 画面クリアシーケンス
-					SCI_printf("\x1b[2J");	 // クリアスクリーン[CLS]
-					SCI_printf("\x1b[0;0H"); // カーソルを0,0に移動
+					adjust_fwall();
+					BEEP();
 				}
+				log_flag = 0;
 				driver::motor::disable();
 				driver::motor::brake();
 				BEEP();

@@ -17,19 +17,19 @@
 
 #define REF_SEN_R	1422				//マウスを迷路中央に置いた時のセンサの値
 #define REF_SEN_L	1155				//マウスを迷路中央に置いた時のセンサの値
-#define REF_SEN_FR	2868				//マウスを迷路中央に置いた時のセンサの値
-#define REF_SEN_FL	2546				//マウスを迷路中央に置いた時のセンサの値
+#define REF_SEN_FR	3048				//マウスを迷路中央に置いた時のセンサの値
+#define REF_SEN_FL	3040				//マウスを迷路中央に置いた時のセンサの値
 
 #define TH_SEN_R	796				//壁があるか否かの閾値	車体を区画の左へ寄せた時のセンサ値(壁あり)
 #define TH_SEN_L	555				//壁があるか否かの閾値	車体を区画の右へ寄せた時のセンサ値(壁あり)
-#define TH_SEN_FR	1118				//壁があるか否かの閾値
-#define TH_SEN_FL	947				//壁があるか否かの閾値
+#define TH_SEN_FR	1100				//壁があるか否かの閾値
+#define TH_SEN_FL	920				//壁があるか否かの閾値
 
-#define TH_RIGHT_90	493
-#define TH_LEFT_90		524
+#define TH_RIGHT_90	1191
+#define TH_LEFT_90		1000
 
-#define RIGHT_WALL_NOWALL		48.770963			//壁切れ補正用距離
-#define LEFT_WALL_NOWALL		51.041719			//壁切れ補正用距離
+#define RIGHT_WALL_NOWALL		59.435032			//壁切れ補正用距離
+#define LEFT_WALL_NOWALL		56.097076		//壁切れ補正用距離
 
 #define CONTH_SEN_R	TH_SEN_R			//制御をかけるか否かの閾値
 #define CONTH_SEN_L	TH_SEN_L			//制御をかけるか否かの閾値
@@ -45,8 +45,8 @@
 #define SPEED_KI	(0.1)				//Iゲイン
 #define SPEED_KD	(15.0)				//Dゲイン　
 //車体中心における回転方向速度に関するフィードバックゲイン
-#define OMEGA_KP	(40.0)				//Pゲイン
-#define OMEGA_KI	(0.25)				//Iゲイン
+#define OMEGA_KP	(45.0)				//Pゲイン
+#define OMEGA_KI	(0.10)				//Iゲイン
 #define OMEGA_KD	(5.0)				//Dゲイン
 
 //走行パラメータ

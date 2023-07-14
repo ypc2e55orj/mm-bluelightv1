@@ -51,7 +51,7 @@ void int_cmt0(void)
 		tar_degree += (tar_ang_vel * 180.0 / PI) / 1000.0;
 
 		// 左回転の場合
-		if (TURN_DIR == LEFT)
+		if (TURN_DIR == RIGHT)
 		{
 			// 最高角速度制限
 			if (tar_ang_vel > max_ang_vel)
@@ -63,7 +63,7 @@ void int_cmt0(void)
 				tar_degree = max_degree;
 			}
 		}
-		else if (TURN_DIR == RIGHT)
+		else if (TURN_DIR == LEFT)
 		{
 			// 右回転の場合
 			// 最高角速度制限
@@ -122,7 +122,7 @@ void int_cmt0(void)
 
 			con_wall.p_omega = con_wall.omega;
 			con_wall.omega = con_wall.kp * con_wall.error * 0.5 + con_wall.p_omega * 0.5; // 現在の目標角速度[rad/s]を計算
-			tar_ang_vel = con_wall.omega;
+			tar_ang_vel = -con_wall.omega;
 		}
 		else
 		{
@@ -165,7 +165,7 @@ void int_cmt0(void)
 
 			con_fwall.p_omega = con_fwall.omega;
 			con_fwall.omega = con_fwall.kp * con_fwall.error * 0.5 + con_fwall.p_omega * 0.5; // 現在の目標角速度[rad/s]を計算
-			tar_ang_vel = con_fwall.omega;
+			tar_ang_vel = -con_fwall.omega;
 		}
 		else
 		{
