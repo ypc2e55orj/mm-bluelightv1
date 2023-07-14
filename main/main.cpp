@@ -29,13 +29,19 @@ EventGroupHandle_t xEventGroupSensor = nullptr;
 
 void backgroundTask(void *)
 {
-  sensor::start();
+  std::cout << "backgroundTask() start. Core ID: " << xPortGetCoreID() << std::endl;
 
+  sensor::start();
   vTaskDelay(pdMS_TO_TICKS(100));
 
   while (true)
   {
-    update_interval();
+    driver::battery::update();
+    driver::imu::update();
+    driver::encoder::update();
+    int_cmt2();
+    int_cmt1();
+    int_cmt0();
     driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(1));
   }
@@ -43,11 +49,13 @@ void backgroundTask(void *)
 
 void mainTask(void *)
 {
+  std::cout << "mainTask() start. Core ID: " << xPortGetCoreID() << std::endl;
+
   for (int i = 0; i < driver::indicator::nums(); i++)
   {
     driver::indicator::set(i, 0x0000FF);
     driver::indicator::update();
-    driver::buzzer::tone(4000, 100);
+    // driver::buzzer::tone(4000, 100);
     vTaskDelay(pdMS_TO_TICKS(100));
     driver::indicator::clear();
   }
@@ -55,17 +63,17 @@ void mainTask(void *)
   {
     driver::indicator::set(i, 0x0000FF);
     driver::indicator::update();
-    driver::buzzer::tone(4000, 100);
+    // driver::buzzer::tone(4000, 100);
     vTaskDelay(pdMS_TO_TICKS(100));
     driver::indicator::clear();
   }
-
   HM_StarterKit();
 }
 
 // entrypoint
 extern "C" void app_main(void)
 {
+  std::cout << "app_main() start. Core ID: " << xPortGetCoreID() << std::endl;
   xEventGroupSensor = xEventGroupCreate();
   assert(xEventGroupSensor != nullptr);
 
@@ -78,6 +86,6 @@ extern "C" void app_main(void)
   driver::motor::init();
   driver::photo::init();
 
-  xTaskCreatePinnedToCore(backgroundTask, "backgroundTask", 8192, nullptr, 10, nullptr, 0);
+  xTaskCreatePinnedToCore(backgroundTask, "backgroundTask", 8192, nullptr, 5, nullptr, 0);
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 10, nullptr, 1);
 }
