@@ -55,16 +55,14 @@ void mainTask(void *)
   {
     driver::indicator::set(i, 0x0000FF);
     driver::indicator::update();
-    driver::buzzer::tone(4000, 100);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(50));
     driver::indicator::clear();
   }
   for (int i = driver::indicator::nums() - 1; i > -1; i--)
   {
     driver::indicator::set(i, 0x0000FF);
     driver::indicator::update();
-    driver::buzzer::tone(4000, 100);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(50));
     driver::indicator::clear();
   }
   HM_StarterKit();

@@ -27,12 +27,12 @@
 #include "../driver/motor.h"
 void search_mode(void)
 {
-	BEEP();
+	ANIMATE();
 	degree = 0;
 	timer = 0;
 	log_timer = 0;
 	gyro_get_ref();
-	BEEP();
+	ANIMATE();
 	mypos.x = mypos.y = 0; // 座標を初期化
 	mypos.dir = north;		 // 方角を初期化
 	log_flag = 1;
@@ -45,27 +45,27 @@ void search_mode(void)
 	I_tar_speed = 0;
 	I_speed = 0;
 	map_write();
-	BEEP();
+	ANIMATE();
 	wait_ms(100);
-	BEEP(); // ゴールしたことをアピールmot
+	ANIMATE(); // ゴールしたことをアピールmot
 	wait_ms(100);
-	BEEP();									 // ゴールしたことをアピール
+	ANIMATE();									 // ゴールしたことをアピール
 	search_adachi_sla(0, 0); // スタート地点まで足立法で帰ってくる
 	adjust_turn();					 // 帰ってきたら180度回転
 	driver::motor::disable();
 	map_write();
 	log_flag = 0;
-	BEEP();
+	ANIMATE();
 }
 
 void fast_mode()
 {
-	BEEP();
+	ANIMATE();
 	map_copy();
 	degree = 0;
 	timer = 0;
 	gyro_get_ref();
-	BEEP();
+	ANIMATE();
 	mypos.x = mypos.y = 0; // 座標を初期化
 	mypos.dir = north;		 // 方角を初期化
 	log_flag = 1;
@@ -78,17 +78,17 @@ void fast_mode()
 	I_tar_speed = 0;
 	I_speed = 0;
 	map_write();
-	BEEP();
+	ANIMATE();
 	wait_ms(100);
-	BEEP(); // ゴールしたことをアピール
+	ANIMATE(); // ゴールしたことをアピール
 	wait_ms(100);
-	BEEP();									 // ゴールしたことをアピール
+	ANIMATE();									 // ゴールしたことをアピール
 	search_adachi_sla(0, 0); // スタート地点まで足立法で帰ってくる
 	adjust_turn();					 // 帰ってきたら180度回転
 	driver::motor::disable();
 	map_write();
 	log_flag = 0;
-	BEEP();
+	ANIMATE();
 }
 
 void HM_StarterKit(void)
@@ -99,7 +99,7 @@ void HM_StarterKit(void)
 	std::cout << "HMStarterKit main()" << std::endl;
 
 	// ブザー
-	BEEP();
+	ANIMATE();
 	// 最初は0しておく
 	speed_r = 0;
 	speed_l = 0;
@@ -129,7 +129,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				wait_ms(2500);
 				start_position();
 				for (i = 0; i < 5; i++)
@@ -142,7 +142,7 @@ void HM_StarterKit(void)
 					wait_ms(2500);
 				}
 				while (true)
-					BEEP();
+					ANIMATE();
 			}
 
 			break;
@@ -159,7 +159,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				wait_ms(2500);
 				start_position();
 				search_mode();
@@ -179,7 +179,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				wait_ms(2500);
 				start_position();
 				fast_mode();
@@ -199,12 +199,12 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				degree = 0;
 				timer = 0;
 				log_timer = 0;
 				gyro_get_ref();
-				BEEP();
+				ANIMATE();
 				mypos.x = mypos.y = 0; // 座標を初期化
 				mypos.dir = north;		 // 方角を初期化
 				log_flag = 1;
@@ -214,17 +214,17 @@ void HM_StarterKit(void)
 				adjust_turn();									 // ゴールしたら180度回転する
 				mypos.dir = static_cast<t_direction>((mypos.dir + 6) % 4); // 方角を更新
 				map_write();
-				BEEP();
+				ANIMATE();
 				wait_ms(100);
-				BEEP(); // ゴールしたことをアピール
+				ANIMATE(); // ゴールしたことをアピール
 				wait_ms(100);
-				BEEP();							 // ゴールしたことをアピール
+				ANIMATE();							 // ゴールしたことをアピール
 				search_adachi(0, 0); // スタート地点まで足立法で帰ってくる
 				adjust_turn();			 // 帰ってきたら180度回転
 				driver::motor::disable();
 				map_write();
 				log_flag = 0;
-				BEEP();
+				ANIMATE();
 			}
 
 			break;
@@ -241,12 +241,12 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				map_copy();
 				degree = 0;
 				timer = 0;
 				gyro_get_ref();
-				BEEP();
+				ANIMATE();
 				mypos.x = mypos.y = 0; // 座標を初期化
 				mypos.dir = north;		 // 方角を初期化
 				log_flag = 1;
@@ -256,17 +256,17 @@ void HM_StarterKit(void)
 				adjust_turn();									 // ゴールしたら180度回転する
 				mypos.dir = static_cast<t_direction>((mypos.dir + 6) % 4); // 方角を更新
 				map_write();
-				BEEP();
+				ANIMATE();
 				wait_ms(100);
-				BEEP(); // ゴールしたことをアピール
+				ANIMATE(); // ゴールしたことをアピール
 				wait_ms(100);
-				BEEP();							 // ゴールしたことをアピール
+				ANIMATE();							 // ゴールしたことをアピール
 				search_adachi(0, 0); // スタート地点まで足立法で帰ってくる
 				adjust_turn();			 // 帰ってきたら180度回転
 				driver::motor::disable();
 				map_write();
 				log_flag = 0;
-				BEEP();
+				ANIMATE();
 			}
 
 			break;
@@ -283,7 +283,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 
 				wait_ms(500);
 			}
@@ -302,7 +302,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 
 				wait_ms(500);
 			}
@@ -321,7 +321,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 
 				wait_ms(500);
 			}
@@ -340,7 +340,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 
 				wait_ms(500);
 			}
@@ -359,7 +359,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 
 				wait_ms(500);
 			}
@@ -378,7 +378,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 
 				wait_ms(500);
 			}
@@ -397,7 +397,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 
 				wait_ms(500);
 			}
@@ -416,7 +416,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 
 				wait_ms(500);
 			}
@@ -435,7 +435,7 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 
 				wait_ms(500);
 			}
@@ -454,12 +454,12 @@ void HM_StarterKit(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				while (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 					;
 				adjust();
 
-				BEEP();
+				ANIMATE();
 				wait_ms(500);
 			}
 
