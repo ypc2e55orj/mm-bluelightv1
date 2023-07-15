@@ -48,11 +48,11 @@ void adjust(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				gyro_get_ref();
 				// 壁制御を有効にする
 				con_wall.enable = true;
-				BEEP();
+				ANIMATE();
 				while (1)
 				{
 					// A/D sensor
@@ -113,9 +113,9 @@ void adjust(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				gyro_get_ref();
-				BEEP();
+				ANIMATE();
 				log_flag = 1;
 				log_timer = 0;
 				len_mouse = 0;
@@ -126,7 +126,7 @@ void adjust(void)
 				log_flag = 0;
 				driver::motor::disable();
 				driver::motor::brake();
-				BEEP();
+				ANIMATE();
 				float r, l;
 				get_adjust_len(&r, &l);
 				while(true)
@@ -151,16 +151,16 @@ void adjust(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				gyro_get_ref();
-				BEEP();
+				ANIMATE();
 				log_flag = 1;
 				log_timer = 0;
 				log_flag = 0;
 				turn(360,TURN_ACCEL,TURN_SPEED,RIGHT);
 				driver::motor::disable();
 				driver::motor::brake();
-				BEEP();
+				ANIMATE();
 				wait_ms(500);
 			}
 
@@ -178,11 +178,23 @@ void adjust(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				wait_ms(500);
-				BEEP();
-				start_position();
-				BEEP();
+				ANIMATE();
+				log_flag = 1;
+				log_timer = 0;
+				len_mouse = 0;
+				straight(SLA_SECTION,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
+				slalom_turn(90,SLA_ACCEL,SLA_SPEED,RIGHT,SEARCH_SPEED);				//右に曲がって
+				straight(SLA_SECTION,SEARCH_ACCEL,SEARCH_SPEED,0);
+				driver::motor::disable();
+				driver::motor::brake();
+				log_flag = 1;
+				log_timer = 0;
+				len_mouse = 0;
+				ANIMATE();
+				wait_ms(500);
+
 			}
 			break;
 
@@ -198,20 +210,20 @@ void adjust(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				gyro_get_ref();
-				BEEP();
+				ANIMATE();
 				log_flag = 1;
 				log_timer = 0;
 				while (true)
 				{
 					adjust_fwall();
-					BEEP();
+					ANIMATE();
 				}
 				log_flag = 0;
 				driver::motor::disable();
 				driver::motor::brake();
-				BEEP();
+				ANIMATE();
 				wait_ms(500);
 			}
 
@@ -229,7 +241,7 @@ void adjust(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				map_copy();
 				map_view();
 				wait_ms(500);
@@ -249,7 +261,7 @@ void adjust(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				BEEP();
+				ANIMATE();
 				SCI_printf("time[msec],len_mouse[mm],tar_speed[mm/s],speed[mm/s],Duty_R[%%],Duty_L[%%],V_battery[mV],tar_degree[deg*10],degree[deg*10],tar_ang_vel[1000*rad/s],ang_vel[1000*rad/s],I_tar_ang_vel[rad],ang_acc[1000*rad/ss]\n\r");
 				for (i = 0; i < LOG_CNT; i++)
 				{
