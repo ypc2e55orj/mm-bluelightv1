@@ -17,6 +17,7 @@
 #include "../src/driver/motor.h"
 
 #include "../src/sensor.h"
+#include <rom/ets_sys.h>
 
 #include "../src/hm/HM_StarterKit.h"
 #include "../src/hm/interrupt.h"
@@ -36,9 +37,6 @@ void backgroundTask(void *)
 
   while (true)
   {
-    driver::battery::update();
-    driver::imu::update();
-    driver::encoder::update();
     int_cmt2();
     int_cmt1();
     int_cmt0();
@@ -58,6 +56,7 @@ void mainTask(void *)
     vTaskDelay(pdMS_TO_TICKS(50));
     driver::indicator::clear();
   }
+  vTaskDelay(pdMS_TO_TICKS(50));
   for (int i = driver::indicator::nums() - 1; i > -1; i--)
   {
     driver::indicator::set(i, 0x0000FF);
@@ -65,6 +64,8 @@ void mainTask(void *)
     vTaskDelay(pdMS_TO_TICKS(50));
     driver::indicator::clear();
   }
+  vTaskDelay(pdMS_TO_TICKS(100));
+
   HM_StarterKit();
 }
 

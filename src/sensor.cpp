@@ -16,6 +16,16 @@ namespace sensor
 
   static bool IRAM_ATTR update_interval(gptimer_handle_t timer, const gptimer_alarm_event_data_t *timer_ev, void *)
   {
+    static int divisor = 0;
+
+    if (++divisor == 4)
+    {
+      driver::imu::update();
+      driver::encoder::update();
+      driver::battery::update();
+      divisor = 0;
+    }
+
     driver::photo::tx(photo_pos);
     ESP_ERROR_CHECK(gptimer_start(gptimer_flush));
 
@@ -30,7 +40,6 @@ namespace sensor
     {
       photo_pos = driver::photo::LEFT_90;
     }
-
     ESP_ERROR_CHECK(gptimer_stop(timer));
 
     return true;
