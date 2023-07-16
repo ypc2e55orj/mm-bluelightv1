@@ -181,17 +181,19 @@ void fast_run_sla(int x, int y)
 				break;
 
 			case right:
-				straight(straight_length+SLA_SECTION,FAST_ACCEL,FAST_SPEED,SEARCH_SPEED);
+				straight(straight_length,FAST_ACCEL,FAST_SPEED,SEARCH_SPEED);
 				straight_length = 0;
+				straight(SLA_SECTION_PRE,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
 				slalom_turn(90,SLA_ACCEL,SLA_SPEED,RIGHT,SEARCH_SPEED);				//右に曲がって
-				straight(SLA_SECTION,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
+				straight(SLA_SECTION_POST,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
 				break;
 
 			case left:
-				straight(straight_length+SLA_SECTION,FAST_ACCEL,FAST_SPEED,SEARCH_SPEED);
+				straight(straight_length,FAST_ACCEL,FAST_SPEED,SEARCH_SPEED);
 				straight_length = 0;
-				slalom_turn(90,SLA_ACCEL,SLA_SPEED,LEFT,SEARCH_SPEED);				//左に曲がって
-				straight(SLA_SECTION,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
+				straight(SLA_SECTION_PRE,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
+				slalom_turn(90,SLA_ACCEL,SLA_SPEED,RIGHT,SEARCH_SPEED);				//右に曲がって
+				straight(SLA_SECTION_POST,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
 				break;
 
 			case rear:

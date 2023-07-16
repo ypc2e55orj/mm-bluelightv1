@@ -20,8 +20,6 @@
 
 #include "../driver/motor.h"
 
-#include <stdio.h>
-
 extern unsigned int timer;
 float r_adjust_len, l_adjust_len;
 void straight(float len, float acc, float max_sp, float end_sp)
@@ -265,8 +263,6 @@ void slalom_turn(int deg, float ang_accel, float max_ang_velocity, short dir, fl
 			wait_ms(1);
 		}
 	}
-
-	// BEEP();
 	// 角減速区間に入るため、角加速度設定
 	driver::motor::enable();
 	if (dir == RIGHT)
@@ -371,7 +367,7 @@ void adjust_fwall(void)
 	// 加速度を設定
 	accel = 0;
 	// 最高速度を設定
-	max_speed = 0.1f;
+	max_speed = MIN_SPEED;
 
 	short target_distance = sen_fr.ref + sen_fl.ref;
 
@@ -380,13 +376,13 @@ void adjust_fwall(void)
 	{
 		short now_distance = sen_fr.value + sen_fl.value;
 
-		if ((now_distance - target_distance) < -50)
+		if ((now_distance - target_distance) < -20)
 		{
-			accel = 0.1f;
+			accel = SEARCH_ACCEL;
 		}
-		else if ((now_distance - target_distance) > 50)
+		else if ((now_distance - target_distance) > 20)
 		{
-			accel = -0.1f;
+			accel = -SEARCH_ACCEL;
 		}
 		else
 		{

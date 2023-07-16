@@ -571,13 +571,15 @@ void search_adachi_sla(int gx, int gy)
 				break;
 
 			case right:
+				straight(SLA_SECTION_PRE,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
 				slalom_turn(90,SLA_ACCEL,SLA_SPEED,RIGHT,SEARCH_SPEED);				//右に曲がって
-				straight(SLA_SECTION,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
+				straight(SLA_SECTION_POST,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
 				break;
 
 			case left:
+				straight(SLA_SECTION_PRE,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
 				slalom_turn(90,SLA_ACCEL,SLA_SPEED,LEFT,SEARCH_SPEED);				//左に曲がって
-				straight(SLA_SECTION,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
+				straight(SLA_SECTION_POST,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
 				break;
 
 			case rear:

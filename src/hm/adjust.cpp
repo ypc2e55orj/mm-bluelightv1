@@ -50,9 +50,12 @@ void adjust(void)
 			{
 				ANIMATE();
 				gyro_get_ref();
-				// 壁制御を有効にする
-				con_wall.enable = true;
 				ANIMATE();
+				run_mode = TURN_MODE;
+				I_tar_ang_vel = 0;
+				tar_ang_vel = 0;
+				ang_vel = 0;
+				driver::motor::enable();
 				while (1)
 				{
 					// A/D sensor
@@ -120,20 +123,11 @@ void adjust(void)
 				log_timer = 0;
 				len_mouse = 0;
 				con_wall.enable = true;
-				straight(HALF_SECTION, SEARCH_ACCEL, SEARCH_SPEED, SEARCH_SPEED);
-				check_straight(SEARCH_SPEED);
-				straight(HALF_SECTION, SEARCH_ACCEL, SEARCH_SPEED, 0);
+				straight(SECTION, SEARCH_ACCEL, SEARCH_SPEED, 0);
 				log_flag = 0;
 				driver::motor::disable();
 				driver::motor::brake();
 				ANIMATE();
-				float r, l;
-				get_adjust_len(&r, &l);
-				while(true)
-				{
-					printf("%f, %f\n\r", r, l);
-					wait_ms(1);
-				}
 				wait_ms(500);
 			}
 
@@ -157,7 +151,7 @@ void adjust(void)
 				log_flag = 1;
 				log_timer = 0;
 				log_flag = 0;
-				turn(360,TURN_ACCEL,TURN_SPEED,RIGHT);
+				turn(90,TURN_ACCEL,TURN_SPEED,RIGHT);
 				driver::motor::disable();
 				driver::motor::brake();
 				ANIMATE();
@@ -184,9 +178,9 @@ void adjust(void)
 				log_flag = 1;
 				log_timer = 0;
 				len_mouse = 0;
-				straight(SLA_SECTION,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
-				slalom_turn(90,SLA_ACCEL,SLA_SPEED,RIGHT,SEARCH_SPEED);				//右に曲がって
-				straight(SLA_SECTION,SEARCH_ACCEL,SEARCH_SPEED,0);
+				straight(SLA_SECTION_PRE,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
+				slalom_turn(90,SLA_ACCEL,SLA_SPEED,LEFT,SEARCH_SPEED);				//左に曲がって
+				straight(SLA_SECTION_POST,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
 				driver::motor::disable();
 				driver::motor::brake();
 				log_flag = 1;
