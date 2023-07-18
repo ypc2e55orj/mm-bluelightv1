@@ -67,6 +67,10 @@ void mainTask(void *)
   }
   vTaskDelay(pdMS_TO_TICKS(100));
 
+  sensor::stop();
+  driver::flash::ls("/");
+  sensor::start();
+
   HM_StarterKit();
 }
 
