@@ -1,5 +1,7 @@
 #include "sensor.h"
 
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <driver/gptimer.h>
 
 #include "../src/driver/battery.h"
@@ -49,7 +51,7 @@ namespace sensor
 
   void init()
   {
-        // 10us oneshot timer
+    // 10us oneshot timer
     gptimer_config_t flush_cfg = {};
     flush_cfg.clk_src = GPTIMER_CLK_SRC_DEFAULT;
     flush_cfg.direction = GPTIMER_COUNT_UP;
@@ -90,15 +92,30 @@ namespace sensor
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer_interval, &interval_alarm));
   }
 
-  void start()
+  static void sensorStartTask(void *)
   {
     ESP_ERROR_CHECK(gptimer_enable(gptimer_interval));
     ESP_ERROR_CHECK(gptimer_start(gptimer_interval));
+
+    vTaskDelete(nullptr);
+  }
+  static void sensorStopTask(void *)
+  {
+    ESP_ERROR_CHECK(gptimer_stop(gptimer_interval));
+    ESP_ERROR_CHECK(gptimer_disable(gptimer_interval));
+
+    vTaskDelete(nullptr);
+  }
+
+  void start()
+  {
+    xTaskCreatePinnedToCore(sensorStartTask, "sensorStartTask", 8192, nullptr, 0, nullptr, 0);
+    vTaskDelay(pdMS_TO_TICKS(1));
   }
 
   void stop()
   {
-    ESP_ERROR_CHECK(gptimer_stop(gptimer_interval));
-    ESP_ERROR_CHECK(gptimer_disable(gptimer_interval));
+    xTaskCreatePinnedToCore(sensorStopTask, "sensorStopTask", 8192, nullptr, 0, nullptr, 0);
+    vTaskDelay(pdMS_TO_TICKS(1));
   }
 }
