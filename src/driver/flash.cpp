@@ -5,34 +5,27 @@
 #include "flash.h"
 
 #include <esp_vfs.h>
-#include <esp_vfs_fat.h>
-#include <esp_system.h>
+#include <esp_spiffs.h>
 
 namespace driver::flash
 {
-  static const auto MOUNT_PATH = "/spiflash";
-
   static bool mounted = false;
-  static wl_handle_t wl = WL_INVALID_HANDLE;
 
-  void mount()
+  void init()
   {
-    esp_vfs_fat_mount_config_t mount_cfg = {};
-    mount_cfg.max_files = 4;
-    mount_cfg.format_if_mount_failed = true;
-    mount_cfg.allocation_unit_size = CONFIG_WL_SECTOR_SIZE;
-
-    ESP_ERROR_CHECK(esp_vfs_fat_spiflash_mount_rw_wl(MOUNT_PATH, "storage", &mount_cfg, &wl));
-    mounted = true;
-  }
-
-  void umount()
-  {
-    if (!mounted)
+    if (mounted)
     {
       return;
     }
 
-    ESP_ERROR_CHECK(esp_vfs_fat_spiflash_unmount_rw_wl(MOUNT_PATH, wl));
+    esp_vfs_spiffs_conf_t spiffs_cfg = {};
+    spiffs_cfg.base_path = "/spiffs";
+    spiffs_cfg.partition_label = nullptr;
+    spiffs_cfg.max_files = 5;
+    spiffs_cfg.format_if_mount_failed = true;
+
+    ESP_ERROR_CHECK(esp_vfs_spiffs_register(&spiffs_cfg));
+
+    mounted = true;
   }
 }

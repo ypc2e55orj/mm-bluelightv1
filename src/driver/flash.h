@@ -2,6 +2,5 @@
 
 namespace driver::flash
 {
-  void mount();
-  void umount();
+  void init();
 }
