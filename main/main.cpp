@@ -49,10 +49,6 @@ void backgroundTask(void *)
 void mainTask(void *)
 {
   std::cout << "mainTask() start. Core ID: " << xPortGetCoreID() << std::endl;
-  std::ofstream ofs("/spiffs/test.txt");
-  ofs << "hoge hoge" << std::endl;
-
-  xTaskCreatePinnedToCore(backgroundTask, "backgroundTask", 8192, nullptr, 5, nullptr, 0);
 
   for (int i = 0; i < driver::indicator::nums(); i++)
   {
@@ -91,5 +87,6 @@ extern "C" void app_main(void)
   driver::photo::init();
   sensor::init();
 
+  xTaskCreatePinnedToCore(backgroundTask, "backgroundTask", 8192, nullptr, 5, nullptr, 0);
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 10, nullptr, 1);
 }
