@@ -27,6 +27,7 @@ namespace sensor
     }
 
     driver::photo::tx(photo_pos);
+    ESP_ERROR_CHECK(gptimer_enable(gptimer_flush));
     ESP_ERROR_CHECK(gptimer_start(gptimer_flush));
 
     return true;
@@ -41,13 +42,14 @@ namespace sensor
       photo_pos = driver::photo::LEFT_90;
     }
     ESP_ERROR_CHECK(gptimer_stop(timer));
+    ESP_ERROR_CHECK(gptimer_disable(timer));
 
     return true;
   }
 
-  void start()
+  void init()
   {
-    // 10us oneshot timer
+        // 10us oneshot timer
     gptimer_config_t flush_cfg = {};
     flush_cfg.clk_src = GPTIMER_CLK_SRC_DEFAULT;
     flush_cfg.direction = GPTIMER_COUNT_UP;
@@ -59,8 +61,6 @@ namespace sensor
     flush_cb.on_alarm = recieve_flush;
 
     ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer_flush, &flush_cb, nullptr));
-
-    ESP_ERROR_CHECK(gptimer_enable(gptimer_flush));
 
     gptimer_alarm_config_t flush_alarm = {};
     flush_alarm.reload_count = 0;
@@ -82,16 +82,23 @@ namespace sensor
 
     ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer_interval, &interval_cb, nullptr));
 
-    ESP_ERROR_CHECK(gptimer_enable(gptimer_interval));
-
     gptimer_alarm_config_t interval_alarm = {};
     interval_alarm.reload_count = 0;
     interval_alarm.alarm_count = 250;
     interval_alarm.flags.auto_reload_on_alarm = true;
 
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer_interval, &interval_alarm));
+  }
 
-    // start interval
+  void start()
+  {
+    ESP_ERROR_CHECK(gptimer_enable(gptimer_interval));
     ESP_ERROR_CHECK(gptimer_start(gptimer_interval));
+  }
+
+  void stop()
+  {
+    ESP_ERROR_CHECK(gptimer_stop(gptimer_interval));
+    ESP_ERROR_CHECK(gptimer_disable(gptimer_interval));
   }
 }
