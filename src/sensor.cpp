@@ -4,10 +4,10 @@
 #include <freertos/task.h>
 #include <driver/gptimer.h>
 
-#include "../src/driver/battery.h"
-#include "../src/driver/encoder.h"
-#include "../src/driver/imu.h"
-#include "../src/driver/photo.h"
+#include "./driver/battery.h"
+#include "./driver/encoder.h"
+#include "./driver/imu.h"
+#include "./driver/photo.h"
 
 namespace sensor
 {
@@ -43,6 +43,7 @@ namespace sensor
     {
       photo_pos = driver::photo::LEFT_90;
     }
+
     ESP_ERROR_CHECK(gptimer_stop(timer));
     ESP_ERROR_CHECK(gptimer_disable(timer));
 
