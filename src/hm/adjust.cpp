@@ -22,6 +22,48 @@
 #include "init.h"
 
 #include "../driver/motor.h"
+#include "../sensor.h"
+
+#include <stdio.h>
+
+void adjust_write(void)
+{
+	sensor::stop();
+	FILE *fp = fopen("/spiffs/adjust.csv", "w");
+
+	fprintf(fp, "time[msec],len_mouse[mm],tar_speed[mmps],speed[mmps],Duty_R[%%],Duty_L[%%],V_battery[mV],tar_degree[deg],degree[deg],tar_ang_vel[radps],ang_vel[radps],I_tar_ang_vel[rad],ang_acc[radpss]\n\r");
+	for (int i = 0; i < LOG_CNT; i++)
+	{
+		fprintf(fp, "%d,", i);										 // time[msec]
+		fprintf(fp, "%d,", log_buffer[0][i]);		 // len_mouse[mm]
+		fprintf(fp, "%d,", log_buffer[1][i]);		 // tar_speed[mm/s]
+		fprintf(fp, "%d,", log_buffer[2][i]);		 // speed[mm/s]
+		fprintf(fp, "%d,", log_buffer[3][i]);		 // Duty_R[%]
+		fprintf(fp, "%d,", log_buffer[4][i]);		 // Duty_L[%]
+		fprintf(fp, "%d,", log_buffer[5][i]);		 // V_battery[mV]
+		fprintf(fp, "%d,", log_buffer[6][i]);		 // tar_degree[deg*10]
+		fprintf(fp, "%d,", log_buffer[7][i]);		 // degree[deg*10]
+		fprintf(fp, "%d,", log_buffer[8][i]);		 // tar_ang_vel[1000*rad/s]
+		fprintf(fp, "%d,", log_buffer[9][i]);		 // ang_vel[1000*rad/s]
+		fprintf(fp, "%d,", log_buffer[10][i]);		 // I_tar_ang_vel[rad]
+		fprintf(fp, "%d\n\r", log_buffer[11][i]); // ang_acc[rad]
+	}
+	fclose(fp);
+	sensor::start();
+}
+
+void adjust_read()
+{
+	sensor::stop();
+	FILE *fp = fopen("/spiffs/adjust.csv", "r");
+	char buffer[255] = {};
+	while(fgets(buffer, sizeof buffer / sizeof(buffer[0]), fp))
+	{
+		printf("%s", buffer);
+	}
+	fclose(fp);
+	sensor::start();
+}
 
 void adjust(void)
 {
@@ -128,6 +170,8 @@ void adjust(void)
 				driver::motor::disable();
 				driver::motor::brake();
 				ANIMATE();
+				adjust_write();
+				ANIMATE();
 				wait_ms(500);
 			}
 
@@ -151,7 +195,7 @@ void adjust(void)
 				log_flag = 1;
 				log_timer = 0;
 				log_flag = 0;
-				turn(90,TURN_ACCEL,TURN_SPEED,RIGHT);
+				turn(90, TURN_ACCEL, TURN_SPEED, RIGHT);
 				driver::motor::disable();
 				driver::motor::brake();
 				ANIMATE();
@@ -178,9 +222,9 @@ void adjust(void)
 				log_flag = 1;
 				log_timer = 0;
 				len_mouse = 0;
-				straight(SLA_SECTION_PRE,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
-				slalom_turn(90,SLA_ACCEL,SLA_SPEED,LEFT,SEARCH_SPEED);				//左に曲がって
-				straight(SLA_SECTION_POST,SEARCH_ACCEL,SEARCH_SPEED,SEARCH_SPEED);
+				straight(SLA_SECTION_PRE, SEARCH_ACCEL, SEARCH_SPEED, SEARCH_SPEED);
+				slalom_turn(90, SLA_ACCEL, SLA_SPEED, LEFT, SEARCH_SPEED); // 左に曲がって
+				straight(SLA_SECTION_POST, SEARCH_ACCEL, SEARCH_SPEED, SEARCH_SPEED);
 				driver::motor::disable();
 				driver::motor::brake();
 				log_flag = 1;
@@ -188,7 +232,6 @@ void adjust(void)
 				len_mouse = 0;
 				ANIMATE();
 				wait_ms(500);
-
 			}
 			break;
 
@@ -256,24 +299,7 @@ void adjust(void)
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
 				ANIMATE();
-				SCI_printf("time[msec],len_mouse[mm],tar_speed[mm/s],speed[mm/s],Duty_R[%%],Duty_L[%%],V_battery[mV],tar_degree[deg*10],degree[deg*10],tar_ang_vel[1000*rad/s],ang_vel[1000*rad/s],I_tar_ang_vel[rad],ang_acc[1000*rad/ss]\n\r");
-				for (i = 0; i < LOG_CNT; i++)
-				{
-
-					SCI_printf("%d,", i);										 // time[msec]
-					SCI_printf("%d,", log_buffer[0][i]);		 // len_mouse[mm]
-					SCI_printf("%d,", log_buffer[1][i]);		 // tar_speed[mm/s]
-					SCI_printf("%d,", log_buffer[2][i]);		 // speed[mm/s]
-					SCI_printf("%d,", log_buffer[3][i]);		 // Duty_R[%]
-					SCI_printf("%d,", log_buffer[4][i]);		 // Duty_L[%]
-					SCI_printf("%d,", log_buffer[5][i]);		 // V_battery[mV]
-					SCI_printf("%d,", log_buffer[6][i]);		 // tar_degree[deg*10]
-					SCI_printf("%d,", log_buffer[7][i]);		 // degree[deg*10]
-					SCI_printf("%d,", log_buffer[8][i]);		 // tar_ang_vel[1000*rad/s]
-					SCI_printf("%d,", log_buffer[9][i]);		 // ang_vel[1000*rad/s]
-					SCI_printf("%d,", log_buffer[10][i]);		 // I_tar_ang_vel[rad]
-					SCI_printf("%d\n\r", log_buffer[11][i]); // ang_acc[rad]
-				}
+				adjust_read();
 				wait_ms(500);
 			}
 			break;
