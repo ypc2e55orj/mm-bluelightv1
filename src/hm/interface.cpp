@@ -16,11 +16,9 @@ void LED(short led_num){
 	driver::indicator::clear();
 	for (int i = 0; i < driver::indicator::nums(); i++)
 	{
-		if (led_num & (bit << i))
-		{
-			driver::indicator::set(i , 0x00000F);
-		}
+		driver::indicator::set(i , (led_num & (bit << i)) == 1 ? 0x00000F : 0x000000);
 	}
+	driver::indicator::update();
 }
 
 void ANIMATE(void)
