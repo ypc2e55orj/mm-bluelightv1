@@ -7,4 +7,6 @@ namespace driver::fs
 
   void df();
   void ls(const char *const path);
+  void rm(const char *const path);
+  void cat(const char *const path);
 }

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <stdio.h>
 
 #include "../src/driver/battery.h"
 #include "../src/driver/encoder.h"
@@ -61,8 +62,13 @@ void mainTask(void *)
 
   sensor::stop();
   driver::fs::df();
-  driver::fs::ls("/");
+  driver::fs::ls("/spiffs/");
   sensor::start();
+
+  while(true)
+  {
+    vTaskDelay(pdMS_TO_TICKS(1));
+  }
 }
 
 // entrypoint

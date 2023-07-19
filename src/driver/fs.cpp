@@ -43,11 +43,7 @@ namespace driver::fs
 
   void ls(const char *const path)
   {
-    static char buffer[256] = {};
-    strcpy(buffer, BASE_PATH);
-    strcat(buffer, path);
-
-    DIR *dir = opendir(buffer);
+    DIR *dir = opendir(path);
     if (dir == nullptr)
     {
       return;
@@ -61,5 +57,22 @@ namespace driver::fs
     }
 
     closedir(dir);
+  }
+
+  void rm(const char *const path)
+  {
+    unlink(path);
+  }
+
+  void cat(const char *const path)
+  {
+    char buffer[256] = {};
+
+    FILE *file = fopen(path, "r");
+    while (fgets(buffer, 256, file) != nullptr)
+    {
+      printf("%s", buffer);
+    }
+    fclose(file);
   }
 }
