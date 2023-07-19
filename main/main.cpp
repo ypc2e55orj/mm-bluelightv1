@@ -18,10 +18,6 @@
 #include "../src/driver/motor.h"
 
 #include "../src/sensor.h"
-#include <rom/ets_sys.h>
-
-#include "../src/hm/HM_StarterKit.h"
-#include "../src/hm/interrupt.h"
 
 #define EVENT_GROUP_SENSOR_IMU (1UL << 1)
 #define EVENT_GROUP_SENSOR_ENCODER (1UL << 2)
@@ -38,10 +34,6 @@ void backgroundTask(void *)
 
   while (true)
   {
-    int_cmt2();
-    int_cmt1();
-    int_cmt0();
-    driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(1));
   }
 }
@@ -71,8 +63,6 @@ void mainTask(void *)
   driver::fs::df();
   driver::fs::ls("/");
   sensor::start();
-
-  HM_StarterKit();
 }
 
 // entrypoint
