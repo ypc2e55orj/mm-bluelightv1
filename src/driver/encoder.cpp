@@ -79,7 +79,7 @@ namespace driver::encoder
     else // if (trans == &spi_trans_right)
     {
       angle_right = as5050a_angle(rx_data);
-      if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdTRUE)
+      if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdPASS)
       {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }

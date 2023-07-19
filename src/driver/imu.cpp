@@ -55,7 +55,7 @@ namespace driver::imu
 
     xHigherPriorityTaskWoken = pdFALSE;
 
-    if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdTRUE)
+    if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdPASS)
     {
       portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
