@@ -33,27 +33,17 @@ namespace driver::flash
     return esp_spiffs_mounted(PARTITION_LABEL);
   }
 
-  void info(size_t *total, size_t *used)
+  void df()
   {
-    esp_spiffs_info(PARTITION_LABEL, total, used);
+    size_t total = 0, used = 0;
+    esp_spiffs_info(PARTITION_LABEL, &total, &used);
+    printf("%-10s %-10s %-10s %-255s\r", "Size", "Used", "Avail", "Mounted on");
+    printf("%-10d %-10d %-10d %-255s\r", total, used, total - used, BASE_PATH);
   }
 
-  static const std::string d_type_str(uint8_t type)
-  {
-    switch (type)
-    {
-    case DT_REG:
-      return "reg";
-    case DT_DIR:
-      return "dir";
-    case DT_UNKNOWN:
-    default:
-      return "unknown";
-    }
-  }
   void ls(const char *const path)
   {
-    static char buffer[512] = {};
+    static char buffer[256] = {};
     strcpy(buffer, BASE_PATH);
     strcat(buffer, path);
 
@@ -63,10 +53,11 @@ namespace driver::flash
       return;
     }
 
+    int index = 0;
     struct dirent *ent = nullptr;
     while ((ent = readdir(dir)) != nullptr)
     {
-      printf("%03u %255s %10s\n", ent->d_ino, ent->d_name, d_type_str(ent->d_type).c_str());
+      printf("%-4d %-255s\r", index++, ent->d_name);
     }
 
     closedir(dir);

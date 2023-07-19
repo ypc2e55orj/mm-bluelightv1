@@ -68,6 +68,7 @@ void mainTask(void *)
   vTaskDelay(pdMS_TO_TICKS(100));
 
   sensor::stop();
+  driver::flash::df();
   driver::flash::ls("/");
   sensor::start();
 
