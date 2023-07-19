@@ -10,7 +10,7 @@
 
 #include "../src/driver/battery.h"
 #include "../src/driver/encoder.h"
-#include "../src/driver/flash.h"
+#include "../src/driver/fs.h"
 #include "../src/driver/imu.h"
 #include "../src/driver/indicator.h"
 #include "../src/driver/buzzer.h"
@@ -68,8 +68,8 @@ void mainTask(void *)
   vTaskDelay(pdMS_TO_TICKS(100));
 
   sensor::stop();
-  driver::flash::df();
-  driver::flash::ls("/");
+  driver::fs::df();
+  driver::fs::ls("/");
   sensor::start();
 
   HM_StarterKit();
@@ -85,7 +85,7 @@ extern "C" void app_main(void)
   driver::battery::init();
   driver::buzzer::init();
   driver::encoder::init(xEventGroupSensor, EVENT_GROUP_SENSOR_IMU);
-  driver::flash::init();
+  driver::fs::init();
   driver::imu::init(xEventGroupSensor, EVENT_GROUP_SENSOR_ENCODER);
   driver::indicator::init();
   driver::motor::init();

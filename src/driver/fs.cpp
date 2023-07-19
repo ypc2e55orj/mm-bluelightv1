@@ -1,4 +1,4 @@
-#include "flash.h"
+#include "fs.h"
 
 #include <esp_vfs.h>
 #include <esp_spiffs.h>
@@ -7,7 +7,7 @@
 #include <cstring>
 #include <dirent.h>
 
-namespace driver::flash
+namespace driver::fs
 {
   static const char *const BASE_PATH = "/spiffs";
   static const char *const PARTITION_LABEL = "storage";

@@ -6,7 +6,7 @@ idf_component_register(
   "../src/driver/battery.cpp"
   "../src/driver/buzzer.cpp"
   "../src/driver/encoder.cpp"
-  "../src/driver/flash.cpp"
+  "../src/driver/fs.cpp"
   "../src/driver/imu.cpp"
   "../src/driver/indicator.cpp"
   "../src/driver/motor.cpp"

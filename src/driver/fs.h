@@ -1,6 +1,6 @@
 #pragma once
 
-namespace driver::flash
+namespace driver::fs
 {
   void init();
   bool mounted();
