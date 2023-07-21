@@ -14,7 +14,7 @@ namespace sensor
   static gptimer_handle_t gptimer_interval = nullptr; // 4kHz
   static gptimer_handle_t gptimer_flush = nullptr;    // 10us oneshot
 
-  static uint8_t photo_pos = driver::photo::LEFT_90;
+  static uint8_t photo_pos = driver::photo::PHOTO_LEFT_90;
 
   static bool IRAM_ATTR update_interval(gptimer_handle_t timer, const gptimer_alarm_event_data_t *timer_ev, void *)
   {
@@ -39,9 +39,9 @@ namespace sensor
   {
     driver::photo::rx(photo_pos);
 
-    if (++photo_pos == driver::photo::NUMS)
+    if (++photo_pos == driver::photo::PHOTO_NUMS)
     {
-      photo_pos = driver::photo::LEFT_90;
+      photo_pos = driver::photo::PHOTO_LEFT_90;
     }
 
     ESP_ERROR_CHECK(gptimer_stop(timer));

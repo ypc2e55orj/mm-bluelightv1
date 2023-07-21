@@ -6,11 +6,11 @@ namespace driver::photo
 {
   enum
   {
-    LEFT_90 = 0,
-    LEFT_45 = 1,
-    RIGHT_45 = 2,
-    RIGHT_90 = 3,
-    NUMS = 4
+    PHOTO_LEFT_90 = 0,
+    PHOTO_LEFT_45 = 1,
+    PHOTO_RIGHT_45 = 2,
+    PHOTO_RIGHT_90 = 3,
+    PHOTO_NUMS = 4
   };
 
   void init();

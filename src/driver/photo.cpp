@@ -14,10 +14,10 @@ namespace driver::photo
     gpio_num_t ir;
     adc_channel_t photo;
   } photo_pins[] = {
-      [LEFT_90] = {GPIO_NUM_13, ADC_CHANNEL_3},
-      [LEFT_45] = {GPIO_NUM_12, ADC_CHANNEL_2},
-      [RIGHT_45] = {GPIO_NUM_11, ADC_CHANNEL_1},
-      [RIGHT_90] = {GPIO_NUM_10, ADC_CHANNEL_0},
+      [PHOTO_LEFT_90] = {GPIO_NUM_13, ADC_CHANNEL_3},
+      [PHOTO_LEFT_45] = {GPIO_NUM_12, ADC_CHANNEL_2},
+      [PHOTO_RIGHT_45] = {GPIO_NUM_11, ADC_CHANNEL_1},
+      [PHOTO_RIGHT_90] = {GPIO_NUM_10, ADC_CHANNEL_0},
   };
 
   static int ambient[4] = {};
@@ -29,20 +29,20 @@ namespace driver::photo
     gpio_config_t gpio_cfg = {};
     gpio_cfg.mode = GPIO_MODE_OUTPUT;
 
-    for (int i = 0; i < NUMS; i++)
+    for (int i = 0; i < PHOTO_NUMS; i++)
     {
       gpio_cfg.pin_bit_mask |= (1UL << photo_pins[i].ir);
     }
 
     gpio_config(&gpio_cfg);
 
-    for (int i = 0; i < NUMS; i++)
+    for (int i = 0; i < PHOTO_NUMS; i++)
     {
       gpio_set_level(photo_pins[i].ir, 0);
     }
 
     driver::adc::init();
-    for (int i = 0; i < NUMS; i++)
+    for (int i = 0; i < PHOTO_NUMS; i++)
     {
       driver::adc::chan(photo_pins[i].photo);
     }
@@ -62,7 +62,7 @@ namespace driver::photo
 
   void get(int *dest)
   {
-    for (int i = 0; i < NUMS; i++)
+    for (int i = 0; i < PHOTO_NUMS; i++)
     {
       dest[i] = std::max(driver::adc::calibrate(flush[i]) - driver::adc::calibrate(ambient[i]), 0);
     }
