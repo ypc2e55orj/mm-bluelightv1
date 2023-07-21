@@ -19,6 +19,7 @@
 #include "../src/driver/motor.h"
 
 #include "../src/sensor.h"
+#include "../src/shell.h"
 
 #define EVENT_GROUP_SENSOR_IMU (1UL << 1)
 #define EVENT_GROUP_SENSOR_ENCODER (1UL << 2)
@@ -65,9 +66,9 @@ void mainTask(void *)
   driver::fs::ls("/spiffs/");
   sensor::start();
 
-  while(true)
+  shell::shell();
+  while (true)
   {
-    vTaskDelay(pdMS_TO_TICKS(1));
   }
 }
 

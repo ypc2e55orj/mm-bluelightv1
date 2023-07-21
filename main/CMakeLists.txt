@@ -2,6 +2,7 @@ idf_component_register(
   SRCS
   "main.cpp"
   "../src/sensor.cpp"
+  "../src/shell.cpp"
   "../src/driver/adc.cpp"
   "../src/driver/battery.cpp"
   "../src/driver/buzzer.cpp"
@@ -14,11 +15,21 @@ idf_component_register(
   "../src/third-party/led_strip/led_strip_encoder.c"
   "../src/third-party/lsm6dsrx-pid/lsm6dsrx_reg.c"
   "../src/third-party/musical_buzzer/musical_score_encoder.c"
+  "../src/third-party/ntshell/src/lib/core/ntlibc.c"
+  "../src/third-party/ntshell/src/lib/core/ntshell.c"
+  "../src/third-party/ntshell/src/lib/core/text_editor.c"
+  "../src/third-party/ntshell/src/lib/core/text_history.c"
+  "../src/third-party/ntshell/src/lib/core/vtrecv.c"
+  "../src/third-party/ntshell/src/lib/core/vtsend.c"
+  "../src/third-party/ntshell/src/lib/util/ntopt.c"
+  "../src/third-party/ntshell/src/lib/util/ntstdio.c"
   INCLUDE_DIRS
   "."
   "../src/"
   "../src/driver"
   "../src/third-party/led_strip"
   "../src/third-party/lsm6dsrx-pid"
-  "../src/third-party/musical_buzzer")
+  "../src/third-party/musical_buzzer"
+  "../src/third-party/ntshell/src/lib/core"
+  "../src/third-party/ntshell/src/lib/util")
 target_compile_options(${COMPONENT_LIB} PRIVATE -std=gnu++17)
