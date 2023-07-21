@@ -37,8 +37,8 @@ namespace driver::fs
   {
     size_t total = 0, used = 0;
     esp_spiffs_info(PARTITION_LABEL, &total, &used);
-    printf("%-10s %-10s %-10s %-255s\r\n", "Size", "Used", "Avail", "Mounted on");
-    printf("%-10d %-10d %-10d %-255s\r\n", total, used, total - used, BASE_PATH);
+    printf("%-10s %-10s %-10s %-.10s\r\n", "Size", "Used", "Avail", "Mounted on");
+    printf("%-10d %-10d %-10d %-.64s\r\n", total, used, total - used, BASE_PATH);
   }
 
   void ls(const char *const path)
@@ -53,7 +53,7 @@ namespace driver::fs
     struct dirent *ent = nullptr;
     while ((ent = readdir(dir)) != nullptr)
     {
-      printf("%-4d %-255s\r\n", index++, ent->d_name);
+      printf("%-4d %-.64s\r\n", index++, ent->d_name);
     }
 
     closedir(dir);
