@@ -1,22 +1,19 @@
-#include <sdkconfig.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 #include <freertos/task.h>
-#include <esp_timer.h>
+#include <sdkconfig.h>
 
-#include <iostream>
-#include <fstream>
 #include <cassert>
-#include <stdio.h>
+#include <iostream>
 
 #include "../src/driver/battery.h"
+#include "../src/driver/buzzer.h"
 #include "../src/driver/encoder.h"
 #include "../src/driver/fs.h"
 #include "../src/driver/imu.h"
 #include "../src/driver/indicator.h"
-#include "../src/driver/buzzer.h"
-#include "../src/driver/photo.h"
 #include "../src/driver/motor.h"
+#include "../src/driver/photo.h"
 
 #include "../src/sensor.h"
 #include "../src/shell.h"

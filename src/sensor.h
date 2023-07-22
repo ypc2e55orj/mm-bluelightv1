@@ -1,6 +1,7 @@
 #pragma once
 
-namespace sensor {
+namespace sensor
+{
   void init();
 
   void start();

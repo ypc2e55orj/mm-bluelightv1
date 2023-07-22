@@ -1,7 +1,7 @@
 #include "encoder.h"
 
-#include <driver/spi_master.h>
 #include <driver/gpio.h>
+#include <driver/spi_master.h>
 
 namespace driver::encoder
 {
@@ -29,8 +29,7 @@ namespace driver::encoder
     return (res & 0x3FFE) >> 2;
   }
 
-  static union as5050a_command
-  {
+  static union as5050a_command {
     uint16_t word;
     struct
     {

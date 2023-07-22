@@ -1,7 +1,7 @@
 #include "motor.h"
 
-#include <driver/gpio.h>
 #include <bdc_motor.h>
+#include <driver/gpio.h>
 
 #include <cmath>
 
@@ -20,8 +20,8 @@ namespace driver::motor
 
   static bdc_motor_handle_t bdc_position[2] = {};
   static esp_err_t (*bdc_direction[])(bdc_motor_handle_t) = {
-      bdc_motor_forward,
-      bdc_motor_reverse,
+    bdc_motor_forward,
+    bdc_motor_reverse,
   };
 
   void init()

@@ -44,8 +44,7 @@ public:
       sum_target_ += target;
     }
 
-    if ((!std::signbit(current) && (sum_ + current) > sum_) ||
-        (std::signbit(current) && (sum_ + current) < sum_))
+    if ((!std::signbit(current) && (sum_ + current) > sum_) || (std::signbit(current) && (sum_ + current) < sum_))
     {
       sum_ += current;
     }

@@ -1,15 +1,15 @@
 #include "imu.h"
 
-#include <driver/spi_master.h>
 #include <driver/gpio.h>
+#include <driver/spi_master.h>
 #include <esp_intr_alloc.h>
 
 #include "../third-party/lsm6dsrx-pid/lsm6dsrx_reg.h"
 
+#include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
-#include <cmath>
-#include <cassert>
 
 namespace driver::imu
 {

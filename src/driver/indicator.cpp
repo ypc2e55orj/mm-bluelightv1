@@ -21,7 +21,10 @@ namespace driver::indicator
 
   static uint8_t pixels[WS2812C_NUM * WS2812C_COLOR_DEPTH] = {};
 
-  uint8_t nums() { return WS2812C_NUM; }
+  uint8_t nums()
+  {
+    return WS2812C_NUM;
+  }
 
   void init()
   {

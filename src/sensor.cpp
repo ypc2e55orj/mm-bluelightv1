@@ -1,8 +1,8 @@
 #include "sensor.h"
 
+#include <driver/gptimer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <driver/gptimer.h>
 
 #include "./driver/battery.h"
 #include "./driver/encoder.h"
