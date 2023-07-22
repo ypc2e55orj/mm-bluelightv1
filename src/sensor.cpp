@@ -2,6 +2,7 @@
 
 #include <driver/gptimer.h>
 #include <freertos/FreeRTOS.h>
+#include <freertos/event_groups.h>
 #include <freertos/task.h>
 
 #include "./driver/battery.h"
@@ -9,48 +10,62 @@
 #include "./driver/imu.h"
 #include "./driver/photo.h"
 
+#include <cassert>
+
 namespace sensor
 {
+  static bool is_running = false;
+
   static gptimer_handle_t gptimer_interval = nullptr; // 4kHz
   static gptimer_handle_t gptimer_flush = nullptr;    // 10us oneshot
 
   static uint8_t photo_pos = driver::photo::PHOTO_LEFT_90;
 
+  static EventGroupHandle_t xEventGroupSensor = nullptr;
+
+  static const EventBits_t EVENT_GROUP_SENSOR_IMU = (1UL << 1);
+  static const EventBits_t EVENT_GROUP_SENSOR_ENCODER = (1UL << 2);
+  static const EventBits_t EVENT_GROUP_SENSOR_PHOTO = (1UL << 3);
+  static const EventBits_t EVENT_GROUP_SENSOR_ALL =
+    (EVENT_GROUP_SENSOR_IMU | EVENT_GROUP_SENSOR_ENCODER | EVENT_GROUP_SENSOR_PHOTO);
+
   static bool IRAM_ATTR update_interval(gptimer_handle_t timer, const gptimer_alarm_event_data_t *timer_ev, void *)
   {
-    static int divisor = 0;
-
-    if (++divisor == 4)
+    if (photo_pos == driver::photo::PHOTO_LEFT_90)
     {
       driver::imu::update();
       driver::encoder::update();
       driver::battery::update();
-      divisor = 0;
     }
 
     driver::photo::tx(photo_pos);
+
     ESP_ERROR_CHECK(gptimer_enable(gptimer_flush));
     ESP_ERROR_CHECK(gptimer_start(gptimer_flush));
 
-    return true;
+    return false;
   }
 
   static bool IRAM_ATTR recieve_flush(gptimer_handle_t timer, const gptimer_alarm_event_data_t *, void *)
   {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    BaseType_t xResult = pdFAIL;
+
     driver::photo::rx(photo_pos);
 
     if (++photo_pos == driver::photo::PHOTO_NUMS)
     {
       photo_pos = driver::photo::PHOTO_LEFT_90;
+      xResult = xEventGroupSetBitsFromISR(xEventGroupSensor, EVENT_GROUP_SENSOR_PHOTO, &xHigherPriorityTaskWoken);
     }
 
     ESP_ERROR_CHECK(gptimer_stop(timer));
     ESP_ERROR_CHECK(gptimer_disable(timer));
 
-    return true;
+    return xResult == pdPASS && xHigherPriorityTaskWoken == pdTRUE;
   }
 
-  void init()
+  static void init_interval()
   {
     // 10us oneshot timer
     gptimer_config_t flush_cfg = {};
@@ -95,11 +110,13 @@ namespace sensor
 
   static void sensorStartTask(void *)
   {
+    photo_pos = driver::photo::PHOTO_LEFT_90;
     ESP_ERROR_CHECK(gptimer_enable(gptimer_interval));
     ESP_ERROR_CHECK(gptimer_start(gptimer_interval));
 
     vTaskDelete(nullptr);
   }
+
   static void sensorStopTask(void *)
   {
     ESP_ERROR_CHECK(gptimer_stop(gptimer_interval));
@@ -108,15 +125,51 @@ namespace sensor
     vTaskDelete(nullptr);
   }
 
+  void init()
+  {
+    xEventGroupSensor = xEventGroupCreate();
+    assert(xEventGroupSensor != nullptr);
+
+    driver::photo::init();
+    driver::battery::init();
+    driver::encoder::init(xEventGroupSensor, EVENT_GROUP_SENSOR_IMU);
+    driver::imu::init(xEventGroupSensor, EVENT_GROUP_SENSOR_ENCODER);
+
+    init_interval();
+  }
+
   void start()
   {
+    if (is_running)
+    {
+      return;
+    }
+    is_running = true;
+
     xTaskCreatePinnedToCore(sensorStartTask, "sensorStartTask", 8192, nullptr, 0, nullptr, 0);
     vTaskDelay(pdMS_TO_TICKS(1));
   }
 
   void stop()
   {
+    if (!is_running)
+    {
+      return;
+    }
+    is_running = false;
+
     xTaskCreatePinnedToCore(sensorStopTask, "sensorStopTask", 8192, nullptr, 0, nullptr, 0);
     vTaskDelay(pdMS_TO_TICKS(1));
+  }
+
+  bool wait()
+  {
+    EventBits_t uBits =
+      xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_ALL, pdTRUE, pdTRUE, pdMS_TO_TICKS(1));
+    if (uBits == EVENT_GROUP_SENSOR_ALL)
+    {
+      return true;
+    }
+    return false;
   }
 }
