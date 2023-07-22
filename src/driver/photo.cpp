@@ -60,11 +60,12 @@ namespace driver::photo
     gpio_set_level(photo_pins[pos].ir, 0);
   }
 
-  void get(int *dest)
+  void get(int *dest_ambient, int *dest_flush)
   {
     for (int i = 0; i < PHOTO_NUMS; i++)
     {
-      dest[i] = std::max(driver::adc::calibrate(flush[i]) - driver::adc::calibrate(ambient[i]), 0);
+      dest_ambient[i] = driver::adc::calibrate(ambient[i]);
+      dest_flush[i] = driver::adc::calibrate(flush[i]);
     }
   }
 }

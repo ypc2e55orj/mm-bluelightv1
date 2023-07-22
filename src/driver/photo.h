@@ -18,5 +18,5 @@ namespace driver::photo
   void tx(uint8_t pos);
   void rx(uint8_t pos);
 
-  void get(int *dest);
+  void get(int *dest_ambient, int *dest_flush);
 }
