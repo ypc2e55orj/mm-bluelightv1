@@ -34,9 +34,9 @@ public:
     ki_ = ki;
     kd_ = kd;
   }
-  float update(float target, float current, float deltat)
+  float update(float target, float current, float dt)
   {
-    float ret = kp_ * (target - current) + ki_ * (sum_target_ - sum_) + kd_ * (prev_target_ - prev_) / deltat;
+    float ret = kp_ * (target - current) + ki_ * (sum_target_ - sum_) + kd_ * (prev_target_ - prev_) / dt;
 
     if ((!std::signbit(target) && (sum_target_ + target) > sum_target_) ||
         (std::signbit(target) && (sum_target_ + target) < sum_target_))
