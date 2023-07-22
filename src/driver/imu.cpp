@@ -31,7 +31,6 @@ namespace driver::imu
 
   static EventGroupHandle_t xEvent = nullptr;
   static EventBits_t xEventBit = 0;
-  static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
   static int16_t intr_gyro_buff[3] = {};
   static int16_t intr_accel_buff[3] = {};
@@ -53,7 +52,7 @@ namespace driver::imu
     intr_accel_buff[1] = ((int16_t)rx_buffer[10] << 8) | (int16_t)rx_buffer[9];
     intr_accel_buff[2] = ((int16_t)rx_buffer[12] << 8) | (int16_t)rx_buffer[11];
 
-    xHigherPriorityTaskWoken = pdFALSE;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdPASS)
     {

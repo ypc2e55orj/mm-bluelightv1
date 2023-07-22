@@ -46,7 +46,6 @@ namespace driver::encoder
 
   static EventGroupHandle_t xEvent = nullptr;
   static EventBits_t xEventBit = 0;
-  static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
   static uint16_t angle_left = 0;
   static uint16_t angle_right = 0;
@@ -69,7 +68,7 @@ namespace driver::encoder
     }
 
     uint16_t rx_data = (trans->rx_data[0] << 8) | trans->rx_data[1];
-    xHigherPriorityTaskWoken = pdFALSE;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     if (trans == &spi_trans_left)
     {
