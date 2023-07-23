@@ -64,6 +64,36 @@ namespace driver::indicator
     memset(pixels, 0, WS2812C_NUM * WS2812C_COLOR_DEPTH);
   }
 
+  // https://github.com/adafruit/Adafruit_NeoPixel/blob/9cf5e96e8f436cc3460f6e7a32b20aceab6e905c/examples/strandtest_wheel/strandtest_wheel.ino
+  void rainbow_yield(bool reset)
+  {
+    static uint8_t p = 0;
+    if (reset)
+    {
+      p = 0;
+    }
+
+    const auto wheel = [](uint8_t pos) -> uint32_t {
+      if (pos < 85)
+      {
+        return ((255 - pos * 3) << 16) | (pos * 3);
+      }
+      if (pos < 170)
+      {
+        pos -= 85;
+        return ((pos * 3) << 8) | (255 - pos * 3);
+      }
+      pos -= 170;
+      return ((pos *3) << 16) | ((255 - pos * 3) << 8);
+    };
+
+    for (int i = 0; i < nums(); i++)
+    {
+      set(i, wheel((i + p) & 0xFF));
+    }
+    p++;
+  }
+
   void update()
   {
     ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));

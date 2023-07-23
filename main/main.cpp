@@ -34,7 +34,9 @@ void mainTask(void *)
 
   while(true)
   {
-    vTaskDelay(pdMS_TO_TICKS(1));
+    driver::indicator::rainbow_yield();
+    driver::indicator::update();
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 
