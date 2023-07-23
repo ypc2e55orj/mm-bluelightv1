@@ -4,7 +4,7 @@
 
 namespace driver::indicator
 {
-  const uint8_t nums();
+  uint8_t nums();
 
   void init();
 

@@ -86,7 +86,7 @@ namespace driver::encoder
     }
   }
 
-  const uint16_t resolution()
+  uint16_t resolution()
   {
     return AS5050A_RESOLUTION;
   }
