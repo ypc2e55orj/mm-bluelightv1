@@ -3,7 +3,7 @@ idf_component_register(
   "main.cpp"
   "../src/sensor.cpp"
   "../src/motion.cpp"
-  "../src/shell.cpp"
+  "../src/ui/shell.cpp"
   "../src/driver/adc.cpp"
   "../src/driver/battery.cpp"
   "../src/driver/buzzer.cpp"

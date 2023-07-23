@@ -4,8 +4,8 @@
 #include <freertos/task.h>
 #include <rom/uart.h>
 
-#include "./driver/fs.h"
-#include "./third-party/ntshell/src/lib/core/ntshell.h"
+#include "../driver/fs.h"
+#include "../third-party/ntshell/src/lib/core/ntshell.h"
 
 #include <cstdint>
 #include <cstring>
