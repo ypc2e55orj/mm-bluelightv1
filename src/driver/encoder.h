@@ -8,6 +8,8 @@
 
 namespace driver::encoder
 {
+  const uint16_t resolution();
+
   void init(EventGroupHandle_t xHandle, EventBits_t xBit);
 
   void update();

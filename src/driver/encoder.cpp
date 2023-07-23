@@ -15,6 +15,8 @@ namespace driver::encoder
   static const uint16_t AS5050A_REG_MASTER_RESET = 0x33A5;
   static const uint16_t AS5050A_REG_ANGULAR_DATA = 0x3FFF;
 
+  static const uint16_t AS5050A_RESOLUTION = 0x3FF;
+
   constexpr uint16_t as5050a_write(uint16_t reg)
   {
     return ((reg << 1) | __builtin_parity(reg));
@@ -74,14 +76,19 @@ namespace driver::encoder
     {
       angle_left = as5050a_angle(rx_data);
     }
-    else // if (trans == &spi_trans_right)
+    else
     {
-      angle_right = as5050a_angle(rx_data);
+      angle_right = AS5050A_RESOLUTION - as5050a_angle(rx_data);
       if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdPASS)
       {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }
     }
+  }
+
+  const uint16_t resolution()
+  {
+    return AS5050A_RESOLUTION;
   }
 
   void init(EventGroupHandle_t xHandle, EventBits_t xBit)
