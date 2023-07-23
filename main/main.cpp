@@ -1,3 +1,4 @@
+#include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <sdkconfig.h>
@@ -31,8 +32,10 @@ void mainTask(void *)
     driver::indicator::clear();
   }
   driver::buzzer::tone(4000, 100);
+  vTaskDelay(pdMS_TO_TICKS(50));
 
-  while(true)
+  motion::start();
+  while (true)
   {
     driver::indicator::rainbow_yield();
     driver::indicator::update();
@@ -53,7 +56,6 @@ extern "C" void app_main(void)
   motion::init();
 
   sensor::start();
-  motion::start();
 
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 10, nullptr, 1);
 }
