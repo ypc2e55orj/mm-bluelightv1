@@ -46,6 +46,11 @@ namespace driver::indicator
     ESP_ERROR_CHECK(rmt_enable(led_chan));
   }
 
+  void update()
+  {
+    ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));
+  }
+
   void set(uint8_t pos, uint8_t r, uint8_t g, uint8_t b)
   {
     pixels[pos * WS2812C_COLOR_DEPTH] = g;
@@ -54,14 +59,7 @@ namespace driver::indicator
   }
   void set(uint8_t pos, uint32_t rgb)
   {
-    pixels[pos * WS2812C_COLOR_DEPTH] = (rgb & 0xFF00) >> 8;        // green
-    pixels[pos * WS2812C_COLOR_DEPTH + 1] = (rgb & 0xFF0000) >> 16; // red
-    pixels[pos * WS2812C_COLOR_DEPTH + 2] = (rgb & 0xFF);           // blue
-  }
-
-  void clear()
-  {
-    memset(pixels, 0, WS2812C_NUM * WS2812C_COLOR_DEPTH);
+    set(pos, (rgb & 0xFF0000) >> 16, (rgb & 0xFF00) >> 8, (rgb & 0xFF));
   }
 
   // https://github.com/adafruit/Adafruit_NeoPixel/blob/9cf5e96e8f436cc3460f6e7a32b20aceab6e905c/examples/strandtest_wheel/strandtest_wheel.ino
@@ -84,7 +82,7 @@ namespace driver::indicator
         return ((pos * 3) << 8) | (255 - pos * 3);
       }
       pos -= 170;
-      return ((pos *3) << 16) | ((255 - pos * 3) << 8);
+      return ((pos * 3) << 16) | ((255 - pos * 3) << 8);
     };
 
     for (int i = 0; i < nums(); i++)
@@ -94,8 +92,8 @@ namespace driver::indicator
     p++;
   }
 
-  void update()
+  void clear()
   {
-    ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, pixels, sizeof(pixels), &tx_config));
+    memset(pixels, 0, WS2812C_NUM * WS2812C_COLOR_DEPTH);
   }
 }

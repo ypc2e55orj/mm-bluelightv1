@@ -16,4 +16,6 @@ namespace driver::indicator
   void rainbow_yield(bool reset = false);
 
   void clear();
+
+  void brightness(float percent);
 }
