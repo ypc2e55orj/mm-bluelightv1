@@ -14,10 +14,10 @@ namespace driver::photo
     gpio_num_t ir;
     adc_channel_t photo;
   } photo_pins[] = {
-    [PHOTO_LEFT_90] = {GPIO_NUM_13, ADC_CHANNEL_3},
-    [PHOTO_LEFT_45] = {GPIO_NUM_12, ADC_CHANNEL_2},
-    [PHOTO_RIGHT_45] = {GPIO_NUM_11, ADC_CHANNEL_1},
-    [PHOTO_RIGHT_90] = {GPIO_NUM_10, ADC_CHANNEL_0},
+    {GPIO_NUM_13, ADC_CHANNEL_3},
+    {GPIO_NUM_12, ADC_CHANNEL_2},
+    {GPIO_NUM_11, ADC_CHANNEL_1},
+    {GPIO_NUM_10, ADC_CHANNEL_0},
   };
 
   static int ambient[4] = {};
