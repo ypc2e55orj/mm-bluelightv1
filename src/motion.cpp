@@ -17,7 +17,6 @@
 
 namespace wheel
 {
-
   static struct
   {
     uint16_t left;
@@ -52,6 +51,11 @@ namespace wheel
   }
 }
 
+namespace vehicle
+{
+  
+}
+
 namespace motion
 {
   static bool stop_request = false;
@@ -69,14 +73,11 @@ namespace motion
     {
       count = 0;
 
-      auto [angle_left, angle_right] = driver::encoder::get();
       auto [gyro_x, gyro_y, gyro_z] = driver::imu::gyro();
       auto [accel_x, accel_y, accel_z] = driver::imu::accel();
 
       int ambient[4] = {}, flush[4] = {};
       driver::photo::get(ambient, flush);
-      driver::motor::brake();
-      driver::motor::brake();
 
       std::cout << "\x1b[2J\x1b[0;0H"
                 << "Battery        : " << driver::battery::get() << std::endl
