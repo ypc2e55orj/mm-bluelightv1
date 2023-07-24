@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace shell
+namespace ui
 {
   static int serial_read(char *buf, int count, void *)
   {
@@ -46,6 +46,10 @@ namespace shell
     else if (strcmp(text, "ls") == 0)
     {
       driver::fs::ls("/spiffs");
+    }
+    else if (strcmp(text, "cat") == 0)
+    {
+      driver::fs::cat("/spiffs/log.csv");
     }
     else
     {

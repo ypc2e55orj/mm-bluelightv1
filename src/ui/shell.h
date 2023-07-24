@@ -1,6 +1,6 @@
 #pragma once
 
-namespace shell
+namespace ui
 {
   void shell();
 }
