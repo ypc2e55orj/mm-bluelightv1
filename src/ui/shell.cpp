@@ -54,11 +54,11 @@ namespace ui
     {
       return 0;
     }
-    for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
+    for (auto & command : commands)
     {
-      if (strcmp((const char *)argv[0], commands[i].c_str) == 0)
+      if (strcmp((const char *)argv[0], command.c_str) == 0)
       {
-        return commands[i].func(argc, argv);
+        return command.func(argc, argv);
       }
     }
     printf("command not found: %s\r\n", argv[0]);
