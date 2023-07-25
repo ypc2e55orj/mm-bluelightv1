@@ -12,7 +12,6 @@
 #include <cstdint>
 #include <iostream>
 
-#include "filter/pid.h"
 #include "sensor.h"
 
 namespace wheel
