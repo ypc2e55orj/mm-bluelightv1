@@ -11,6 +11,7 @@
 
 #include "../src/motion.h"
 #include "../src/sensor.h"
+#include "../src/ui/shell.h"
 
 void mainTask(void *)
 {
@@ -34,6 +35,8 @@ void mainTask(void *)
   driver::buzzer::tone(4000, 100);
   vTaskDelay(pdMS_TO_TICKS(50));
 
+  ui::shell();
+#if 0
   motion::start();
   while (true)
   {
@@ -41,6 +44,7 @@ void mainTask(void *)
     driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(10));
   }
+#endif
 }
 
 // entrypoint
@@ -55,7 +59,7 @@ extern "C" void app_main(void)
   sensor::init();
   motion::init();
 
-  sensor::start();
+  //sensor::start();
 
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 10, nullptr, 1);
 }

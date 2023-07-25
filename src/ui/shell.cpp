@@ -6,12 +6,23 @@
 
 #include "../driver/fs.h"
 #include "../third-party/ntshell/src/lib/core/ntshell.h"
+#include "../third-party/ntshell/src/lib/util/ntopt.h"
 
-#include <cstdint>
 #include <cstring>
 
 namespace ui
 {
+  static struct
+  {
+    const char * c_str;
+    int (*func)(int argc, char **argv);
+  } commands[] = {
+    {"df", driver::fs::df},
+    {"ls", driver::fs::ls},
+    {"rm", driver::fs::rm},
+    {"cat", driver::fs::cat},
+  };
+
   static int serial_read(char *buf, int count, void *)
   {
     for (int i = 0; i < count; i++)
@@ -37,33 +48,33 @@ namespace ui
     return count;
   }
 
-  static int user_callback(const char *text, void *)
+  static int ntopt_callback(int argc, char **argv, void *)
   {
-    if (strcmp(text, "df") == 0)
+    if (argc == 0)
     {
-      driver::fs::df();
+      return 0;
     }
-    else if (strcmp(text, "ls") == 0)
+    for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
     {
-      driver::fs::ls("/spiffs");
+      if (strcmp((const char *)argv[0], commands[i].c_str) == 0)
+      {
+        return commands[i].func(argc, argv);
+      }
     }
-    else if (strcmp(text, "cat") == 0)
-    {
-      driver::fs::cat("/spiffs/log.csv");
-    }
-    else
-    {
-      printf("%s\r\n", text);
-    }
+    printf("command not found: %s\r\n", argv[0]);
 
     return 0;
+  }
+  static int shell_callback(const char *text, void *ext)
+  {
+    return ntopt_parse(text, ntopt_callback, ext);
   }
 
   void shell()
   {
     ntshell_t nts = {};
 
-    ntshell_init(&nts, serial_read, serial_write, user_callback, nullptr);
+    ntshell_init(&nts, serial_read, serial_write, shell_callback, nullptr);
     ntshell_set_prompt(&nts, "-> ");
     ntshell_execute(&nts);
   }
