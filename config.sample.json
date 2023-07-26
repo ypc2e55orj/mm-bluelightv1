@@ -1,0 +1,102 @@
+{
+  "tire_diameter": 12.80,
+  "goal": {
+    "x": 7,
+    "y": 7
+  },
+  "photo": {
+    "reference": [
+      3040,
+      1155,
+      1422,
+      3048
+    ],
+    "threshold": [
+      920,
+      555,
+      796,
+      1100
+    ]
+  },
+  "run": {
+    "search": {
+      "straight": {
+        "velocity": 0.3,
+        "accel": 1.5,
+        "speed": {
+          "kp": 10.0,
+          "ki": 0.05,
+          "kd": 0.0
+        },
+        "omega": {
+          "kp": 0.6,
+          "ki": 0.01,
+          "kd": 0.0
+        }
+      },
+      "turn": {
+        "speed": {
+          "kp": 10.0,
+          "ki": 0.05,
+          "kd": 0.0
+        },
+        "omega": {
+          "kp": 0.6,
+          "ki": 0.01,
+          "kd": 0.0
+        },
+        "pivot": {
+          "velocity": 10,
+          "accel": 20
+        },
+        "slalom": {
+          "velocity": 10,
+          "accel": 40,
+          "offset_pre": 16,
+          "offset_post": 13
+        }
+      }
+    },
+    "fast": [
+      {
+        "straight": {
+          "velocity": 1,
+          "accel": 2.5,
+          "speed": {
+            "kp": 10.0,
+            "ki": 0.05,
+            "kd": 0.0
+          },
+          "omega": {
+            "kp": 0.6,
+            "ki": 0.01,
+            "kd": 0.0
+          }
+        },
+        "turn": {
+          "speed": {
+            "kp": 10.0,
+            "ki": 0.05,
+            "kd": 0.0
+          },
+          "omega": {
+            "kp": 0.6,
+            "ki": 0.01,
+            "kd": 0.0
+          },
+          "pivot": {
+            "velocity": 10,
+            "accel": 20
+          },
+          "slalom": {
+            "velocity": 10,
+            "accel": 40,
+            "offset_pre": 16,
+            "offset_post": 13
+          }
+        }
+      }
+    ],
+    "fast_counts": 1
+  }
+}
