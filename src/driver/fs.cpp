@@ -32,7 +32,7 @@ namespace driver::fs
     return esp_spiffs_mounted(PARTITION_LABEL);
   }
 
-  int df(int argc, char **argv)
+  int df(int argc, char **)
   {
     if (argc != 1)
     {
@@ -61,7 +61,7 @@ namespace driver::fs
     }
 
     int index = 0;
-    struct dirent *ent = nullptr;
+    struct dirent *ent;
     while ((ent = readdir(dir)) != nullptr)
     {
       printf("%-4d %-.64s\r\n", index++, ent->d_name);

@@ -31,7 +31,7 @@ namespace driver::encoder
     return (res & 0x3FFE) >> 2;
   }
 
-  static union as5050a_command {
+  static union {
     uint16_t word;
     struct
     {
