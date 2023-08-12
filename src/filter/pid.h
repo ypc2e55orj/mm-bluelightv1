@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-class pid
+class PID
 {
 private:
   float kp_;
