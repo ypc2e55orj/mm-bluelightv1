@@ -160,10 +160,6 @@ namespace driver::imu
 
     return {gyro_buff[0], gyro_buff[1], gyro_buff[2]};
   }
-  std::tuple<int16_t, int16_t, int16_t> gyro_raw()
-  {
-    return {intr_gyro_buff[0], intr_gyro_buff[1], intr_gyro_buff[2]};
-  }
 
   std::tuple<float, float, float> accel()
   {
@@ -175,10 +171,6 @@ namespace driver::imu
     }
 
     return {accel_buff[0], accel_buff[1], accel_buff[2]};
-  }
-  std::tuple<int16_t, int16_t, int16_t> accel_raw()
-  {
-    return {intr_accel_buff[0], intr_accel_buff[1], intr_accel_buff[2]};
   }
 
   void IRAM_ATTR update()

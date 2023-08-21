@@ -29,20 +29,20 @@ namespace driver::photo
     gpio_config_t gpio_cfg = {};
     gpio_cfg.mode = GPIO_MODE_OUTPUT;
 
-    for (auto photo_pin : photo_pins)
+    for (auto &photo_pin : photo_pins)
     {
       gpio_cfg.pin_bit_mask |= (1UL << photo_pin.ir);
     }
 
     gpio_config(&gpio_cfg);
 
-    for (auto photo_pin : photo_pins)
+    for (auto &photo_pin : photo_pins)
     {
       gpio_set_level(photo_pin.ir, 0);
     }
 
     driver::adc::init();
-    for (auto photo_pin : photo_pins)
+    for (auto &photo_pin : photo_pins)
     {
       driver::adc::chan(photo_pin.photo);
     }
