@@ -10,7 +10,10 @@
 #include "./driver/imu.h"
 #include "./driver/photo.h"
 
+#include "./config.h"
+
 #include <cassert>
+#include <cmath>
 
 namespace sensor
 {
@@ -140,26 +143,27 @@ namespace sensor
 
   void start()
   {
-    if (is_running)
+    if (!is_running)
     {
-      return;
+      xTaskCreatePinnedToCore(sensorStartTask, "sensorStartTask", 8192, nullptr, 0, nullptr, 0);
+      is_running = true;
+      vTaskDelay(pdMS_TO_TICKS(1));
     }
-    is_running = true;
-
-    xTaskCreatePinnedToCore(sensorStartTask, "sensorStartTask", 8192, nullptr, 0, nullptr, 0);
-    vTaskDelay(pdMS_TO_TICKS(1));
   }
 
   void stop()
   {
-    if (!is_running)
+    if (is_running)
     {
-      return;
+      xTaskCreatePinnedToCore(sensorStopTask, "sensorStopTask", 8192, nullptr, 0, nullptr, 0);
+      is_running = false;
+      vTaskDelay(pdMS_TO_TICKS(1));
     }
-    is_running = false;
+  }
 
-    xTaskCreatePinnedToCore(sensorStopTask, "sensorStopTask", 8192, nullptr, 0, nullptr, 0);
-    vTaskDelay(pdMS_TO_TICKS(1));
+  bool running()
+  {
+    return is_running;
   }
 
   bool wait()
@@ -171,5 +175,32 @@ namespace sensor
       return true;
     }
     return false;
+  }
+
+  static float calculate_velocity(uint16_t prev, uint16_t curr)
+  {
+    const auto RESOLUTION = driver::encoder::resolution();
+    const auto TIRE_DIAMETER = config::hardware.tireDiameter;
+
+    int diff = curr - prev;
+    if (std::abs(diff) > RESOLUTION / 2 + 1)
+    {
+      diff = prev > RESOLUTION / 2 + 1 ? RESOLUTION - prev + curr : prev + RESOLUTION - curr;
+    }
+
+    return static_cast<float>(diff) * (TIRE_DIAMETER * static_cast<float>(M_PI) / static_cast<float>(RESOLUTION + 0));
+  }
+
+  std::pair<float, float> velocity()
+  {
+    static std::pair<uint16_t, uint16_t> prev = {0, 0};
+
+    const auto curr = driver::encoder::get();
+    const auto velo_left = calculate_velocity(prev.first, curr.first);
+    const auto velo_right = calculate_velocity(prev.second, curr.second);
+
+    prev = curr;
+
+    return {velo_left, velo_right};
   }
 }

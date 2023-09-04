@@ -2,74 +2,74 @@
 
 #include <cstdint>
 
-#define CONFIG_MAX_PARAMS 10
-
 namespace config
 {
-  struct photo_config
+  struct ConfigPair
   {
-    int left90;
-    int left45;
-    int right45;
-    int right90;
+    float left;
+    float right;
   };
-  struct pid_gain_config
+  struct HardwareConfig
+  {
+    float vehicleWeight;
+    float vehicleTread;
+    float vehicleInertiaMoment;
+    float tireDiameter;
+    int spurGearTeeth;
+    int pinionGearTeeth;
+    ConfigPair motorResistance;
+    ConfigPair motorInductance;
+    ConfigPair motorBackForce;
+  };
+  struct PIDConfig
   {
     float kp;
     float ki;
     float kd;
   };
-  struct straight_config
+  struct StraightRunConfig
   {
-    float velocity;
-    float accel;
-    pid_gain_config speed;
-    pid_gain_config omega;
+    float maxVelo;
+    float maxAccel;
+    float maxJerk;
+    PIDConfig pid;
   };
-  struct turn_config
+  struct TurnConfig
   {
-    pid_gain_config speed;
-    pid_gain_config omega;
-    struct
-    {
-      float velocity;
-      float accel;
-    } pivot;
-    struct
-    {
-      float velocity;
-      float accel;
-      float offset_pre;
-      float offset_post;
-    } slalom;
+    float maxAngVelo;
+    float maxAngAccel;
+    float maxAngJerk;
+    PIDConfig pid;
   };
-  struct run_config
+  struct SlalomTurnConfig
   {
-    straight_config straight;
-    turn_config turn;
+    TurnConfig turn;
+    float offsetPre;
+    float offsetPost;
   };
-
-  struct config
+  struct RunParameterConfig
   {
-    float tire_diameter;
-    struct
-    {
-      int x;
-      int y;
-    } goal;
-    struct
-    {
-      int reference[4];
-      int threshold[4];
-    } photo;
-    struct
-    {
-      run_config search;
-      run_config fast[CONFIG_MAX_PARAMS];
-      size_t fast_counts;
-    } run;
+    StraightRunConfig straight;
+    TurnConfig turn;
+    SlalomTurnConfig slalomTurn;
+  };
+  struct ConfigCoord
+  {
+    int x;
+    int y;
+  };
+  struct MazeConfig
+  {
+    ConfigCoord goal;
+    ConfigCoord size;
   };
 
   void read(const char *path);
   void write(const char *path);
+
+  constexpr int FAST_PARAMETER_COUNTS = 5;
+  extern MazeConfig maze;
+  extern HardwareConfig hardware;
+  extern RunParameterConfig paramSearch;
+  extern RunParameterConfig paramFast[FAST_PARAMETER_COUNTS];
 }

@@ -1,102 +1,244 @@
 {
-  "tire_diameter": 12.80,
-  "goal": {
-    "x": 7,
-    "y": 7
-  },
-  "photo": {
-    "reference": [
-      3040,
-      1155,
-      1422,
-      3048
-    ],
-    "threshold": [
-      920,
-      555,
-      796,
-      1100
-    ]
-  },
-  "run": {
-    "search": {
-      "straight": {
-        "velocity": 0.3,
-        "accel": 1.5,
-        "speed": {
-          "kp": 10.0,
-          "ki": 0.05,
-          "kd": 0.0
-        },
-        "omega": {
-          "kp": 0.6,
-          "ki": 0.01,
-          "kd": 0.0
-        }
-      },
-      "turn": {
-        "speed": {
-          "kp": 10.0,
-          "ki": 0.05,
-          "kd": 0.0
-        },
-        "omega": {
-          "kp": 0.6,
-          "ki": 0.01,
-          "kd": 0.0
-        },
-        "pivot": {
-          "velocity": 10,
-          "accel": 20
-        },
-        "slalom": {
-          "velocity": 10,
-          "accel": 40,
-          "offset_pre": 16,
-          "offset_post": 13
-        }
-      }
-    },
-    "fast": [
-      {
-        "straight": {
-          "velocity": 1,
-          "accel": 2.5,
-          "speed": {
-            "kp": 10.0,
-            "ki": 0.05,
-            "kd": 0.0
-          },
-          "omega": {
-            "kp": 0.6,
-            "ki": 0.01,
-            "kd": 0.0
-          }
-        },
-        "turn": {
-          "speed": {
-            "kp": 10.0,
-            "ki": 0.05,
-            "kd": 0.0
-          },
-          "omega": {
-            "kp": 0.6,
-            "ki": 0.01,
-            "kd": 0.0
-          },
-          "pivot": {
-            "velocity": 10,
-            "accel": 20
-          },
-          "slalom": {
-            "velocity": 10,
-            "accel": 40,
-            "offset_pre": 16,
-            "offset_post": 13
-          }
-        }
-      }
-    ],
-    "fast_counts": 1
-  }
+	"maze":	{
+		"goal":	{
+			"x":	15,
+			"y":	15
+		},
+		"size":	{
+			"x":	32,
+			"y":	32
+		}
+	},
+	"hardware":	{
+		"vehicleWeight":	10,
+		"vehicleTread":	3.7999999523162842,
+		"vehicleInertiaMoment":	1,
+		"tireDiameter":	12.800000190734863,
+		"spurGearTeeth":	38,
+		"pinionGearTeeth":	9,
+		"motorResistance":	{
+			"left":	5.0630002021789551,
+			"right":	5.0630002021789551
+		},
+		"motorInductance":	{
+			"left":	29.100000381469727,
+			"right":	29.100000381469727
+		},
+		"motorBackForce":	{
+			"left":	1,
+			"right":	1
+		}
+	},
+	"paramSearch":	{
+		"straight":	{
+			"maxVelo":	0.300000011920929,
+			"maxAccel":	1.5,
+			"maxJerk":	1000,
+			"pid":	{
+				"kp":	10,
+				"ki":	0.05000000074505806,
+				"kd":	0
+			}
+		},
+		"turn":	{
+			"maxAngVelo":	10,
+			"maxAngAccel":	20,
+			"maxAngJerk":	1000,
+			"pid":	{
+				"kp":	0.600000023841858,
+				"ki":	0.00999999977648258,
+				"kd":	0
+			}
+		},
+		"slalomTurn":	{
+			"turn":	{
+				"maxAngVelo":	10,
+				"maxAngAccel":	40,
+				"maxAngJerk":	1000,
+				"pid":	{
+					"kp":	0.600000023841858,
+					"ki":	0.00999999977648258,
+					"kd":	0
+				}
+			},
+			"offsetPre":	16,
+			"offsetPost":	13
+		}
+	},
+	"paramFast":	[{
+			"straight":	{
+				"maxVelo":	0,
+				"maxAccel":	0,
+				"maxJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"turn":	{
+				"maxAngVelo":	0,
+				"maxAngAccel":	0,
+				"maxAngJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"slalomTurn":	{
+				"turn":	{
+					"maxAngVelo":	0,
+					"maxAngAccel":	0,
+					"maxAngJerk":	0,
+					"pid":	{
+						"kp":	0,
+						"ki":	0,
+						"kd":	0
+					}
+				},
+				"offsetPre":	0,
+				"offsetPost":	0
+			}
+		}, {
+			"straight":	{
+				"maxVelo":	0,
+				"maxAccel":	0,
+				"maxJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"turn":	{
+				"maxAngVelo":	0,
+				"maxAngAccel":	0,
+				"maxAngJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"slalomTurn":	{
+				"turn":	{
+					"maxAngVelo":	0,
+					"maxAngAccel":	0,
+					"maxAngJerk":	0,
+					"pid":	{
+						"kp":	0,
+						"ki":	0,
+						"kd":	0
+					}
+				},
+				"offsetPre":	0,
+				"offsetPost":	0
+			}
+		}, {
+			"straight":	{
+				"maxVelo":	0,
+				"maxAccel":	0,
+				"maxJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"turn":	{
+				"maxAngVelo":	0,
+				"maxAngAccel":	0,
+				"maxAngJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"slalomTurn":	{
+				"turn":	{
+					"maxAngVelo":	0,
+					"maxAngAccel":	0,
+					"maxAngJerk":	0,
+					"pid":	{
+						"kp":	0,
+						"ki":	0,
+						"kd":	0
+					}
+				},
+				"offsetPre":	0,
+				"offsetPost":	0
+			}
+		}, {
+			"straight":	{
+				"maxVelo":	0,
+				"maxAccel":	0,
+				"maxJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"turn":	{
+				"maxAngVelo":	0,
+				"maxAngAccel":	0,
+				"maxAngJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"slalomTurn":	{
+				"turn":	{
+					"maxAngVelo":	0,
+					"maxAngAccel":	0,
+					"maxAngJerk":	0,
+					"pid":	{
+						"kp":	0,
+						"ki":	0,
+						"kd":	0
+					}
+				},
+				"offsetPre":	0,
+				"offsetPost":	0
+			}
+		}, {
+			"straight":	{
+				"maxVelo":	0,
+				"maxAccel":	0,
+				"maxJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"turn":	{
+				"maxAngVelo":	0,
+				"maxAngAccel":	0,
+				"maxAngJerk":	0,
+				"pid":	{
+					"kp":	0,
+					"ki":	0,
+					"kd":	0
+				}
+			},
+			"slalomTurn":	{
+				"turn":	{
+					"maxAngVelo":	0,
+					"maxAngAccel":	0,
+					"maxAngJerk":	0,
+					"pid":	{
+						"kp":	0,
+						"ki":	0,
+						"kd":	0
+					}
+				},
+				"offsetPre":	0,
+				"offsetPost":	0
+			}
+		}]
 }
