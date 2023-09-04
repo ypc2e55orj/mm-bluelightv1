@@ -2,11 +2,7 @@
 
 #include <esp_timer.h>
 
-#include "./driver/battery.h"
-#include "./driver/encoder.h"
-#include "./driver/imu.h"
 #include "./driver/motor.h"
-#include "./driver/photo.h"
 
 #include <cmath>
 #include <cstdint>
@@ -14,50 +10,16 @@
 
 #include "sensor.h"
 
-namespace wheel
-{
-  static struct
-  {
-    uint16_t left;
-    uint16_t right;
-  } prev_raw = {};
-  static struct
-  {
-    float left;
-    float right;
-  } speed = {};
-
-  static int calculate_diff(const uint16_t &p, const uint16_t &c)
-  {
-    int d = c - p;
-    if (std::abs(d) > driver::encoder::resolution() / 2 + 1)
-    {
-      return p > driver::encoder::resolution() / 2 + 1 ? driver::encoder::resolution() - p + c
-                                                       : p + driver::encoder::resolution() - c;
-    }
-    return d;
-  }
-
-  void update(std::pair<uint16_t, uint16_t> curr)
-  {
-    int diff_left = calculate_diff(prev_raw.left, curr.first);
-    int diff_right = calculate_diff(prev_raw.right, curr.second);
-    prev_raw.left = curr.first;
-    prev_raw.right = curr.second;
-
-    speed.left = (static_cast<float>(diff_left) * (12.80f * static_cast<float>(M_PI) / static_cast<float>(driver::encoder::resolution() + 1))) * 0.1f + speed.left * 0.9f;
-    speed.right = (static_cast<float>(diff_right) * (12.80f * static_cast<float>(M_PI) / static_cast<float>(driver::encoder::resolution() + 1))) * 0.1f + speed.right * 0.9f;
-  }
-}
 
 namespace vehicle
 {
-  
+
 }
 
 namespace motion
 {
-  static bool stop_request = false;
+  static bool req_running = false;
+  static bool is_running = false;
 
   void init()
   {
@@ -66,60 +28,106 @@ namespace motion
 
   void debug()
   {
+    const int max_count = 1000;
     static int count = 0;
+    static bool is_first = true;
+    static float **sensor_log = nullptr;
 
-    if (++count == 100)
+    if (is_first)
     {
-      count = 0;
+      sensor_log = new float *[max_count];
+      for (int i = 0; i < max_count; i++)
+      {
+        sensor_log[i] = new float[13];
+      }
+      is_first = false;
+    }
 
+    if (count < max_count)
+    {
       auto [gyro_x, gyro_y, gyro_z] = driver::imu::gyro();
       auto [accel_x, accel_y, accel_z] = driver::imu::accel();
 
       int ambient[4] = {}, flush[4] = {};
       driver::photo::get(ambient, flush);
 
-      std::cout << "\x1b[2J\x1b[0;0H"
-                << "Battery        : " << driver::battery::get() << std::endl
-                << "Encoder Left   : " << wheel::speed.left << std::endl
-                << "Encoder Right  : " << wheel::speed.right << std::endl
-                << "Gyro  X [rad/s]: " << gyro_x << std::endl
-                << "Gyro  Y [rad/s]: " << gyro_y << std::endl
-                << "Gyro  Z [rad/s]: " << gyro_z << std::endl
-                << "Accel X [m/s^2]: " << accel_x << std::endl
-                << "Accel Y [m/s^2]: " << accel_y << std::endl
-                << "Accel Z [m/s^2]: " << accel_z << std::endl
-                << "Photo Left  90 : " << flush[driver::photo::PHOTO_LEFT_90] << std::endl
-                << "Photo Left  45 : " << flush[driver::photo::PHOTO_LEFT_45] << std::endl
-                << "Photo Right 45 : " << flush[driver::photo::PHOTO_RIGHT_45] << std::endl
-                << "Photo Right 90 : " << flush[driver::photo::PHOTO_RIGHT_90] << std::endl;
+      sensor_log[count][0] = driver::battery::get();
+      sensor_log[count][1] = velo.first;
+      sensor_log[count][2] = velo.second;
+      sensor_log[count][3] = gyro_x;
+      sensor_log[count][4] = gyro_y;
+      sensor_log[count][5] = gyro_z;
+      sensor_log[count][6] = accel_x;
+      sensor_log[count][7] = accel_y;
+      sensor_log[count][8] = accel_z;
+      sensor_log[count][9] = flush[driver::photo::PHOTO_LEFT_90];
+      sensor_log[count][10] = flush[driver::photo::PHOTO_LEFT_45];
+      sensor_log[count][11] = flush[driver::photo::PHOTO_RIGHT_45];
+      sensor_log[count][12] = flush[driver::photo::PHOTO_RIGHT_90];
+      count++;
+    }
+
+    if (count == max_count)
+    {
+      std::cout << "Battery        , "
+                << "Encoder Left   , "
+                << "Encoder Right  , "
+                << "Gyro  X [rad/s], "
+                << "Gyro  Y [rad/s], "
+                << "Gyro  Z [rad/s], "
+                << "Accel X [m/s^2], "
+                << "Accel Y [m/s^2], "
+                << "Accel Z [m/s^2], "
+                << "Photo Left  90 , "
+                << "Photo Left  45 , "
+                << "Photo Right 45 , "
+                << "Photo Right 90 , " << std::endl;
+
+      for (int i = 0; i < max_count; i++)
+      {
+        for (int j = 0; j < 13; j++)
+        {
+          std::cout << sensor_log[i][j] << ",";
+        }
+        std::cout << std::endl;
+      }
+      count++;
     }
   }
 
   static void motionTask(void *)
   {
+    is_running = true;
+
     int64_t prev = esp_timer_get_time(), curr;
-    while (!stop_request)
+    while (req_running)
     {
       if (sensor::wait())
       {
         curr = esp_timer_get_time();
-        wheel::update(driver::encoder::get());
-        debug();
+        auto velo = wheel::velocity(driver::encoder::get());
+        debug(velo);
         prev = curr;
       }
     }
 
     vTaskDelete(nullptr);
+    is_running = false;
   }
 
   void start()
   {
-    stop_request = false;
+    req_running = true;
     xTaskCreatePinnedToCore(motionTask, "motionTask", 8192, nullptr, 5, nullptr, 0);
   }
 
   void stop()
   {
-    stop_request = true;
+    req_running = false;
+  }
+
+  bool running()
+  {
+    return is_running;
   }
 }

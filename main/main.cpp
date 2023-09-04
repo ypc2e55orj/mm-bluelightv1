@@ -32,11 +32,10 @@ void mainTask(void *)
     vTaskDelay(pdMS_TO_TICKS(50));
     driver::indicator::clear();
   }
-  driver::buzzer::tone(4000, 100);
+  driver::buzzer::beep();
   vTaskDelay(pdMS_TO_TICKS(50));
 
-  ui::shell();
-#if 0
+  //ui::shell();
   motion::start();
   while (true)
   {
@@ -44,7 +43,6 @@ void mainTask(void *)
     driver::indicator::update();
     vTaskDelay(pdMS_TO_TICKS(10));
   }
-#endif
 }
 
 // entrypoint
@@ -57,9 +55,8 @@ extern "C" void app_main(void)
   driver::fs::init();
   driver::indicator::init();
   sensor::init();
+  sensor::start();
   motion::init();
-
-  //sensor::start();
 
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 10, nullptr, 1);
 }
