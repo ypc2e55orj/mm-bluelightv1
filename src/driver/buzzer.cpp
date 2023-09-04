@@ -1,6 +1,5 @@
 #include "buzzer.h"
 
-#include <driver/gpio.h>
 #include <driver/rmt_tx.h>
 
 #include "../third-party/musical_buzzer/musical_score_encoder.h"
@@ -37,9 +36,14 @@ namespace driver::buzzer
   void tone(uint32_t freq, uint32_t ms)
   {
     score.freq_hz = freq;
-    tx_config.loop_count = ms * freq / 1000;
+    tx_config.loop_count = static_cast<int>(ms * freq / 1000);
 
     ESP_ERROR_CHECK(rmt_transmit(buzzer_chan, score_encoder, &score, sizeof(buzzer_musical_score_t), &tx_config));
+  }
+
+  void beep()
+  {
+    tone(3000, 50);
   }
 
   void start(uint32_t freq)

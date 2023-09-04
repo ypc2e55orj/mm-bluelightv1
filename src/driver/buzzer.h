@@ -8,6 +8,8 @@ namespace driver::buzzer
 
   void tone(uint32_t freq, uint32_t ms);
 
+  void beep();
+
   void start(uint32_t freq);
   void stop();
 }

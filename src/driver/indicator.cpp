@@ -1,8 +1,6 @@
 #include "indicator.h"
 
-#include <driver/gpio.h>
 #include <driver/rmt_tx.h>
-#include <freertos/FreeRTOS.h>
 
 #include "../third-party/led_strip/led_strip_encoder.h"
 

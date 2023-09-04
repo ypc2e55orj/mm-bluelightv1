@@ -2,10 +2,6 @@
 #include "adc.h"
 
 #include <driver/gpio.h>
-#include <rom/ets_sys.h>
-
-#include <algorithm>
-#include <cstring>
 
 namespace driver::photo
 {
