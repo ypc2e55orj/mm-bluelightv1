@@ -92,6 +92,11 @@ namespace driver::fs
     char buffer[256] = {};
 
     FILE *file = fopen(argv[1], "r");
+    if (!file)
+    {
+      return 1;
+    }
+    
     while (fgets(buffer, 256, file) != nullptr)
     {
       printf("%s", buffer);
