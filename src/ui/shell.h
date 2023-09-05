@@ -1,6 +1,7 @@
 #pragma once
 
-namespace ui
+namespace ui::shell
 {
-  void shell();
+  void start();
+  void stop();
 }

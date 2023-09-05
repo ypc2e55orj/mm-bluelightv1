@@ -10,8 +10,19 @@
 
 #include <cstring>
 
-namespace ui
+namespace ui::shell
 {
+  static TaskHandle_t taskHandle = nullptr;
+
+  static int quit(int, char **)
+  {
+    printf("exiting...\r\n");
+
+    vTaskDelete(nullptr);
+
+    return 0;
+  }
+
   static struct
   {
     const char * c_str;
@@ -21,6 +32,7 @@ namespace ui
     {"ls", driver::fs::ls},
     {"rm", driver::fs::rm},
     {"cat", driver::fs::cat},
+    {"quit", quit},
   };
 
   static int serial_read(char *buf, int count, void *)
@@ -70,12 +82,22 @@ namespace ui
     return ntopt_parse(text, ntopt_callback, ext);
   }
 
-  void shell()
+  void shellTask(void *)
   {
     ntshell_t nts = {};
 
     ntshell_init(&nts, serial_read, serial_write, shell_callback, nullptr);
     ntshell_set_prompt(&nts, "-> ");
     ntshell_execute(&nts);
+  }
+
+  void start()
+  {
+    xTaskCreatePinnedToCore(shellTask, "shellTask", 8192, nullptr, 10, &taskHandle, 1);
+  }
+
+  void stop()
+  {
+    vTaskDelete(taskHandle);
   }
 }
