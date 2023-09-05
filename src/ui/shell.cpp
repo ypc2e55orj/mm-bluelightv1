@@ -14,6 +14,38 @@ namespace ui::shell
 {
   static TaskHandle_t taskHandle = nullptr;
 
+  static int df(int, char **)
+  {
+    driver::fs::df();
+    return 0;
+  }
+  static int ls(int argc, char **argv)
+  {
+    if (argc != 2)
+    {
+      return 1;
+    }
+
+    return driver::fs::ls(argv[1]);
+  }
+  static int rm(int argc, char **argv)
+  {
+    if (argc != 2)
+    {
+      return 1;
+    }
+
+    return driver::fs::rm(argv[1]);
+  }
+  static int cat(int argc, char **argv)
+  {
+    if (argc != 2)
+    {
+      return 1;
+    }
+
+    return driver::fs::cat(argv[1]);
+  }
   static int quit(int, char **)
   {
     printf("exiting...\r\n");
@@ -28,10 +60,10 @@ namespace ui::shell
     const char * c_str;
     int (*func)(int argc, char **argv);
   } commands[] = {
-    {"df", driver::fs::df},
-    {"ls", driver::fs::ls},
-    {"rm", driver::fs::rm},
-    {"cat", driver::fs::cat},
+    {"df", df},
+    {"ls", ls},
+    {"rm", rm},
+    {"cat", cat},
     {"quit", quit},
   };
 

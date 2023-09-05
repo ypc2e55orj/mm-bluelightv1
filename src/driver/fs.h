@@ -5,8 +5,8 @@ namespace driver::fs
   void init();
   bool mounted();
 
-  int df(int argc, char **argv);
-  int ls(int argc, char **argv);
-  int rm(int argc, char **argv);
-  int cat(int argc, char **argv);
+  void df();
+  int ls(char *path);
+  int rm(char *path);
+  int cat(char *path);
 }

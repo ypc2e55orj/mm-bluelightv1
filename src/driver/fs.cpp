@@ -32,29 +32,17 @@ namespace driver::fs
     return esp_spiffs_mounted(PARTITION_LABEL);
   }
 
-  int df(int argc, char **)
+  void df()
   {
-    if (argc != 1)
-    {
-      return 1;
-    }
-
     size_t total = 0, used = 0;
     esp_spiffs_info(PARTITION_LABEL, &total, &used);
     printf("%-10s %-10s %-10s %-.10s\r\n", "Size", "Used", "Avail", "Mounted on");
     printf("%-10d %-10d %-10d %-.64s\r\n", total, used, total - used, BASE_PATH);
-
-    return 0;
   }
 
-  int ls(int argc, char **argv)
+  int ls(char *path)
   {
-    if (argc != 2)
-    {
-      return 1;
-    }
-
-    DIR *dir = opendir(argv[1]);
+    DIR *dir = opendir(path);
     if (dir == nullptr)
     {
       return 1;
@@ -72,26 +60,16 @@ namespace driver::fs
     return 0;
   }
 
-  int rm(int argc, char **argv)
+  int rm(char *path)
   {
-    if (argc != 2)
-    {
-      return 1;
-    }
-
-    return unlink(argv[1]);
+    return unlink(path);
   }
 
-  int cat(int argc, char **argv)
+  int cat(char *path)
   {
-    if (argc != 2)
-    {
-      return 1;
-    }
-
     char buffer[256] = {};
 
-    FILE *file = fopen(argv[1], "r");
+    FILE *file = fopen(path, "r");
     if (!file)
     {
       return 1;
