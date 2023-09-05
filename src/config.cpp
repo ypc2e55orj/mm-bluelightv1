@@ -1,7 +1,6 @@
 #include "config.h"
 
 #include <cJSON.h>
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 
@@ -55,7 +54,32 @@ namespace config
       .offsetPost = 13.0f, // [mm]
     }
   };
-  RunParameterConfig paramFast[5] = {};
+  RunParameterConfig paramFast[5] = {
+    {
+      .straight = {
+        .maxVelo = 0.3f,  // [m/s]
+        .maxAccel = 1.5f, // [m/s^2]
+        .maxJerk = 1000.0f, // [m/s^3]
+        .pid = { 10.0f, 0.05f, 0.0f },
+      },
+      .turn = {
+        .maxAngVelo = 10.0f, // [rad/s]
+        .maxAngAccel = 20.0f, // [rad/s^2]
+        .maxAngJerk = 1000.0f, // [rad/s^3]
+        .pid = { 0.6f, 0.01f, 0.0f },
+      },
+      .slalomTurn = {
+        .turn = {
+          .maxAngVelo = 10.0f, // [rad/s]
+          .maxAngAccel = 40.0f, // [rad/s^2]
+          .maxAngJerk = 1000.0f, // [rad/s^3]
+          .pid = { 0.6f, 0.01f, 0.0f },
+        },
+        .offsetPre = 16.0f, // [mm]
+        .offsetPost = 13.0f, // [mm]
+      }
+    }
+  };
 
   void setPIDConfig(cJSON *object, PIDConfig &config)
   {
@@ -65,15 +89,15 @@ namespace config
 
     if (cJSON_IsNumber(kp))
     {
-      config.kp = kp->valuedouble;
+      config.kp = static_cast<float>(kp->valuedouble);
     }
     if (cJSON_IsNumber(ki))
     {
-      config.ki = ki->valuedouble;
+      config.ki = static_cast<float>(ki->valuedouble);
     }
     if (cJSON_IsNumber(kd))
     {
-      config.kd = kd->valuedouble;
+      config.kd = static_cast<float>(kd->valuedouble);
     }
   }
   void setTurnConfig(cJSON *object, TurnConfig &config)
@@ -85,18 +109,18 @@ namespace config
 
     if (cJSON_IsNumber(maxAngVelo))
     {
-      config.maxAngVelo = maxAngVelo->valuedouble;
+      config.maxAngVelo = static_cast<float>(maxAngVelo->valuedouble);
     }
     if (cJSON_IsNumber(maxAngAccel))
     {
-      config.maxAngAccel = maxAngAccel->valuedouble;
+      config.maxAngAccel = static_cast<float>(maxAngAccel->valuedouble);
     }
     if (cJSON_IsNumber(maxAngJerk))
     {
-      config.maxAngJerk = maxAngJerk->valuedouble;
+      config.maxAngJerk = static_cast<float>(maxAngJerk->valuedouble);
     }
 
-    if (pid != nullptr)
+    if (pid)
     {
       setPIDConfig(pid, config.pid);
     }
@@ -109,14 +133,14 @@ namespace config
 
     if (cJSON_IsNumber(offsetPre))
     {
-      config.offsetPre = offsetPre->valuedouble;
+      config.offsetPre = static_cast<float>(offsetPre->valuedouble);
     }
     if (cJSON_IsNumber(offsetPost))
     {
-      config.offsetPost = offsetPost->valuedouble;
+      config.offsetPost = static_cast<float>(offsetPost->valuedouble);
     }
 
-    if (turn != nullptr)
+    if (turn)
     {
       setTurnConfig(turn, config.turn);
     }
@@ -130,18 +154,18 @@ namespace config
 
     if (cJSON_IsNumber(maxVelo))
     {
-      config.maxVelo = maxVelo->valuedouble;
+      config.maxVelo = static_cast<float>(maxVelo->valuedouble);
     }
     if (cJSON_IsNumber(maxAccel))
     {
-      config.maxAccel = maxAccel->valuedouble;
+      config.maxAccel = static_cast<float>(maxAccel->valuedouble);
     }
     if (cJSON_IsNumber(maxJerk))
     {
-      config.maxJerk = maxJerk->valuedouble;
+      config.maxJerk = static_cast<float>(maxJerk->valuedouble);
     }
 
-    if (pid != nullptr)
+    if (pid)
     {
       setPIDConfig(pid, config.pid);
     }
@@ -152,10 +176,29 @@ namespace config
     cJSON *turn = cJSON_GetObjectItem(object, "turn");
     cJSON *slalomTurn = cJSON_GetObjectItem(object, "SlalomTurn");
 
-
-    setStraightConfig(straight, config.straight);
-    setTurnConfig(object, config.turn);
-    setSlalomTurnConfig(object, config.slalomTurn);
+    if (straight)
+    {
+      setStraightConfig(straight, config.straight);
+    }
+    if (turn)
+    {
+      setTurnConfig(turn, config.turn);
+    }
+    if (slalomTurn)
+    {
+      setSlalomTurnConfig(slalomTurn, config.slalomTurn);
+    }
+  }
+  void setParamFast(cJSON *object, RunParameterConfig config[FAST_PARAMETER_COUNTS])
+  {
+    for (int i = 0; i < FAST_PARAMETER_COUNTS; i++)
+    {
+      cJSON *param = cJSON_GetArrayItem(object, i);
+      if (param)
+      {
+        setRunParameterConfig(param, config[i]);
+      }
+    }
   }
   void setConfigPair(cJSON *object, ConfigPair &config)
   {
@@ -164,11 +207,11 @@ namespace config
 
     if (cJSON_IsNumber(left))
     {
-      config.left = left->valuedouble;
+      config.left = static_cast<float>(left->valuedouble);
     }
     if (cJSON_IsNumber(right))
     {
-      config.right = right->valuedouble;
+      config.right = static_cast<float>(right->valuedouble);
     }
   }
   void setHardwareConfig(cJSON *object, HardwareConfig &config)
@@ -185,19 +228,19 @@ namespace config
 
     if (cJSON_IsNumber(vehicleWeight))
     {
-      config.vehicleWeight = vehicleWeight->valuedouble;
+      config.vehicleWeight = static_cast<float>(vehicleWeight->valuedouble);
     }
     if (cJSON_IsNumber(vehicleTread))
     {
-      config.vehicleTread = vehicleTread->valuedouble;
+      config.vehicleTread = static_cast<float>(vehicleTread->valuedouble);
     }
     if (cJSON_IsNumber(vehicleInertiaMoment))
     {
-      config.vehicleInertiaMoment = vehicleInertiaMoment->valuedouble;
+      config.vehicleInertiaMoment = static_cast<float>(vehicleInertiaMoment->valuedouble);
     }
     if (cJSON_IsNumber(tireDiameter))
     {
-      config.tireDiameter = tireDiameter->valuedouble;
+      config.tireDiameter = static_cast<float>(tireDiameter->valuedouble);
     }
     if (cJSON_IsNumber(spurGearTeeth))
     {
@@ -207,15 +250,15 @@ namespace config
     {
       config.pinionGearTeeth = pinionGearTeeth->valueint;
     }
-    if (motorResistance != nullptr)
+    if (motorResistance)
     {
       setConfigPair(motorResistance, config.motorResistance);
     }
-    if (motorInductance != nullptr)
+    if (motorInductance)
     {
       setConfigPair(motorInductance, config.motorInductance);
     }
-    if (motorBackForce != nullptr)
+    if (motorBackForce)
     {
       setConfigPair(motorBackForce, config.motorBackForce);
     }
@@ -239,11 +282,11 @@ namespace config
     cJSON *goal = cJSON_GetObjectItem(object, "goal");
     cJSON *size = cJSON_GetObjectItem(object, "size");
 
-    if (goal != nullptr)
+    if (goal)
     {
       setConfigCoord(goal, config.goal);
     }
-    if (size != nullptr)
+    if (size)
     {
       setConfigCoord(size, config.size);
     }
@@ -266,21 +309,43 @@ namespace config
     fclose(fp);
 
     cJSON *object = cJSON_Parse(string);
-    setMazeConfig(cJSON_GetObjectItem(object, "maze"), maze);
-    setHardwareConfig(cJSON_GetObjectItem(object, "hardware"), hardware);
-    setRunParameterConfig(cJSON_GetObjectItem(object, "paramSearch"), paramSearch);
-    for (int i = 0; i < FAST_PARAMETER_COUNTS; i++)
-    {
-      cJSON *fast = cJSON_GetArrayItem(cJSON_GetObjectItem(object, "paramFast"), i);
-      setRunParameterConfig(fast, paramFast[i]);
-    }
     free(string);
+
+    if (!object)
+    {
+      assert(false);
+    }
+    cJSON *mazeConfig = cJSON_GetObjectItem(object, "maze");
+    if (mazeConfig)
+    {
+      setMazeConfig(mazeConfig, maze);
+    }
+    cJSON *hardwareConfig = cJSON_GetObjectItem(object, "hardware");
+    if (hardwareConfig)
+    {
+      setHardwareConfig(hardwareConfig, hardware);
+    }
+    cJSON *paramSearchConfig = cJSON_GetObjectItem(object, "paramSearch");
+    if (paramSearchConfig)
+    {
+      setRunParameterConfig(paramSearchConfig, paramSearch);
+    }
+    cJSON *paramFastConfig = cJSON_GetObjectItem(object, "paramFast");
+    if (paramFastConfig)
+    {
+      setParamFast(paramFastConfig, paramFast);
+    }
+
     cJSON_Delete(object);
   }
 
-  cJSON *getPIDConfig(PIDConfig &config)
+  cJSON *getPIDConfig(const PIDConfig &config)
   {
     cJSON *pid = cJSON_CreateObject();
+    if (!pid)
+    {
+      return nullptr;
+    }
 
     cJSON_AddNumberToObject(pid, "kp", config.kp);
     cJSON_AddNumberToObject(pid, "ki", config.ki);
@@ -291,73 +356,180 @@ namespace config
   cJSON *getTurnConfig(TurnConfig &config)
   {
     cJSON *turn = cJSON_CreateObject();
+    cJSON *pid = getPIDConfig(config.pid);
+    if (!turn)
+    {
+      goto err;
+    }
+    if (!pid)
+    {
+      goto err;
+    }
 
     cJSON_AddNumberToObject(turn, "maxAngVelo", config.maxAngVelo);
     cJSON_AddNumberToObject(turn, "maxAngAccel", config.maxAngAccel);
     cJSON_AddNumberToObject(turn, "maxAngJerk", config.maxAngJerk);
-
-    cJSON_AddItemToObject(turn, "pid", getPIDConfig(config.pid));
+    cJSON_AddItemToObject(turn, "pid", pid);
 
     return turn;
+
+  err:
+    cJSON_Delete(turn);
+    cJSON_Delete(pid);
+
+    return nullptr;
   }
   cJSON *getSlalomTurnConfig(SlalomTurnConfig &config)
   {
     cJSON *slalomTurn = cJSON_CreateObject();
+    cJSON *turn = getTurnConfig(config.turn);
+    if (!slalomTurn)
+    {
+      goto err;
+    }
+    if (!turn)
+    {
+      goto err;
+    }
 
-    cJSON_AddItemToObject(slalomTurn, "turn", getTurnConfig(config.turn));
+    cJSON_AddItemToObject(slalomTurn, "turn", turn);
     cJSON_AddNumberToObject(slalomTurn, "offsetPre", config.offsetPre);
     cJSON_AddNumberToObject(slalomTurn, "offsetPost", config.offsetPost);
 
     return slalomTurn;
+
+  err:
+    cJSON_Delete(slalomTurn);
+    cJSON_Delete(turn);
+
+    return nullptr;
   }
   cJSON *getStraightConfig(StraightRunConfig &config)
   {
     cJSON *straight = cJSON_CreateObject();
+    cJSON *pid = getPIDConfig(config.pid);
+    if (!straight)
+    {
+      goto err;
+    }
+    if (!pid)
+    {
+      goto err;
+    }
 
     cJSON_AddNumberToObject(straight, "maxVelo", config.maxVelo);
     cJSON_AddNumberToObject(straight, "maxAccel",config.maxAccel);
     cJSON_AddNumberToObject(straight, "maxJerk", config.maxJerk);
-
-    cJSON_AddItemToObject(straight, "pid", getPIDConfig(config.pid));
+    cJSON_AddItemToObject(straight, "pid", pid);
 
     return straight;
+
+  err:
+    cJSON_Delete(straight);
+    cJSON_Delete(pid);
+
+    return nullptr;
   }
   cJSON *getRunParameterConfig(RunParameterConfig &config)
   {
     cJSON *runParameter = cJSON_CreateObject();
+    cJSON *straight = getStraightConfig(config.straight);
+    cJSON *turn = getTurnConfig(config.turn);
+    cJSON *slalomTurn = getSlalomTurnConfig(config.slalomTurn);
+    if (!runParameter)
+    {
+      goto err;
+    }
+    if (!straight)
+    {
+      goto err;
+    }
+    if (!turn)
+    {
+      goto err;
+    }
+    if (!slalomTurn)
+    {
+      goto err;
+    }
 
-    cJSON_AddItemToObject(runParameter, "straight", getStraightConfig(config.straight));
-    cJSON_AddItemToObject(runParameter, "turn", getTurnConfig(config.turn));
-    cJSON_AddItemToObject(runParameter, "slalomTurn", getSlalomTurnConfig(config.slalomTurn));
+    cJSON_AddItemToObject(runParameter, "straight", straight);
+    cJSON_AddItemToObject(runParameter, "turn", turn);
+    cJSON_AddItemToObject(runParameter, "slalomTurn", slalomTurn);
 
     return runParameter;
+
+  err:
+    cJSON_Delete(runParameter);
+    cJSON_Delete(straight);
+    cJSON_Delete(turn);
+    cJSON_Delete(slalomTurn);
+
+    return nullptr;
   }
   cJSON *getConfigPair(ConfigPair &config)
   {
     cJSON *configPair = cJSON_CreateObject();
+    if (!configPair)
+    {
+      return nullptr;
+    }
+
     cJSON_AddNumberToObject(configPair, "left", config.left);
     cJSON_AddNumberToObject(configPair, "right", config.right);
+
     return configPair;
   }
   cJSON *getHardwareConfig(HardwareConfig &config)
   {
-    cJSON *hardware = cJSON_CreateObject();
+    cJSON *hardwareConfig = cJSON_CreateObject();
+    cJSON *motorResistance = getConfigPair(config.motorResistance);
+    cJSON *motorInductance = getConfigPair(config.motorInductance);
+    cJSON *motorBackForce = getConfigPair(config.motorBackForce);
+    if (!hardwareConfig)
+    {
+      goto err;
+    }
+    if (!motorResistance)
+    {
+      goto err;
+    }
+    if (!motorInductance)
+    {
+      goto err;
+    }
+    if (!motorBackForce)
+    {
+      goto err;
+    }
 
-    cJSON_AddNumberToObject(hardware, "vehicleWeight", config.vehicleWeight);
-    cJSON_AddNumberToObject(hardware, "vehicleTread", config.vehicleTread);
-    cJSON_AddNumberToObject(hardware, "vehicleInertiaMoment", config.vehicleInertiaMoment);
-    cJSON_AddNumberToObject(hardware, "tireDiameter", config.tireDiameter);
-    cJSON_AddNumberToObject(hardware, "spurGearTeeth", config.spurGearTeeth);
-    cJSON_AddNumberToObject(hardware, "pinionGearTeeth", config.pinionGearTeeth);
-    cJSON_AddItemToObject(hardware, "motorResistance", getConfigPair(config.motorResistance));
-    cJSON_AddItemToObject(hardware, "motorInductance", getConfigPair(config.motorInductance));
-    cJSON_AddItemToObject(hardware, "motorBackForce", getConfigPair(config.motorBackForce));
+    cJSON_AddNumberToObject(hardwareConfig, "vehicleWeight", config.vehicleWeight);
+    cJSON_AddNumberToObject(hardwareConfig, "vehicleTread", config.vehicleTread);
+    cJSON_AddNumberToObject(hardwareConfig, "vehicleInertiaMoment", config.vehicleInertiaMoment);
+    cJSON_AddNumberToObject(hardwareConfig, "tireDiameter", config.tireDiameter);
+    cJSON_AddNumberToObject(hardwareConfig, "spurGearTeeth", config.spurGearTeeth);
+    cJSON_AddNumberToObject(hardwareConfig, "pinionGearTeeth", config.pinionGearTeeth);
+    cJSON_AddItemToObject(hardwareConfig, "motorResistance", motorResistance);
+    cJSON_AddItemToObject(hardwareConfig, "motorInductance", motorInductance);
+    cJSON_AddItemToObject(hardwareConfig, "motorBackForce", motorBackForce);
 
-    return hardware;
+    return hardwareConfig;
+
+  err:
+    cJSON_Delete(hardwareConfig);
+    cJSON_Delete(motorResistance);
+    cJSON_Delete(motorInductance);
+    cJSON_Delete(motorBackForce);
+
+    return nullptr;
   }
   cJSON *getConfigCoord(ConfigCoord &config)
   {
     cJSON *configCoord = cJSON_CreateObject();
+    if (!configCoord)
+    {
+      return nullptr;
+    }
 
     cJSON_AddNumberToObject(configCoord, "x", config.x);
     cJSON_AddNumberToObject(configCoord, "y", config.y);
@@ -366,26 +538,76 @@ namespace config
   }
   cJSON *getMazeConfig(MazeConfig &config)
   {
-    cJSON *maze = cJSON_CreateObject();
+    cJSON *mazeConfig = cJSON_CreateObject();
+    cJSON *goal = getConfigCoord(config.goal);
+    cJSON *size = getConfigCoord(config.size);
+    if (!mazeConfig)
+    {
+      goto err;
+    }
+    if (!goal)
+    {
+      goto err;
+    }
+    if (!size)
+    {
+      goto err;
+    }
 
-    cJSON_AddItemToObject(maze, "goal", getConfigCoord(config.goal));
-    cJSON_AddItemToObject(maze, "size", getConfigCoord(config.size));
+    cJSON_AddItemToObject(mazeConfig, "goal", goal);
+    cJSON_AddItemToObject(mazeConfig, "size", size);
 
-    return maze;
+    return mazeConfig;
+
+  err:
+    cJSON_Delete(mazeConfig);
+    cJSON_Delete(goal);
+    cJSON_Delete(size);
+
+    return nullptr;
   }
 
   void write(const char *path)
   {
     cJSON *config = cJSON_CreateObject();
-    cJSON_AddItemToObject(config, "maze", getMazeConfig(maze));
-    cJSON_AddItemToObject(config, "hardware", getHardwareConfig(hardware));
-    cJSON_AddItemToObject(config, "paramSearch", getRunParameterConfig(paramSearch));
-    cJSON *fast = cJSON_CreateArray();
-    for (int i = 0; i < FAST_PARAMETER_COUNTS; i++)
+    if (!config)
     {
-      cJSON_AddItemToArray(fast, getRunParameterConfig(paramFast[i]));
+      assert(false);
     }
-    cJSON_AddItemToObject(config, "paramFast", fast);
+    cJSON *mazeConfig = getMazeConfig(maze);
+    if (!mazeConfig)
+    {
+      assert(false);
+    }
+    cJSON *hardwareConfig = getHardwareConfig(hardware);
+    if (!hardwareConfig)
+    {
+      assert(false);
+    }
+    cJSON *paramSearchConfig = getRunParameterConfig(paramSearch);
+    if (!paramSearchConfig)
+    {
+      assert(false);
+    }
+    cJSON *paramFastConfig = cJSON_CreateArray();
+    if (!paramFastConfig)
+    {
+      assert(false);
+    }
+    for (auto & param : paramFast)
+    {
+      cJSON *fast = getRunParameterConfig(param);
+      if (!fast)
+      {
+        assert(false);
+      }
+      cJSON_AddItemToArray(paramFastConfig, fast);
+    }
+
+    cJSON_AddItemToObject(config, "maze", mazeConfig);
+    cJSON_AddItemToObject(config, "hardware", hardwareConfig);
+    cJSON_AddItemToObject(config, "paramSearch", paramSearchConfig);
+    cJSON_AddItemToObject(config, "paramFast", paramFastConfig);
 
     char *string = cJSON_Print(config);
     cJSON_Delete(config);
