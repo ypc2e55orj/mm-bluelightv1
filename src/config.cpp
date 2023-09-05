@@ -54,7 +54,7 @@ namespace config
       .offsetPost = 13.0f, // [mm]
     }
   };
-  RunParameterConfig paramFast[5] = {
+  RunParameterConfig paramFast[FAST_PARAMETER_COUNTS] = {
     {
       .straight = {
         .maxVelo = 0.3f,  // [m/s]
