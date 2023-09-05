@@ -30,6 +30,21 @@ namespace config
       .right = 1.0f, // []
     }
   };
+  SensorConfig sensor = {
+    .photoReference = {
+      .left90 = 3040, // []
+      .left45 = 1155, // []
+      .right45 = 1422, // []
+      .right90 = 3048, // []
+    },
+    .photoThreshold = {
+      .left90 = 920, // []
+      .left45 = 555, // []
+      .right45 = 796, // []
+      .right90 = 1100, // []
+    },
+    .wallControl = { 2.0, 0.0, 0.0 },
+  };
   RunParameterConfig paramSearch = {
     .straight = {
       .maxVelo = 0.3f,  // [m/s]
@@ -98,6 +113,49 @@ namespace config
     if (cJSON_IsNumber(kd))
     {
       config.kd = static_cast<float>(kd->valuedouble);
+    }
+  }
+  void setPhotoReference(cJSON *object, PhotoReference &config)
+  {
+    cJSON *left90 = cJSON_GetObjectItem(object, "left90");
+    cJSON *left45 = cJSON_GetObjectItem(object, "left45");
+    cJSON *right45 = cJSON_GetObjectItem(object, "right45");
+    cJSON *right90 = cJSON_GetObjectItem(object, "right90");
+
+    if (cJSON_IsNumber(left90))
+    {
+      config.left90 = left90->valueint;
+    }
+    if (cJSON_IsNumber(left45))
+    {
+      config.left45 = left45->valueint;
+    }
+    if (cJSON_IsNumber(right45))
+    {
+      config.right45 = right45->valueint;
+    }
+    if (cJSON_IsNumber(right90))
+    {
+      config.right90 = right90->valueint;
+    }
+  }
+  void setSensorConfig(cJSON *object, SensorConfig &config)
+  {
+    cJSON *photoReference = cJSON_GetObjectItem(object, "photoReference");
+    cJSON *photoThreshold = cJSON_GetObjectItem(object, "photoThreshold");
+    cJSON *wallControl = cJSON_GetObjectItem(object, "wallControl");
+
+    if (photoReference)
+    {
+      setPhotoReference(photoReference, config.photoReference);
+    }
+    if (photoThreshold)
+    {
+      setPhotoReference(photoThreshold, config.photoThreshold);
+    }
+    if (wallControl)
+    {
+      setPIDConfig(wallControl, config.wallControl);
     }
   }
   void setTurnConfig(cJSON *object, TurnConfig &config)
@@ -325,6 +383,10 @@ namespace config
     {
       setHardwareConfig(hardwareConfig, hardware);
     }
+    cJSON *sensorConfig = cJSON_GetObjectItem(object, "sensor");
+    {
+      setSensorConfig(sensorConfig, sensor);
+    }
     cJSON *paramSearchConfig = cJSON_GetObjectItem(object, "paramSearch");
     if (paramSearchConfig)
     {
@@ -352,6 +414,58 @@ namespace config
     cJSON_AddNumberToObject(pid, "kd", config.kd);
 
     return pid;
+  }
+  cJSON *getPhotoReference(PhotoReference &config)
+  {
+    cJSON *reference = cJSON_CreateObject();
+    if (!reference)
+    {
+      return nullptr;
+    }
+
+    cJSON_AddNumberToObject(reference, "left90", config.left90);
+    cJSON_AddNumberToObject(reference, "left45", config.left45);
+    cJSON_AddNumberToObject(reference, "right45", config.right45);
+    cJSON_AddNumberToObject(reference, "right90", config.right90);
+
+    return reference;
+  }
+  cJSON *getSensorConfig(SensorConfig &config)
+  {
+    cJSON *sensorConfig = cJSON_CreateObject();
+    cJSON *photoReference = getPhotoReference(config.photoReference);
+    cJSON *photoThreshold = getPhotoReference(config.photoThreshold);
+    cJSON *wallControl = getPIDConfig(config.wallControl);
+    if (!sensorConfig)
+    {
+      goto err;
+    }
+    if (!photoReference)
+    {
+      goto err;
+    }
+    if (!photoThreshold)
+    {
+      goto err;
+    }
+    if (!wallControl)
+    {
+      goto err;
+    }
+
+    cJSON_AddItemToObject(sensorConfig, "photoReference", photoReference);
+    cJSON_AddItemToObject(sensorConfig, "photoThreshold", photoThreshold);
+    cJSON_AddItemToObject(sensorConfig, "wallControl", wallControl);
+
+    return sensorConfig;
+
+  err:
+    cJSON_Delete(sensorConfig);
+    cJSON_Delete(photoReference);
+    cJSON_Delete(photoThreshold);
+    cJSON_Delete(wallControl);
+
+    return nullptr;
   }
   cJSON *getTurnConfig(TurnConfig &config)
   {
@@ -584,6 +698,11 @@ namespace config
     {
       assert(false);
     }
+    cJSON *sensorConfig = getSensorConfig(sensor);
+    if (!sensorConfig)
+    {
+      assert(false);
+    }
     cJSON *paramSearchConfig = getRunParameterConfig(paramSearch);
     if (!paramSearchConfig)
     {
@@ -606,6 +725,7 @@ namespace config
 
     cJSON_AddItemToObject(config, "maze", mazeConfig);
     cJSON_AddItemToObject(config, "hardware", hardwareConfig);
+    cJSON_AddItemToObject(config, "sensor", sensorConfig);
     cJSON_AddItemToObject(config, "paramSearch", paramSearchConfig);
     cJSON_AddItemToObject(config, "paramFast", paramFastConfig);
 

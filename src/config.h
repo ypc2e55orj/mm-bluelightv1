@@ -20,12 +20,24 @@ namespace config
     ConfigPair motorResistance;
     ConfigPair motorInductance;
     ConfigPair motorBackForce;
-  };
+ };
   struct PIDConfig
   {
     float kp;
     float ki;
     float kd;
+  };
+  struct PhotoReference {
+    int left90;
+    int left45;
+    int right45;
+    int right90;
+  };
+  struct SensorConfig
+  {
+    PhotoReference photoReference;
+    PhotoReference photoThreshold;
+    PIDConfig wallControl;
   };
   struct StraightRunConfig
   {
@@ -70,6 +82,7 @@ namespace config
   constexpr int FAST_PARAMETER_COUNTS = 5;
   extern MazeConfig maze;
   extern HardwareConfig hardware;
+  extern SensorConfig sensor;
   extern RunParameterConfig paramSearch;
   extern RunParameterConfig paramFast[FAST_PARAMETER_COUNTS];
 }
