@@ -124,9 +124,13 @@ namespace driver::encoder
 
   void IRAM_ATTR update()
   {
-    spi_transaction_t *left, *right;
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans_left, portMAX_DELAY));
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans_right, portMAX_DELAY));
+  }
+
+  void IRAM_ATTR wait()
+  {
+    spi_transaction_t *left, *right;
     ESP_ERROR_CHECK(spi_device_get_trans_result(spi_handle_left, &left, portMAX_DELAY));
     ESP_ERROR_CHECK(spi_device_get_trans_result(spi_handle_right, &right, portMAX_DELAY));
   }

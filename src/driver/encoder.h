@@ -13,5 +13,7 @@ namespace driver::encoder
   void init();
 
   void update();
+  void wait();
+
   std::pair<uint16_t, uint16_t> get();
 }

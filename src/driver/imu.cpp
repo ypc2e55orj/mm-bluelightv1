@@ -160,8 +160,12 @@ namespace driver::imu
 
   void IRAM_ATTR update()
   {
-    spi_transaction_t *trans;
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle, &spi_trans, portMAX_DELAY));
+  }
+
+  void IRAM_ATTR wait()
+  {
+    spi_transaction_t *trans;
     ESP_ERROR_CHECK(spi_device_get_trans_result(spi_handle, &trans, portMAX_DELAY));
   }
 }

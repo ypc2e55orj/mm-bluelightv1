@@ -160,6 +160,8 @@ namespace sensor
   {
     driver::encoder::update();
     driver::imu::update();
+    driver::encoder::wait();
+    driver::imu::wait();
     EventBits_t uBits =
       xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_PHOTO, pdTRUE, pdTRUE, pdMS_TO_TICKS(1));
     if (uBits == EVENT_GROUP_SENSOR_PHOTO)
