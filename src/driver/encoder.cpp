@@ -5,17 +5,17 @@
 
 namespace driver::encoder
 {
-  static const spi_host_device_t AS5050A_HOST = SPI2_HOST; // HSPI
-  static const gpio_num_t AS5050A_PIN_MISO = GPIO_NUM_37;
-  static const gpio_num_t AS5050A_PIN_MOSI = GPIO_NUM_35;
-  static const gpio_num_t AS5050A_PIN_SCLK = GPIO_NUM_36;
-  static const gpio_num_t AS5050A_PIN_CS_LEFT = GPIO_NUM_26;
-  static const gpio_num_t AS5050A_PIN_CS_RIGHT = GPIO_NUM_39;
+  constexpr spi_host_device_t AS5050A_HOST = SPI2_HOST; // HSPI
+  constexpr gpio_num_t AS5050A_PIN_MISO = GPIO_NUM_37;
+  constexpr gpio_num_t AS5050A_PIN_MOSI = GPIO_NUM_35;
+  constexpr gpio_num_t AS5050A_PIN_SCLK = GPIO_NUM_36;
+  constexpr gpio_num_t AS5050A_PIN_CS_LEFT = GPIO_NUM_26;
+  constexpr gpio_num_t AS5050A_PIN_CS_RIGHT = GPIO_NUM_39;
 
-  static const uint16_t AS5050A_REG_MASTER_RESET = 0x33A5;
-  static const uint16_t AS5050A_REG_ANGULAR_DATA = 0x3FFF;
+  constexpr uint16_t AS5050A_REG_MASTER_RESET = 0x33A5;
+  constexpr uint16_t AS5050A_REG_ANGULAR_DATA = 0x3FFF;
 
-  static const uint16_t AS5050A_RESOLUTION = 0x3FF;
+  constexpr uint16_t AS5050A_RESOLUTION = 0x3FF;
 
   constexpr uint16_t as5050a_write(uint16_t reg)
   {
@@ -31,7 +31,7 @@ namespace driver::encoder
     return (res & 0x3FFE) >> 2;
   }
 
-  static union {
+  static DRAM_ATTR union {
     uint16_t word;
     struct
     {
@@ -40,19 +40,16 @@ namespace driver::encoder
     } bytes;
   } as5050a_command = {};
 
-  DMA_ATTR static spi_transaction_t spi_trans_left = {};
-  DMA_ATTR static spi_transaction_t spi_trans_right = {};
+  static DRAM_ATTR spi_transaction_t spi_trans_left = {};
+  static DRAM_ATTR spi_transaction_t spi_trans_right = {};
 
-  static spi_device_handle_t spi_handle_left = nullptr;
-  static spi_device_handle_t spi_handle_right = nullptr;
+  static DRAM_ATTR spi_device_handle_t spi_handle_left = nullptr;
+  static DRAM_ATTR spi_device_handle_t spi_handle_right = nullptr;
 
-  static EventGroupHandle_t xEvent = nullptr;
-  static EventBits_t xEventBit = 0;
+  static DRAM_ATTR uint16_t angle_left = 0;
+  static DRAM_ATTR uint16_t angle_right = 0;
 
-  static uint16_t angle_left = 0;
-  static uint16_t angle_right = 0;
-
-  static bool initialized = false;
+  static DRAM_ATTR bool initialized = false;
 
   static void IRAM_ATTR dma_callback_pre(spi_transaction_t *trans)
   {
@@ -70,8 +67,6 @@ namespace driver::encoder
     }
 
     uint16_t rx_data = (trans->rx_data[0] << 8) | trans->rx_data[1];
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
     if (trans == &spi_trans_left)
     {
       angle_left = as5050a_angle(rx_data);
@@ -79,10 +74,6 @@ namespace driver::encoder
     else
     {
       angle_right = AS5050A_RESOLUTION - as5050a_angle(rx_data);
-      if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdPASS)
-      {
-        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-      }
     }
   }
 
@@ -91,12 +82,8 @@ namespace driver::encoder
     return AS5050A_RESOLUTION;
   }
 
-  void init(EventGroupHandle_t xHandle, EventBits_t xBit)
+  void init()
   {
-    // notify handle
-    xEvent = xHandle;
-    xEventBit = xBit;
-
     // bus
     spi_bus_config_t spi_bus_cfg = {};
     spi_bus_cfg.mosi_io_num = AS5050A_PIN_MOSI;
@@ -137,8 +124,11 @@ namespace driver::encoder
 
   void IRAM_ATTR update()
   {
+    spi_transaction_t *left, *right;
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_left, &spi_trans_left, portMAX_DELAY));
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle_right, &spi_trans_right, portMAX_DELAY));
+    ESP_ERROR_CHECK(spi_device_get_trans_result(spi_handle_left, &left, portMAX_DELAY));
+    ESP_ERROR_CHECK(spi_device_get_trans_result(spi_handle_right, &right, portMAX_DELAY));
   }
 
   std::pair<uint16_t, uint16_t> get()

@@ -17,30 +17,20 @@
 
 namespace sensor
 {
-  static bool is_running = false;
+  static DRAM_ATTR bool is_running = false;
 
-  static gptimer_handle_t gptimer_interval = nullptr; // 4kHz
-  static gptimer_handle_t gptimer_flush = nullptr;    // 10us oneshot
+  static DRAM_ATTR gptimer_handle_t gptimer_interval = nullptr; // 4kHz
+  static DRAM_ATTR gptimer_handle_t gptimer_flush = nullptr;    // 10us oneshot
 
-  static uint8_t photo_pos = driver::photo::PHOTO_LEFT_90;
+  static DRAM_ATTR uint8_t photo_pos = driver::photo::PHOTO_LEFT_90;
 
   static EventGroupHandle_t xEventGroupSensor = nullptr;
 
-  static const EventBits_t EVENT_GROUP_SENSOR_IMU = (1UL << 1);
-  static const EventBits_t EVENT_GROUP_SENSOR_ENCODER = (1UL << 2);
-  static const EventBits_t EVENT_GROUP_SENSOR_PHOTO = (1UL << 3);
-  static const EventBits_t EVENT_GROUP_SENSOR_ALL =
-    (EVENT_GROUP_SENSOR_IMU | EVENT_GROUP_SENSOR_ENCODER | EVENT_GROUP_SENSOR_PHOTO);
+  static const EventBits_t EVENT_GROUP_SENSOR_PHOTO = 1UL;
 
-  static bool IRAM_ATTR update_interval(gptimer_handle_t timer, const gptimer_alarm_event_data_t *timer_ev, void *)
+  static bool IRAM_ATTR update_interval(gptimer_handle_t, const gptimer_alarm_event_data_t *, void *)
   {
-    if (photo_pos == driver::photo::PHOTO_LEFT_90)
-    {
-      driver::imu::update();
-      driver::encoder::update();
-      driver::battery::update();
-    }
-
+    driver::battery::update();
     driver::photo::tx(photo_pos);
 
     ESP_ERROR_CHECK(gptimer_enable(gptimer_flush));
@@ -135,8 +125,8 @@ namespace sensor
 
     driver::photo::init();
     driver::battery::init();
-    driver::encoder::init(xEventGroupSensor, EVENT_GROUP_SENSOR_IMU);
-    driver::imu::init(xEventGroupSensor, EVENT_GROUP_SENSOR_ENCODER);
+    driver::encoder::init();
+    driver::imu::init();
 
     init_interval();
   }
@@ -168,9 +158,11 @@ namespace sensor
 
   bool wait()
   {
+    driver::encoder::update();
+    driver::imu::update();
     EventBits_t uBits =
-      xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_ALL, pdTRUE, pdTRUE, pdMS_TO_TICKS(1));
-    if (uBits == EVENT_GROUP_SENSOR_ALL)
+      xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_PHOTO, pdTRUE, pdTRUE, pdMS_TO_TICKS(1));
+    if (uBits == EVENT_GROUP_SENSOR_PHOTO)
     {
       return true;
     }
@@ -180,7 +172,6 @@ namespace sensor
   static float calculate_velocity(uint16_t prev, uint16_t curr)
   {
     const auto RESOLUTION = driver::encoder::resolution();
-    const auto TIRE_DIAMETER = config::hardware.tireDiameter;
 
     int diff = curr - prev;
     if (std::abs(diff) > RESOLUTION / 2 + 1)
@@ -188,7 +179,7 @@ namespace sensor
       diff = prev > RESOLUTION / 2 + 1 ? RESOLUTION - prev + curr : prev + RESOLUTION - curr;
     }
 
-    return static_cast<float>(diff) * (TIRE_DIAMETER * static_cast<float>(M_PI) / static_cast<float>(RESOLUTION + 0));
+    return static_cast<float>(diff) * (config::hardware.tireDiameter * static_cast<float>(M_PI) / static_cast<float>(RESOLUTION + 0));
   }
 
   std::pair<float, float> velocity()
@@ -202,5 +193,12 @@ namespace sensor
     prev = curr;
 
     return {velo_left, velo_right};
+  }
+
+  float angular_velocity(bool reset = false)
+  {
+    auto [x, y, z] = driver::imu::gyro();
+
+    return z;
   }
 }

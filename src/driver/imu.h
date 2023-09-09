@@ -7,7 +7,7 @@
 
 namespace driver::imu
 {
-  void init(EventGroupHandle_t xHandle, EventBits_t xBit);
+  void init();
 
   void update();
 

@@ -11,6 +11,7 @@
 
 #include "../src/motion.h"
 #include "../src/sensor.h"
+#include "../config.h"
 #include "../src/ui/shell.h"
 
 void mainTask(void *)
@@ -35,8 +36,14 @@ void mainTask(void *)
   driver::buzzer::beep();
   vTaskDelay(pdMS_TO_TICKS(50));
 
-  //ui::shell();
-  motion::start();
+  //config::write("/spiffs/config.json");
+  config::read("/spiffs/config.json");
+  std::cout
+    << "maze size: " << config::maze.size.x << ", " << config::maze.size.y << std::endl
+    << "maze goal: " << config::maze.goal.x << ", " << config::maze.goal.y << std::endl;
+
+  sensor::start();
+  ui::shell::start();
   while (true)
   {
     driver::indicator::rainbow_yield();
@@ -51,11 +58,9 @@ extern "C" void app_main(void)
   std::cout << "app_main() start. Core ID: " << xPortGetCoreID() << std::endl;
 
   driver::buzzer::init();
-
   driver::fs::init();
   driver::indicator::init();
   sensor::init();
-  sensor::start();
   motion::init();
 
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 10, nullptr, 1);

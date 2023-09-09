@@ -5,7 +5,7 @@
 
 namespace driver::photo
 {
-  static const struct
+  static DRAM_ATTR const struct
   {
     gpio_num_t ir;
     adc_channel_t photo;
@@ -16,8 +16,8 @@ namespace driver::photo
     {GPIO_NUM_10, ADC_CHANNEL_0},
   };
 
-  static int ambient[4] = {};
-  static int flush[4] = {};
+  static DRAM_ATTR int ambient[4] = {};
+  static DRAM_ATTR int flush[4] = {};
 
   void init()
   {

@@ -3,8 +3,8 @@
 
 namespace driver::battery
 {
-  static const adc_channel_t BATTERY_CHAN = ADC_CHANNEL_4;
-  static int raw = 0;
+  static DRAM_ATTR const adc_channel_t BATTERY_CHAN = ADC_CHANNEL_4;
+  static DRAM_ATTR int raw = 0;
 
   void init()
   {

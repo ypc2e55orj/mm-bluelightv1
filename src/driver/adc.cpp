@@ -8,8 +8,8 @@ namespace driver::adc
 {
   static bool initialized = false;
 
-  static adc_oneshot_unit_handle_t adc1 = nullptr;
-  static adc_cali_handle_t adc1_cali = nullptr;
+  static DRAM_ATTR adc_oneshot_unit_handle_t adc1 = nullptr;
+  static DRAM_ATTR adc_cali_handle_t adc1_cali = nullptr;
 
   void init()
   {

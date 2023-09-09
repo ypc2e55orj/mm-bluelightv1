@@ -10,7 +10,7 @@ namespace driver::encoder
 {
   uint16_t resolution();
 
-  void init(EventGroupHandle_t xHandle, EventBits_t xBit);
+  void init();
 
   void update();
   std::pair<uint16_t, uint16_t> get();

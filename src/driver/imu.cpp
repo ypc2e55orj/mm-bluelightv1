@@ -12,29 +12,25 @@
 
 namespace driver::imu
 {
-  static const spi_host_device_t LSM6DSRX_HOST = SPI3_HOST; // VSPI
-  static const gpio_num_t LSM6DSRX_PIN_MISO = GPIO_NUM_48;
-  static const gpio_num_t LSM6DSRX_PIN_MOSI = GPIO_NUM_47;
-  static const gpio_num_t LSM6DSRX_PIN_SCLK = GPIO_NUM_33;
-  static const gpio_num_t LSM6DSRX_PIN_CS = GPIO_NUM_34;
-
-  static const uint32_t LSM6DSRX_BUFFER_SIZE = 16;
-
-  static spi_transaction_t spi_trans = {};
-  static spi_device_handle_t spi_handle = {};
-
-  static uint8_t *tx_buffer = nullptr;
-  static uint8_t *rx_buffer = nullptr;
+  constexpr spi_host_device_t LSM6DSRX_HOST = SPI3_HOST; // VSPI
+  constexpr gpio_num_t LSM6DSRX_PIN_MISO = GPIO_NUM_48;
+  constexpr gpio_num_t LSM6DSRX_PIN_MOSI = GPIO_NUM_47;
+  constexpr gpio_num_t LSM6DSRX_PIN_SCLK = GPIO_NUM_33;
+  constexpr gpio_num_t LSM6DSRX_PIN_CS = GPIO_NUM_34;
+  constexpr uint32_t LSM6DSRX_BUFFER_SIZE = 16;
 
   static stmdev_ctx_t lsm6dsrx_ctx = {};
 
-  static EventGroupHandle_t xEvent = nullptr;
-  static EventBits_t xEventBit = 0;
+  static DRAM_ATTR spi_transaction_t spi_trans = {};
+  static DRAM_ATTR spi_device_handle_t spi_handle = {};
 
-  static int16_t intr_gyro_buff[3] = {};
-  static int16_t intr_accel_buff[3] = {};
+  static DRAM_ATTR uint8_t *tx_buffer = nullptr;
+  static DRAM_ATTR uint8_t *rx_buffer = nullptr;
 
-  static bool initialized = false;
+  static DRAM_ATTR int16_t intr_gyro_buff[3] = {};
+  static DRAM_ATTR int16_t intr_accel_buff[3] = {};
+
+  static DRAM_ATTR bool initialized = false;
 
   static void IRAM_ATTR dma_callback_post(spi_transaction_t *trans)
   {
@@ -50,13 +46,6 @@ namespace driver::imu
     intr_accel_buff[0] = ((int16_t)rx_buffer[8] << 8) | (int16_t)rx_buffer[7];
     intr_accel_buff[1] = ((int16_t)rx_buffer[10] << 8) | (int16_t)rx_buffer[9];
     intr_accel_buff[2] = ((int16_t)rx_buffer[12] << 8) | (int16_t)rx_buffer[11];
-
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-    if (xEventGroupSetBitsFromISR(xEvent, xEventBit, &xHigherPriorityTaskWoken) == pdPASS)
-    {
-      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    }
   }
 
   static int32_t lsm6dsrx_platform_write(void *, uint8_t reg, const uint8_t *bufp, uint16_t len)
@@ -91,11 +80,8 @@ namespace driver::imu
     return 0;
   }
 
-  void init(EventGroupHandle_t xHandle, EventBits_t xBit)
+  void init()
   {
-    xEvent = xHandle;
-    xEventBit = xBit;
-
     spi_bus_config_t spi_bus_cfg = {};
     spi_bus_cfg.mosi_io_num = LSM6DSRX_PIN_MOSI;
     spi_bus_cfg.miso_io_num = LSM6DSRX_PIN_MISO;
@@ -174,6 +160,8 @@ namespace driver::imu
 
   void IRAM_ATTR update()
   {
+    spi_transaction_t *trans;
     ESP_ERROR_CHECK(spi_device_queue_trans(spi_handle, &spi_trans, portMAX_DELAY));
+    ESP_ERROR_CHECK(spi_device_get_trans_result(spi_handle, &trans, portMAX_DELAY));
   }
 }
