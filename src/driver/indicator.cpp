@@ -60,6 +60,19 @@ namespace driver::indicator
     set(pos, (rgb & 0xFF0000) >> 16, (rgb & 0xFF00) >> 8, (rgb & 0xFF));
   }
 
+  static uint32_t wheel(uint8_t pos) {
+    if (pos < 85)
+    {
+      return ((255 - pos * 3) << 16) | (pos * 3);
+    }
+    if (pos < 170)
+    {
+      pos -= 85;
+      return ((pos * 3) << 8) | (255 - pos * 3);
+    }
+    pos -= 170;
+    return ((pos * 3) << 16) | ((255 - pos * 3) << 8);
+  };
   // https://github.com/adafruit/Adafruit_NeoPixel/blob/9cf5e96e8f436cc3460f6e7a32b20aceab6e905c/examples/strandtest_wheel/strandtest_wheel.ino
   void rainbow_yield(bool reset)
   {
@@ -68,20 +81,6 @@ namespace driver::indicator
     {
       p = 0;
     }
-
-    const auto wheel = [](uint8_t pos) -> uint32_t {
-      if (pos < 85)
-      {
-        return ((255 - pos * 3) << 16) | (pos * 3);
-      }
-      if (pos < 170)
-      {
-        pos -= 85;
-        return ((pos * 3) << 8) | (255 - pos * 3);
-      }
-      pos -= 170;
-      return ((pos * 3) << 16) | ((255 - pos * 3) << 8);
-    };
 
     for (int i = 0; i < nums(); i++)
     {
