@@ -34,4 +34,11 @@ idf_component_register(
   "../src/third-party/musical_buzzer"
   "../src/third-party/ntshell/src/lib/core"
   "../src/third-party/ntshell/src/lib/util")
-target_compile_options(${COMPONENT_LIB} PRIVATE -std=gnu++17)
+
+component_compile_options(
+  -std=gnu++17
+  -Wall
+  -Wextra
+  -Wdouble-promotion
+  -Wfloat-equal
+)
