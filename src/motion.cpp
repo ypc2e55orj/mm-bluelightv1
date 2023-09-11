@@ -26,6 +26,8 @@ namespace motion
   void init()
   {
     driver::motor::init();
+    driver::motor::enable();
+    driver::motor::brake();
   }
 
   static void motionTask(void *)

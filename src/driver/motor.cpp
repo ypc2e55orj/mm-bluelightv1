@@ -7,8 +7,8 @@
 
 namespace driver::motor
 {
-  static const uint32_t BDC_MCPWM_TIMER_RESOLUTION_HZ = 80'000'000; // 80MHz
-  static const uint32_t BDC_MCPWM_FREQ_HZ = 100'000;                // 100kHz
+  static const uint32_t BDC_MCPWM_TIMER_RESOLUTION_HZ = 80'000'000;
+  static const uint32_t BDC_MCPWM_FREQ_HZ = 800'000;
   static constexpr uint32_t BDC_MCPWM_DUTY_TICK_MAX = BDC_MCPWM_TIMER_RESOLUTION_HZ / BDC_MCPWM_FREQ_HZ;
 
   static const gpio_num_t AIN1 = GPIO_NUM_42;

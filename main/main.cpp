@@ -42,7 +42,6 @@ void mainTask(void *)
     << "maze size: " << config::maze.size.x << ", " << config::maze.size.y << std::endl
     << "maze goal: " << config::maze.goal.x << ", " << config::maze.goal.y << std::endl;
 
-  sensor::start();
   ui::shell::start();
   while (true)
   {
