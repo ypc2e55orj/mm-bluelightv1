@@ -1,24 +1,44 @@
 #include "battery.h"
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+#include "../data/average.h"
 #include "adc.h"
 
-namespace driver::battery
+namespace driver
 {
-  static DRAM_ATTR const adc_channel_t BATTERY_CHAN = ADC_CHANNEL_4;
-  static DRAM_ATTR int raw = 0;
-
-  void init()
+  class Battery::BatteryImpl
   {
-    driver::adc::init();
-    driver::adc::chan(BATTERY_CHAN);
-  }
+  private:
+    // バッテリー分圧抵抗に接続されたADC
+    Adc adc_;
 
-  void IRAM_ATTR update()
-  {
-    raw = driver::adc::raw(BATTERY_CHAN);
-  }
+    [[noreturn]] static void batteryMonitorTask(void *pvParameters)
+    {
+      auto* this_ptr = reinterpret_cast<BatteryImpl *>(pvParameters);
+      auto xLastWakeTime = xTaskGetTickCount();
+      while(true)
+      {
+        this_ptr->adc_.read();
+        // 分圧されているため2倍、実測調整で+100
+        int voltage = this_ptr->adc_.to_voltage() * 2 + 100;
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
+      }
+    }
+  public:
+    explicit BatteryImpl() : adc_(ADC_UNIT_1, ADC_CHANNEL_4)
+    {
+    }
+    ~BatteryImpl() = default;
 
-  int get()
-  {
-    return driver::adc::calibrate(raw) * 2 + 100;
-  }
+    bool start()
+    {
+      return true;
+    }
+    bool stop()
+    {
+      return true;
+    }
+  };
 }
