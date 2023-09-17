@@ -4,7 +4,10 @@
 
 namespace data
 {
-  template <std::integral T, std::integral U, std::size_t N> class MovingAverage
+  template <typename T>
+  concept Numeric = std::integral<T> || std::floating_point<T>;
+
+  template <Numeric T, Numeric U, std::size_t N> class MovingAverage
   {
   private:
     // サンプルのリングバッファ
