@@ -11,9 +11,6 @@ namespace driver
   class Adc::AdcImpl
   {
   private:
-    // 各ユニットが初期化済みか
-    static bool is_init_unit1_;
-    static bool is_init_unit2_;
     // 各ユニットのハンドラ
     static adc_oneshot_unit_handle_t unit1_;
     static adc_oneshot_unit_handle_t unit2_;
@@ -21,9 +18,7 @@ namespace driver
     static adc_cali_handle_t unit1_cali_;
     static adc_cali_handle_t unit2_cali_;
 
-    // 使用するユニット
-    adc_unit_t unit_num_;
-    // 使用するチャンネル
+   // 使用するチャンネル
     adc_channel_t channel_;
     // 使用するユニットのハンドラ
     adc_oneshot_unit_handle_t unit_;
@@ -37,7 +32,7 @@ namespace driver
 
   public:
     explicit AdcImpl(adc_unit_t unit, adc_channel_t channel)
-      : unit_num_(unit), channel_(channel), unit_(nullptr), unit_cali_(nullptr), raw_(0), voltage_(0)
+      : channel_(channel), unit_(nullptr), unit_cali_(nullptr), raw_(0), voltage_(0)
     {
       adc_oneshot_unit_init_cfg_t init_cfg = {};
       adc_cali_curve_fitting_config_t cali_cfg = {};
@@ -52,13 +47,12 @@ namespace driver
       {
       case ADC_UNIT_1:
         // ユニットを初期化 (すでに初期化されている場合は処理しない)
-        if (!is_init_unit1_)
+        if (!unit1_) [[unlikely]]
         {
           init_cfg.unit_id = ADC_UNIT_1;
           ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_cfg, &unit1_));
           cali_cfg.unit_id = ADC_UNIT_1;
           ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_cfg, &unit1_cali_));
-          is_init_unit1_ = true;
         }
         // チャンネルを初期化
         ESP_ERROR_CHECK(adc_oneshot_config_channel(unit1_, channel, &chan_cfg));
@@ -67,13 +61,12 @@ namespace driver
         break;
       case ADC_UNIT_2:
         // ユニットを初期化 (すでに初期化されている場合は処理しない)
-        if (!is_init_unit2_)
+        if (!unit2_) [[unlikely]]
         {
           init_cfg.unit_id = ADC_UNIT_2;
           ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_cfg, &unit2_));
           cali_cfg.unit_id = ADC_UNIT_2;
           ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_cfg, &unit2_cali_));
-          is_init_unit2_ = true;
         }
         // チャンネルを初期化
         ESP_ERROR_CHECK(adc_oneshot_config_channel(unit2_, channel, &chan_cfg));
@@ -95,9 +88,6 @@ namespace driver
       return voltage_;
     }
   };
-  // 各ユニットが初期化済みか
-  bool Adc::AdcImpl::is_init_unit1_ = false;
-  bool Adc::AdcImpl::is_init_unit2_ = false;
   // 各ユニットのハンドラ
   adc_oneshot_unit_handle_t Adc::AdcImpl::unit1_ = nullptr;
   adc_oneshot_unit_handle_t Adc::AdcImpl::unit2_ = nullptr;
