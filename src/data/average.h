@@ -43,7 +43,7 @@ namespace data
       else
       {
         // サンプルのうち最も古いデータを取得して削除
-        const T &oldest = samples_.front();
+        const T oldest = samples_.front();
         samples_.popFront();
         // 最も古いデータ分を除去
         sums_ -= oldest;
