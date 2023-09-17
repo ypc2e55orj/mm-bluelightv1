@@ -38,15 +38,11 @@ namespace driver
       adc_cali_curve_fitting_config_t cali_cfg = {};
       cali_cfg.atten = ADC_ATTEN_DB_11;
       cali_cfg.bitwidth = ADC_BITWIDTH_12;
-      adc_oneshot_chan_cfg_t chan_cfg = {};
-      chan_cfg.atten = ADC_ATTEN_DB_11;
-      chan_cfg.bitwidth = ADC_BITWIDTH_12;
 
-      // ユニットとチャンネルの初期化
+      // ユニットを初期化 (すでに初期化されている場合は処理しない)
       switch (unit)
       {
       case ADC_UNIT_1:
-        // ユニットを初期化 (すでに初期化されている場合は処理しない)
         if (!unit1_) [[unlikely]]
         {
           init_cfg.unit_id = ADC_UNIT_1;
@@ -54,13 +50,10 @@ namespace driver
           cali_cfg.unit_id = ADC_UNIT_1;
           ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_cfg, &unit1_cali_));
         }
-        // チャンネルを初期化
-        ESP_ERROR_CHECK(adc_oneshot_config_channel(unit1_, channel, &chan_cfg));
         unit_ = unit1_;
         unit_cali_ = unit1_cali_;
         break;
       case ADC_UNIT_2:
-        // ユニットを初期化 (すでに初期化されている場合は処理しない)
         if (!unit2_) [[unlikely]]
         {
           init_cfg.unit_id = ADC_UNIT_2;
@@ -68,12 +61,18 @@ namespace driver
           cali_cfg.unit_id = ADC_UNIT_2;
           ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_cfg, &unit2_cali_));
         }
-        // チャンネルを初期化
-        ESP_ERROR_CHECK(adc_oneshot_config_channel(unit2_, channel, &chan_cfg));
         unit_ = unit2_;
         unit_cali_ = unit2_cali_;
         break;
+      default:
+        throw std::runtime_error("Error Adc::AdcImpl(): ADC unit must be specified");
       }
+
+      // チャンネルを初期化
+      adc_oneshot_chan_cfg_t chan_cfg = {};
+      chan_cfg.atten = ADC_ATTEN_DB_11;
+      chan_cfg.bitwidth = ADC_BITWIDTH_12;
+      ESP_ERROR_CHECK(adc_oneshot_config_channel(unit_, channel, &chan_cfg));
     }
     // ADC値を取得する
     int read()
