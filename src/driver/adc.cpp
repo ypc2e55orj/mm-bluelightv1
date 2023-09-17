@@ -18,7 +18,7 @@ namespace driver
     static adc_cali_handle_t unit1_cali_;
     static adc_cali_handle_t unit2_cali_;
 
-   // 使用するチャンネル
+    // 使用するチャンネル
     adc_channel_t channel_;
     // 使用するユニットのハンドラ
     adc_oneshot_unit_handle_t unit_;
