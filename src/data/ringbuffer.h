@@ -2,7 +2,7 @@
 
 namespace data
 {
-  template <typename T, std::size_t CAPACITY> class RingBuffer
+  template <typename T, std::size_t CAPACITY> class [[maybe_unused]] RingBuffer
   {
   private:
     // 先頭を指す添字
@@ -13,37 +13,21 @@ namespace data
     std::size_t size_;
     // 添字を最大要素数で切り捨てるマスク
     std::size_t mask_;
-    // リングバッファの最大要素数
-    std::size_t capacity_;
     // 要素を保持する配列
-    T *buffer_;
-
-    // 与えられた数以上の1のべき乗を求める
-    constexpr std::size_t power2(std::size_t p)
-    {
-      --p;
-      std::size_t n = 0;
-      for (; p != 0; p >>= 1)
-        n = (n << 1) + 1;
-      return n;
-    }
+    T buffer_[CAPACITY];
 
   public:
     explicit RingBuffer() : head_(0), tail_(0), size_(0)
     {
-      mask_ = power2(CAPACITY);
-      capacity_ = mask_ + 1;
-      buffer_ = new T[capacity_];
+      static_assert(CAPACITY && (CAPACITY & (CAPACITY - 1)) == 0, "CAPACITY must be a power of 2.");
+      mask_ = CAPACITY - 1;
     }
-    ~RingBuffer()
-    {
-      delete[] buffer_;
-    }
+    ~RingBuffer() = default;
 
     // 最大要素数を返す
     constexpr std::size_t capacity()
     {
-      return capacity_;
+      return CAPACITY;
     }
     // 現在の要素数を返す
     std::size_t size()
@@ -63,27 +47,27 @@ namespace data
     }
 
     // 先頭にデータを追加
-    void pushFront(T &data)
+    [[maybe_unused]] void pushFront(T &data)
     {
       size_++;
       head_ = (head_ - 1) & mask_;
       buffer_[head_] = data;
     }
     // 先頭のデータを削除
-    void popFront()
+    [[maybe_unused]] void popFront()
     {
       size_--;
       head_ = (head_ + 1) & mask_;
     }
     // 末尾にデータを追加
-    void pushBack(T &data)
+    [[maybe_unused]] void pushBack(T &data)
     {
       buffer_[tail_] = data;
       tail_ = (tail_ + 1) & mask_;
       size_++;
     }
     // 末尾のデータを削除
-    void popBack()
+    [[maybe_unused]] void popBack()
     {
       tail_ = (tail_ - 1) & mask_;
       size_--;
