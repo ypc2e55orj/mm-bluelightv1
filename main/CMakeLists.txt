@@ -36,7 +36,7 @@ idf_component_register(
   "../src/third-party/ntshell/src/lib/util")
 
 component_compile_options(
-  -std=gnu++17
+  -std=gnu++23
   -Wall
   -Wextra
   -Wdouble-promotion
