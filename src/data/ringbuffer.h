@@ -1,8 +1,10 @@
 #pragma once
 
+#include <array>
+
 namespace data
 {
-  template <typename T, std::size_t CAPACITY> class [[maybe_unused]] RingBuffer
+  template <typename T, std::size_t N> class RingBuffer
   {
   private:
     // 先頭を指す添字
@@ -14,20 +16,30 @@ namespace data
     // 添字を最大要素数で切り捨てるマスク
     std::size_t mask_;
     // 要素を保持する配列
-    T buffer_[CAPACITY];
+    std::array<T, N> buffer_;
 
   public:
-    explicit RingBuffer() : head_(0), tail_(0), size_(0)
+    // コンストラクタ
+    explicit RingBuffer() : head_(0), tail_(0), size_(0), buffer_()
     {
-      static_assert(CAPACITY && (CAPACITY & (CAPACITY - 1)) == 0, "CAPACITY must be a power of 2.");
-      mask_ = CAPACITY - 1;
+      static_assert(N && (N & (N - 1)) == 0, "N must be a power of 2.");
+      mask_ = N - 1;
     }
+    // デストラクタ
     ~RingBuffer() = default;
 
-    // 最大要素数を返す
-    constexpr std::size_t capacity()
+    // バッファをリセットする
+    void reset()
     {
-      return CAPACITY;
+      head_ = 0;
+      tail_ = 0;
+      size_ = 0;
+    }
+
+    // 最大要素数を返す
+    constexpr std::size_t max_size()
+    {
+      return N;
     }
     // 現在の要素数を返す
     std::size_t size()
@@ -46,31 +58,61 @@ namespace data
       return buffer_[(head_ + index) & mask_];
     }
 
-    // 先頭にデータを追加
-    [[maybe_unused]] void pushFront(T &data)
+    // 先頭のデータを取得
+    const T &front()
     {
+      return buffer_[head_];
+    }
+    // 先頭にデータを追加
+    bool pushFront(T &data)
+    {
+      if (size_ == N)
+      {
+        return false;
+      }
       size_++;
       head_ = (head_ - 1) & mask_;
       buffer_[head_] = data;
+      return true;
     }
     // 先頭のデータを削除
-    [[maybe_unused]] void popFront()
+    bool popFront()
     {
-      size_--;
+      if (size_ == 0)
+      {
+        return false;
+      }
       head_ = (head_ + 1) & mask_;
+      size_--;
+      return true;
+    }
+    // 末尾のデータを取得
+    const T &back()
+    {
+      return buffer_[tail_];
     }
     // 末尾にデータを追加
-    [[maybe_unused]] void pushBack(T &data)
+    bool pushBack(T &data)
     {
+      if (size_ == N)
+      {
+        return false;
+      }
+      size_++;
       buffer_[tail_] = data;
       tail_ = (tail_ + 1) & mask_;
-      size_++;
+      return true;
     }
     // 末尾のデータを削除
-    [[maybe_unused]] void popBack()
+    bool popBack()
     {
+      if (size_ == 0)
+      {
+        return false;
+      }
       tail_ = (tail_ - 1) & mask_;
       size_--;
+      return true;
     }
   };
 }

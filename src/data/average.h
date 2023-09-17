@@ -4,21 +4,52 @@
 
 namespace data
 {
-  template <typename T, std::size_t CAPACITY>
-  class MovingAverage
+  template <std::integral T, std::integral U, std::size_t N> class MovingAverage
   {
   private:
-    bool is_init_;
-    RingBuffer<T, CAPACITY> ringbuffer_;
+    // サンプルのリングバッファ
+    RingBuffer<T, N> samples_;
+    // 積算値のメモ
+    U sums_;
 
   public:
-    explicit MovingAverage(T &init_value): is_init_(false), ringbuffer_()
+    explicit MovingAverage()
     {
-      for (std::size_t i = 0; i < ringbuffer_.capacity(); i++)
-      {
-        ringbuffer_.pushBack(init_value);
-      }
+      reset();
     }
     ~MovingAverage() = default;
+
+    void reset()
+    {
+      samples_.reset();
+      sums_ = static_cast<U>(0);
+    }
+
+    U update(T &sample)
+    {
+      if (samples_.size() == 0) [[unlikely]]
+      {
+        sums_ = static_cast<U>(0);
+        // 初回は与えられた値でバッファを満たす
+        for (std::size_t n = 0; n < N; n++)
+        {
+          samples_.pushBack(sample);
+          sums_ += static_cast<U>(sample);
+        }
+      }
+      else
+      {
+        // サンプルのうち最も古いデータを取得して削除
+        const T &oldest = samples_.front();
+        samples_.popFront();
+        // 最も古いデータ分を除去
+        sums_ -= oldest;
+        sums_ += sample;
+        samples_.pushBack(sample);
+      }
+
+      // 平均して返す
+      return sums_ / static_cast<U>(N);
+    }
   };
 }
