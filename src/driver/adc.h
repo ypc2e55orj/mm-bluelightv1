@@ -14,7 +14,7 @@ namespace driver
 
   public:
     explicit Adc(adc_unit_t unit, adc_channel_t channel);
-    ~Adc() = default;
+    ~Adc();
 
     int read();
     int to_voltage();

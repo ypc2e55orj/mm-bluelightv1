@@ -74,6 +74,8 @@ namespace driver
       chan_cfg.bitwidth = ADC_BITWIDTH_12;
       ESP_ERROR_CHECK(adc_oneshot_config_channel(unit_, channel, &chan_cfg));
     }
+    ~AdcImpl() = default;
+
     // ADC値を取得する
     int read()
     {
@@ -97,6 +99,7 @@ namespace driver
   Adc::Adc(adc_unit_t unit, adc_channel_t channel) : impl_(new AdcImpl(unit, channel))
   {
   }
+  Adc::~Adc() = default;
   int Adc::read()
   {
     return impl_->read();
