@@ -1,16 +1,16 @@
-#include "sensor.h"
+#include "sensor.hpp"
 
 #include <driver/gptimer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 #include <freertos/task.h>
 
-#include "./driver/battery.h"
-#include "./driver/encoder.h"
-#include "./driver/imu.h"
-#include "./driver/photo.h"
+#include "./driver/battery.hpp"
+#include "./driver/encoder.hpp"
+#include "./driver/imu.hpp"
+#include "./driver/photo.hpp"
 
-#include "./config.h"
+#include "./config.hpp"
 
 #include <cassert>
 #include <cmath>

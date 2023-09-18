@@ -1,10 +1,10 @@
-#include "shell.h"
+#include "shell.hpp"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <rom/uart.h>
 
-#include "../driver/fs.h"
+#include "../driver/fs.hpp"
 #include "../third-party/ntshell/src/lib/core/ntshell.h"
 #include "../third-party/ntshell/src/lib/util/ntopt.h"
 

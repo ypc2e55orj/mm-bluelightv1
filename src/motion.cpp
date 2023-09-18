@@ -1,17 +1,16 @@
-#include "motion.h"
+#include "motion.hpp"
 
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#include "./driver/motor.h"
+#include "./driver/motor.hpp"
 
 #include <cmath>
 #include <cstdint>
 #include <iostream>
 
-#include "sensor.h"
-
+#include "sensor.hpp"
 
 namespace vehicle
 {

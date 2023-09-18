@@ -1,4 +1,4 @@
-#include "indicator.h"
+#include "indicator.hpp"
 
 #include <driver/rmt_tx.h>
 

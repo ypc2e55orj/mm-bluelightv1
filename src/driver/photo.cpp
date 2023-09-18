@@ -1,5 +1,5 @@
-#include "photo.h"
-#include "adc.h"
+#include "photo.hpp"
+#include "adc.hpp"
 
 #include <driver/gpio.h>
 

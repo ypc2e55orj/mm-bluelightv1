@@ -1,4 +1,4 @@
-#include "encoder.h"
+#include "encoder.hpp"
 
 #include <driver/gpio.h>
 #include <driver/spi_master.h>

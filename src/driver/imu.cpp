@@ -1,4 +1,4 @@
-#include "imu.h"
+#include "imu.hpp"
 
 #include <driver/gpio.h>
 #include <driver/spi_master.h>

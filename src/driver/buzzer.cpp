@@ -1,4 +1,4 @@
-#include "buzzer.h"
+#include "buzzer.hpp"
 
 #include <driver/rmt_tx.h>
 

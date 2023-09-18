@@ -1,4 +1,4 @@
-#include "battery.h"
+#include "battery.hpp"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
