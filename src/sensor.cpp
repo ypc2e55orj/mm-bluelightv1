@@ -30,7 +30,6 @@ namespace sensor
 
   static bool IRAM_ATTR update_interval(gptimer_handle_t, const gptimer_alarm_event_data_t *, void *)
   {
-    driver::battery::update();
     driver::photo::tx(photo_pos);
 
     ESP_ERROR_CHECK(gptimer_enable(gptimer_flush));
@@ -124,7 +123,6 @@ namespace sensor
     assert(xEventGroupSensor != nullptr);
 
     driver::photo::init();
-    driver::battery::init();
     driver::encoder::init();
     driver::imu::init();
 

@@ -2,7 +2,7 @@
 
 #include <driver/rmt_tx.h>
 
-#include "../third-party/led_strip/led_strip_encoder.h"
+#include <led_strip/led_strip_encoder.h>
 
 #include <cstring>
 

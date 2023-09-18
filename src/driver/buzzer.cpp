@@ -2,7 +2,7 @@
 
 #include <driver/rmt_tx.h>
 
-#include "../third-party/musical_buzzer/musical_score_encoder.h"
+#include <musical_buzzer/musical_score_encoder.h>
 
 namespace driver::buzzer
 {

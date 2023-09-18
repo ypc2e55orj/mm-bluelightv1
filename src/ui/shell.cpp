@@ -5,8 +5,8 @@
 #include <rom/uart.h>
 
 #include "../driver/fs.hpp"
-#include "../third-party/ntshell/src/lib/core/ntshell.h"
-#include "../third-party/ntshell/src/lib/util/ntopt.h"
+#include <ntshell/src/lib/core/ntshell.h>
+#include <ntshell/src/lib/util/ntopt.h>
 
 #include <cstring>
 
@@ -57,14 +57,10 @@ namespace ui::shell
 
   static struct
   {
-    const char * c_str;
+    const char *c_str;
     int (*func)(int argc, char **argv);
   } commands[] = {
-    {"df", df},
-    {"ls", ls},
-    {"rm", rm},
-    {"cat", cat},
-    {"quit", quit},
+    {"df", df}, {"ls", ls}, {"rm", rm}, {"cat", cat}, {"quit", quit},
   };
 
   static int serial_read(char *buf, int count, void *)
@@ -98,7 +94,7 @@ namespace ui::shell
     {
       return 0;
     }
-    for (auto & command : commands)
+    for (auto &command : commands)
     {
       if (strcmp((const char *)argv[0], command.c_str) == 0)
       {

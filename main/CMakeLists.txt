@@ -15,6 +15,8 @@ idf_component_register(
   SRCS
   ${SOURCES}
   INCLUDE_DIRS
+  "../src"
+  "../third-party"
   "../third-party/led_strip"
   "../third-party/lsm6dsrx-pid"
   "../third-party/musical_buzzer"

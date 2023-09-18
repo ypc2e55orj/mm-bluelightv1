@@ -5,14 +5,14 @@
 
 #include <iostream>
 
-#include "../src/driver/buzzer.hpp"
-#include "../src/driver/fs.hpp"
-#include "../src/driver/indicator.hpp"
+#include <driver/buzzer.hpp>
+#include <driver/fs.hpp>
+#include <driver/indicator.hpp>
 
-#include "../config.hpp"
-#include "../src/motion.hpp"
-#include "../src/sensor.hpp"
-#include "../src/ui/shell.hpp"
+#include <config.hpp>
+#include <motion.hpp>
+#include <sensor.hpp>
+#include <ui/shell.hpp>
 
 void mainTask(void *)
 {
