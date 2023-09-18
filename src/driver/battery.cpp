@@ -3,7 +3,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#include "../data/average.h"
+#include "../data/average.hpp"
 #include "adc.hpp"
 
 namespace driver
