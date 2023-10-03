@@ -5,9 +5,9 @@
 
 #include <iostream>
 
-#include <driver/buzzer.hpp>
-#include <driver/fs.hpp>
-#include <driver/indicator.hpp>
+#include "driver/hardware/buzzer.hpp"
+#include "driver/hardware/fs.hpp"
+#include "driver/hardware/indicator.hpp"
 
 #include <config.hpp>
 #include <motion.hpp>

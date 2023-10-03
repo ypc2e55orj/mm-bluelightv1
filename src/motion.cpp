@@ -4,7 +4,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#include "./driver/motor.hpp"
+#include "driver/hardware/motor.hpp"
 
 #include <cmath>
 #include <cstdint>

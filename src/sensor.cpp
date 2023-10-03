@@ -5,10 +5,10 @@
 #include <freertos/event_groups.h>
 #include <freertos/task.h>
 
-#include "./driver/battery.hpp"
-#include "./driver/encoder.hpp"
-#include "./driver/imu.hpp"
-#include "./driver/photo.hpp"
+#include "driver/hardware/battery.hpp"
+#include "driver/hardware/encoder.hpp"
+#include "driver/hardware/imu.hpp"
+#include "driver/hardware/photo.hpp"
 
 #include "./config.hpp"
 

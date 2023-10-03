@@ -2,7 +2,33 @@
 
 #include <driver/rmt_tx.h>
 
-#include <musical_buzzer/musical_score_encoder.h>
+#include "musical_buzzer/musical_score_encoder.h"
+
+namespace driver
+{
+  class BuzzerImpl
+  {
+  private:
+    static constexpr size_t RMT_MEM_BLOCK_SYMBOLS = 64;
+    static constexpr uint32_t RMT_RESOLUTION_HZ = 1'000'000;
+    rmt_channel_handle_t channel_;
+
+  public:
+    explicit BuzzerImpl(gpio_num_t buzzer_num, uint32_t queue_size)
+    {
+      rmt_tx_channel_config_t rmt_config = {
+        .gpio_num = buzzer_num,
+        .clk_src = RMT_CLK_SRC_DEFAULT,
+        .resolution_hz = RMT_RESOLUTION_HZ,
+        .mem_block_symbols = RMT_MEM_BLOCK_SYMBOLS,
+        .trans_queue_depth = queue_size,
+      };
+
+      ESP_ERROR_CHECK(rmt_new_tx_channel(&rmt_config, &channel_));
+    }
+    ~BuzzerImpl() = default;
+  };
+}
 
 namespace driver::buzzer
 {

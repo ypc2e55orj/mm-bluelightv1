@@ -1,6 +1,6 @@
 #include "motor.hpp"
 
-#include <bdc_motor.h>
+#include "bdc_motor.h"
 #include <driver/gpio.h>
 
 #include <cmath>

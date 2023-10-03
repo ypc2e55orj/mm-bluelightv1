@@ -4,7 +4,7 @@
 #include <freertos/task.h>
 #include <rom/uart.h>
 
-#include "../driver/fs.hpp"
+#include "driver/hardware/fs.hpp"
 #include <ntshell/src/lib/core/ntshell.h>
 #include <ntshell/src/lib/util/ntopt.h>
 

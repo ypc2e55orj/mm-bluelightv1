@@ -16,7 +16,7 @@ private:
   float sum_;
 
 public:
-  pid()
+  PID()
   {
     reset();
   }

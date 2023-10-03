@@ -4,7 +4,7 @@
 #include <driver/spi_master.h>
 #include <esp_intr_alloc.h>
 
-#include <lsm6dsrx-pid/lsm6dsrx_reg.h>
+#include "lsm6dsrx-pid/lsm6dsrx_reg.h"
 
 #include <cassert>
 #include <cmath>
