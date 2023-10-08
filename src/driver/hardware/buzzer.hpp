@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <memory>
 
+#include <freertos/FreeRTOS.h>
 #include <hal/gpio_types.h>
 
 namespace driver::hardware
@@ -32,14 +33,14 @@ namespace driver::hardware
   {
   private:
     class BuzzerImpl;
-    std::unique_ptr<Buzzer> impl_;
+    std::unique_ptr<BuzzerImpl> impl_;
 
   public:
     explicit Buzzer(gpio_num_t buzzer_num);
     ~Buzzer();
 
-    bool start();
-    bool stop();
+    bool start(const uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID);
+    bool stop(TickType_t xTicksToWait);
 
     bool set(BuzzerNote &note);
     bool set(BuzzerMode mode);

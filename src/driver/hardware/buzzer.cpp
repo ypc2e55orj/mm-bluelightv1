@@ -37,10 +37,15 @@ namespace driver::hardware
       auto copy_encoder = buzzer_encoder->copy_encoder;
       auto note = reinterpret_cast<const BuzzerNote *>(primary_data);
       uint16_t duration = buzzer_encoder->resolution / note->frequency / 2;
-      rmt_symbol_word_t symbol = {.level0 = 0, .duration0 = duration, .level1 = 1, .duration1 = duration};
+      rmt_symbol_word_t symbol = {};
+      symbol.level0 = 0;
+      symbol.duration0 = duration;
+      symbol.level1 = 1;
+      symbol.duration1 = duration;
 
       return copy_encoder->encode(copy_encoder, channel, &symbol, sizeof(rmt_symbol_word_t), ret_state);
     }
+
     static esp_err_t rmt_buzzer_delete(rmt_encoder_t *encoder)
     {
       auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
@@ -49,6 +54,7 @@ namespace driver::hardware
 
       return ESP_OK;
     }
+
     static esp_err_t rmt_buzzer_reset(rmt_encoder_t *encoder)
     {
       auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
@@ -63,11 +69,11 @@ namespace driver::hardware
     {
       // RMT送信チャンネルを初期化
       rmt_tx_channel_config_t rmt_config = {.gpio_num = buzzer_num,
-                                            .clk_src = RMT_CLK_SRC_DEFAULT,
-                                            .resolution_hz = BUZZER_RESOLUTION_HZ,
-                                            .mem_block_symbols = BUZZER_MEM_BLOCK_SYMBOLS,
-                                            .trans_queue_depth = queue_size,
-                                            .flags = {.with_dma = with_dma}};
+        .clk_src = RMT_CLK_SRC_DEFAULT,
+        .resolution_hz = BUZZER_RESOLUTION_HZ,
+        .mem_block_symbols = BUZZER_MEM_BLOCK_SYMBOLS,
+        .trans_queue_depth = queue_size,
+        .flags = {.with_dma = with_dma}};
       ESP_ERROR_CHECK(rmt_new_tx_channel(&rmt_config, &channel_));
 
       // ブザー用エンコーダーを初期化
@@ -85,6 +91,7 @@ namespace driver::hardware
         std::runtime_error("Buzzer::RmtBuzzer::RmtBuzzer(): Failed to rmt_new_copy_encoder()");
       }
     }
+
     ~RmtBuzzer()
     {
       rmt_del_channel(channel_);
@@ -94,10 +101,12 @@ namespace driver::hardware
     {
       return rmt_enable(channel_) == ESP_OK;
     }
+
     bool disable()
     {
       return rmt_disable(channel_) == ESP_OK;
     }
+
     bool tone(BuzzerNote &note)
     {
       rmt_transmit_config_t tx_config = {.loop_count = static_cast<int>(note.duration * note.frequency / 1000)};
@@ -111,15 +120,80 @@ namespace driver::hardware
     BuzzerEncoderHandle encoder_;
   };
 
-  class BuzzerImpl
+  class Buzzer::BuzzerImpl
   {
   private:
-    gpio_num_t num_;
+    // 親タスクのハンドラ
+    TaskHandle_t parent_;
+    // 電圧監視タスクのハンドラ
+    TaskHandle_t task_;
+    // 停止リクエスト
+    bool req_stop_;
+    // ブザー操作
+    RmtBuzzer buzzer_;
+    // BuzzerNoteを貯めるキュー
     QueueHandle_t queue_;
 
+    static void task(void *pvParameters)
+    {
+      auto this_ptr = reinterpret_cast<BuzzerImpl *>(pvParameters);
+      // ブザーを有効化
+      this_ptr->buzzer_.enable();
+      auto xLastWakeTime = xTaskGetTickCount();
+
+      while (!this_ptr->req_stop_)
+      {
+        xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
+      }
+      // ブザーを無効化
+      this_ptr->buzzer_.disable();
+
+      // 終了完了を停止要求タスクに通知
+      xTaskNotifyGive(this_ptr->parent_);
+      // タスクを削除
+      vTaskDelete(nullptr);
+    }
+
   public:
-    explicit BuzzerImpl(gpio_num_t buzzer_num) : num_(buzzer_num), queue_(nullptr)
+    explicit BuzzerImpl(gpio_num_t buzzer_num)
+      : parent_(nullptr), task_(nullptr), req_stop_(false), buzzer_(buzzer_num, 4),
+        queue_(xQueueCreate(sizeof(BuzzerNote), 10))
     {
     }
+
+    ~BuzzerImpl()
+    {
+      vQueueDelete(queue_);
+    }
+
+    bool start(const uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID)
+    {
+      auto ret = xTaskCreatePinnedToCore(task, "driver::Buzzer::BuzzerImpl::task", usStackDepth, this, uxPriority,
+                                         &task_, xCoreID);
+      return ret == pdTRUE;
+    }
+
+    bool stop(TickType_t xTicksToWait)
+    {
+      parent_ = xTaskGetCurrentTaskHandle();
+      req_stop_ = true;
+      return ulTaskNotifyTake(pdFALSE, xTicksToWait) != 0;
+    }
   };
+
+  Buzzer::Buzzer(gpio_num_t buzzer_num)
+    : impl_(new BuzzerImpl(buzzer_num))
+  {}
+
+  Buzzer::~Buzzer() = default;
+
+  bool Buzzer::start(const uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID)
+  {
+    return impl_->start(usStackDepth, uxPriority, xCoreID);
+  }
+
+  bool Buzzer::stop(TickType_t xTicksToWait)
+  {
+    return impl_->stop(xTicksToWait);
+  }
 }

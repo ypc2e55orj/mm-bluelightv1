@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include <freertos/FreeRTOS.h>
 #include <hal/adc_hal.h>
 
 namespace driver::hardware
@@ -16,8 +17,8 @@ namespace driver::hardware
     explicit Battery(adc_unit_t unit, adc_channel_t channel);
     ~Battery();
 
-    bool start();
-    bool stop();
+    bool start(uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID);
+    bool stop(TickType_t xTicksToWait);
 
     int voltage();
     int average();

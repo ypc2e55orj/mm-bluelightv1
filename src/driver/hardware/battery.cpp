@@ -61,16 +61,17 @@ namespace driver::hardware
     }
     ~BatteryImpl() = default;
 
-    bool start()
+    bool start(const uint32_t usStackDepth, UBaseType_t uxPriority, const BaseType_t xCoreID)
     {
-      auto ret = xTaskCreatePinnedToCore(task, "driver::Battery::BatteryImpl::task", 8192, this, 25, &task_, 1);
+      auto ret = xTaskCreatePinnedToCore(task, "driver::Battery::BatteryImpl::task", usStackDepth, this, uxPriority,
+                                         &task_, xCoreID);
       return ret == pdTRUE;
     }
-    bool stop()
+    bool stop(TickType_t xTicksToWait)
     {
       parent_ = xTaskGetCurrentTaskHandle();
       req_stop_ = true;
-      return ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != 0;
+      return ulTaskNotifyTake(pdFALSE, xTicksToWait) != 0;
     }
     [[nodiscard]] int voltage() const
     {
@@ -86,13 +87,13 @@ namespace driver::hardware
   {
   }
   Battery::~Battery() = default;
-  bool Battery::start()
+  bool Battery::start(const uint32_t usStackDepth, UBaseType_t uxPriority, const BaseType_t xCoreID)
   {
-    return impl_->start();
+    return impl_->start(usStackDepth, uxPriority, xCoreID);
   }
-  bool Battery::stop()
+  bool Battery::stop(TickType_t xTicksToWait)
   {
-    return impl_->stop();
+    return impl_->stop(xTicksToWait);
   }
   int Battery::voltage()
   {
