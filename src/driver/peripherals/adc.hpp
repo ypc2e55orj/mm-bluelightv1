@@ -4,7 +4,7 @@
 
 #include <hal/adc_types.h>
 
-namespace driver
+namespace driver::peripherals
 {
   class Adc
   {

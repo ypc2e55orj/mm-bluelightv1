@@ -6,7 +6,7 @@
 #include <esp_adc/adc_cali_scheme.h>
 #include <esp_adc/adc_oneshot.h>
 
-namespace driver
+namespace driver::peripherals
 {
   class Adc::AdcImpl
   {

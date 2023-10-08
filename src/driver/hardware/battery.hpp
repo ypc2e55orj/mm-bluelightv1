@@ -4,7 +4,7 @@
 
 #include <hal/adc_hal.h>
 
-namespace driver
+namespace driver::hardware
 {
   class Battery
   {

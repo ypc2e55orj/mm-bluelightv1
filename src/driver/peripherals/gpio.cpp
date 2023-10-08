@@ -4,17 +4,15 @@
 
 #include <driver/gpio.h>
 
-namespace driver
+namespace driver::peripherals
 {
   class Gpio::GpioImpl
   {
   private:
     gpio_num_t num_;
-    bool level_;
 
   public:
-    explicit GpioImpl(gpio_num_t num, gpio_mode_t mode, bool enable_pullup, bool enable_pulldown)
-      : num_(num), level_(false)
+    explicit GpioImpl(gpio_num_t num, gpio_mode_t mode, bool enable_pullup, bool enable_pulldown) : num_(num)
     {
       // 引数で指定されたピンを初期化
       gpio_config_t config = {};
@@ -29,8 +27,7 @@ namespace driver
     // 出力
     bool set(bool level)
     {
-      level_ = level;
-      return gpio_set_level(num_, level_ ? 1 : 0) == ESP_OK;
+      return gpio_set_level(num_, level ? 1 : 0) == ESP_OK;
     }
 
     // 入力

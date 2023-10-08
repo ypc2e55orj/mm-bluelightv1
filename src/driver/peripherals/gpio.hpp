@@ -4,7 +4,7 @@
 
 #include <hal/gpio_types.h>
 
-namespace driver
+namespace driver::peripherals
 {
   class Gpio
   {

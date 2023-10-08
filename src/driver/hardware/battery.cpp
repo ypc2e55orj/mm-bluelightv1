@@ -6,7 +6,7 @@
 #include "data/average.hpp"
 #include "driver/peripherals/adc.hpp"
 
-namespace driver
+namespace driver::hardware
 {
   class Battery::BatteryImpl
   {
@@ -18,7 +18,7 @@ namespace driver
     // 停止リクエスト
     bool req_stop_;
     // バッテリー分圧抵抗に接続されたADC
-    Adc adc_;
+    peripherals::Adc adc_;
     // バッテリー電圧を移動平均する
     data::MovingAverage<int, int, 512> average_;
     // 最終測定値
