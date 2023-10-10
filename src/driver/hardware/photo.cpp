@@ -37,22 +37,22 @@ namespace driver::photo
       gpio_set_level(photo_pin.ir, 0);
     }
 
-    driver::adc::init();
+    // driver::adc::init();
     for (auto &photo_pin : photo_pins)
     {
-      driver::adc::chan(photo_pin.photo);
+      // driver::adc::chan(photo_pin.photo);
     }
   }
 
   void IRAM_ATTR tx(uint8_t pos)
   {
-    ambient[pos] = driver::adc::raw(photo_pins[pos].photo);
+    // ambient[pos] = driver::adc::raw(photo_pins[pos].photo);
     gpio_set_level(photo_pins[pos].ir, 1);
   }
 
   void IRAM_ATTR rx(uint8_t pos)
   {
-    flush[pos] = driver::adc::raw(photo_pins[pos].photo);
+    // flush[pos] = driver::adc::raw(photo_pins[pos].photo);
     gpio_set_level(photo_pins[pos].ir, 0);
   }
 
@@ -60,8 +60,8 @@ namespace driver::photo
   {
     for (int i = 0; i < PHOTO_NUMS; i++)
     {
-      dest_ambient[i] = driver::adc::calibrate(ambient[i]);
-      dest_flush[i] = driver::adc::calibrate(flush[i]);
+      // dest_ambient[i] = driver::adc::calibrate(ambient[i]);
+      // dest_flush[i] = driver::adc::calibrate(flush[i]);
     }
   }
 }

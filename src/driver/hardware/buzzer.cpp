@@ -4,8 +4,8 @@
 #include <stdexcept>
 
 #include <driver/rmt_tx.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+
+#include "task.hpp"
 
 [[maybe_unused]] static constexpr uint32_t C4 = 261;
 [[maybe_unused]] static constexpr uint32_t Cs4 = 277;
@@ -68,64 +68,33 @@ namespace driver::hardware
     uint32_t duration; // [ms]
   };
 
-  // 無音
-  static Note None[] = {{0, 0}};
-  // 初期化失敗
-  static Note InitializeFailed[] = {{0, 0}};
-  // 初期化成功
-  static Note InitializeSuccess[] = {{0, 0}};
-  // 迷路探索中(ループ再生)
-  static Note Searching[] = {{0, 0}};
-  // 迷路探索中警告
-  static Note SearchWarning[] = {{0, 0}};
-  // 迷路探索失敗
-  static Note SearchFailed[] = {{0, 0}};
-  // 迷路探索成功
-  static Note SearchSuccess[] = {{0, 0}};
-  // 最短走行失敗
-  static Note FastFailed[] = {{0, 0}};
-  // 最短走行成功
-  static Note FastSuccess[] = {{0, 0}};
-  // 走行開始
-  static Note StartRunning[] = {{0, 0}};
-  // 走行終了
-  static Note EndRunning[] = {{0, 0}};
-  // バッテリー切れ
-  static Note LowBattery[] = {{0, 0}};
-  // モード選択
-  static Note Select[] = {{0, 0}};
-  // 確定
-  static Note Ok[] = {{0, 0}};
-  // キャンセル
-  static Note Cancel[] = {{0, 0}};
-
   // メロディ定義
   struct Melody
   {
     const Note *notes;
     const size_t size;
 
-    template <size_t SIZE> explicit Melody(Note (&notes_ref)[SIZE]) : notes(&notes_ref[0]), size(SIZE)
+    template <size_t SIZE> [[maybe_unused]] explicit Melody(Note (&notes_ref)[SIZE]) : notes(&notes_ref[0]), size(SIZE)
     {
     }
   };
 
   static Melody melodies[] = {
-    Melody(None),
-    Melody(InitializeFailed),
-    Melody(InitializeSuccess),
-    Melody(Searching),
-    Melody(SearchWarning),
-    Melody(SearchFailed),
-    Melody(SearchSuccess),
-    Melody(FastFailed),
-    Melody(FastSuccess),
-    Melody(StartRunning),
-    Melody(EndRunning),
-    Melody(LowBattery),
-    Melody(Select),
-    Melody(Ok),
-    Melody(Cancel),
+    Melody((Note[]){{0, 0}}),    // None               無音
+    Melody((Note[]){{0, 0}}),    // InitializeFailed   初期化失敗
+    Melody((Note[]){{C5, 100}}), // InitializeSuccess  初期化成功
+    Melody((Note[]){{0, 0}}),    // Searching          迷路探索中(ループ再生)
+    Melody((Note[]){{0, 0}}),    // SearchWarning      迷路探索中警告
+    Melody((Note[]){{0, 0}}),    // SearchFailed       迷路探索失敗
+    Melody((Note[]){{0, 0}}),    // SearchSuccess      迷路探索成功
+    Melody((Note[]){{0, 0}}),    // FastFailed         最短走行失敗
+    Melody((Note[]){{0, 0}}),    // FastSuccess        最短走行成功
+    Melody((Note[]){{0, 0}}),    // StartRunning       走行開始
+    Melody((Note[]){{0, 0}}),    // EndRunning         走行終了
+    Melody((Note[]){{0, 0}}),    // LowBattery         バッテリー切れ
+    Melody((Note[]){{0, 0}}),    // Select             モード選択
+    Melody((Note[]){{0, 0}}),    // Ok                 確定
+    Melody((Note[]){{0, 0}}),    // Cancel             キャンセル
   };
 
   /**
@@ -155,12 +124,12 @@ namespace driver::hardware
       auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
       auto copy_encoder = buzzer_encoder->copy_encoder;
       auto note = reinterpret_cast<const Note *>(primary_data);
-      uint32_t duration = buzzer_encoder->resolution / note->frequency / 2;
+      auto duration = buzzer_encoder->resolution / note->frequency / 2;
       rmt_symbol_word_t symbol = {};
       symbol.level0 = 0;
-      symbol.duration0 = duration;
+      symbol.duration0 = static_cast<uint16_t>(duration);
       symbol.level1 = 1;
-      symbol.duration1 = duration;
+      symbol.duration1 = static_cast<uint16_t>(duration);
 
       return copy_encoder->encode(copy_encoder, channel, &symbol, sizeof(rmt_symbol_word_t), ret_state);
     }
@@ -169,7 +138,7 @@ namespace driver::hardware
     {
       auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
       rmt_del_encoder(buzzer_encoder->copy_encoder);
-      delete buzzer_encoder;
+      free(buzzer_encoder);
 
       return ESP_OK;
     }
@@ -182,21 +151,26 @@ namespace driver::hardware
       return ESP_OK;
     }
 
+    // 送信チャンネルのハンドラ
+    rmt_channel_handle_t channel_;
+    // エンコーダーのハンドラ
+    BuzzerEncoderHandle encoder_;
+
   public:
-    explicit RmtBuzzer(gpio_num_t buzzer_num, uint32_t queue_size, bool with_dma = false)
-      : channel_(nullptr), encoder_(nullptr)
+    explicit RmtBuzzer(gpio_num_t buzzer_num, uint32_t queue_size, bool with_dma) : channel_(nullptr), encoder_(nullptr)
     {
       // RMT送信チャンネルを初期化
-      rmt_tx_channel_config_t rmt_config = {.gpio_num = buzzer_num,
-                                            .clk_src = RMT_CLK_SRC_DEFAULT,
-                                            .resolution_hz = BUZZER_RESOLUTION_HZ,
-                                            .mem_block_symbols = BUZZER_MEM_BLOCK_SYMBOLS,
-                                            .trans_queue_depth = queue_size,
-                                            .flags = {.with_dma = with_dma}};
+      rmt_tx_channel_config_t rmt_config = {};
+      rmt_config.gpio_num = buzzer_num;
+      rmt_config.clk_src = RMT_CLK_SRC_DEFAULT;
+      rmt_config.resolution_hz = BUZZER_RESOLUTION_HZ;
+      rmt_config.mem_block_symbols = BUZZER_MEM_BLOCK_SYMBOLS;
+      rmt_config.trans_queue_depth = queue_size;
+      rmt_config.flags.with_dma = with_dma ? 1 : 0;
       ESP_ERROR_CHECK(rmt_new_tx_channel(&rmt_config, &channel_));
 
       // ブザー用エンコーダーを初期化
-      encoder_ = new BuzzerEncoder;
+      encoder_ = reinterpret_cast<BuzzerEncoder *>(heap_caps_calloc(1, sizeof(BuzzerEncoder), MALLOC_CAP_DMA));
       encoder_->base.encode = RmtBuzzer::rmt_buzzer_encode;
       encoder_->base.del = RmtBuzzer::rmt_buzzer_delete;
       encoder_->base.reset = RmtBuzzer::rmt_buzzer_reset;
@@ -205,9 +179,9 @@ namespace driver::hardware
       rmt_copy_encoder_config_t copy_encoder_config = {};
       if (rmt_new_copy_encoder(&copy_encoder_config, &encoder_->copy_encoder))
       {
-        delete encoder_;
+        free(encoder_);
         encoder_ = nullptr;
-        std::runtime_error("Buzzer::RmtBuzzer::RmtBuzzer(): Failed to rmt_new_copy_encoder()");
+        throw std::runtime_error("Buzzer::RmtBuzzer::RmtBuzzer(): Failed to rmt_new_copy_encoder()");
       }
     }
 
@@ -228,89 +202,62 @@ namespace driver::hardware
 
     bool tone(const Note *note)
     {
-      rmt_transmit_config_t tx_config = {.loop_count = static_cast<int>(note->duration * note->frequency / 1000)};
+      rmt_transmit_config_t tx_config = {};
+      tx_config.loop_count = static_cast<int>(note->duration * note->frequency / 1000);
       return rmt_transmit(channel_, &encoder_->base, note, sizeof(Note), &tx_config) == ESP_OK;
     }
-
-  private:
-    // 送信チャンネルのハンドラ
-    rmt_channel_handle_t channel_;
-    // エンコーダーのハンドラ
-    BuzzerEncoderHandle encoder_;
   };
 
-  class Buzzer::BuzzerImpl
+  class Buzzer::BuzzerImpl final : public task::Task
   {
   private:
-    // 親タスクのハンドラ
-    TaskHandle_t parent_;
-    // 電圧監視タスクのハンドラ
-    TaskHandle_t task_;
-    // 停止リクエスト
-    bool req_stop_;
     // ブザー操作
     RmtBuzzer buzzer_;
     // 再生する配列ポインタ
     Melody *melody_;
+    // 再生中のインデックス
+    size_t index_;
     // ループするかどうか
     bool loop_;
 
-    static void task(void *pvParameters)
+    void setup() override
     {
-      auto this_ptr = reinterpret_cast<BuzzerImpl *>(pvParameters);
-      // ブザーを有効化
-      this_ptr->buzzer_.enable();
-      size_t index = 0;
-      // 1ms周期で再生
-      auto xLastWakeTime = xTaskGetTickCount();
-      while (!this_ptr->req_stop_)
+      buzzer_.enable();
+      index_ = 0;
+    }
+    void loop() override
+    {
+      if (index_ < melody_->size)
       {
-        xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
-
-        if (index < this_ptr->melody_->size)
+        const Note *p = melody_->notes + index_;
+        if (p->frequency != 0 && p->duration != 0)
         {
-          const Note *p = this_ptr->melody_->notes + index;
-          if (p->frequency != 0 && p->duration != 0)
-          {
-            this_ptr->buzzer_.tone(p);
-          }
-          index++;
+          buzzer_.tone(p);
         }
-        else if (this_ptr->loop_)
+        else if (p->duration != 0)
         {
-          index = 0;
+          vTaskDelay(pdMS_TO_TICKS(p->duration));
         }
+        index_++;
       }
-      // ブザーを無効化
-      this_ptr->buzzer_.disable();
-
-      // 終了完了を停止要求タスクに通知
-      xTaskNotifyGive(this_ptr->parent_);
-      // タスクを削除
-      vTaskDelete(nullptr);
+      else if (loop_)
+      {
+        index_ = 0;
+      }
+    }
+    void end() override
+    {
+      buzzer_.disable();
     }
 
   public:
     explicit BuzzerImpl(gpio_num_t buzzer_num)
-      : parent_(nullptr), task_(nullptr), req_stop_(false), buzzer_(buzzer_num, 4), melody_(nullptr), loop_(false)
+      : task::Task(__func__, pdMS_TO_TICKS(10)), buzzer_(buzzer_num, 4, false), melody_(nullptr), index_(0),
+        loop_(false)
     {
     }
 
-    ~BuzzerImpl() = default;
-
-    bool start(const uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID)
-    {
-      auto ret = xTaskCreatePinnedToCore(task, "driver::Buzzer::BuzzerImpl::task", usStackDepth, this, uxPriority,
-                                         &task_, xCoreID);
-      return ret == pdTRUE;
-    }
-
-    bool stop(TickType_t xTicksToWait)
-    {
-      parent_ = xTaskGetCurrentTaskHandle();
-      req_stop_ = true;
-      return ulTaskNotifyTake(pdFALSE, xTicksToWait) != 0;
-    }
+    ~BuzzerImpl() override = default;
 
     void set(Mode mode, bool loop)
     {
@@ -331,9 +278,9 @@ namespace driver::hardware
     return impl_->start(usStackDepth, uxPriority, xCoreID);
   }
 
-  bool Buzzer::stop(TickType_t xTicksToWait)
+  bool Buzzer::stop()
   {
-    return impl_->stop(xTicksToWait);
+    return impl_->stop();
   }
 
   void Buzzer::set(Mode mode, bool loop)

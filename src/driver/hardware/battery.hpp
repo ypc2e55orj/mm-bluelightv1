@@ -18,7 +18,7 @@ namespace driver::hardware
     ~Battery();
 
     bool start(uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID);
-    bool stop(TickType_t xTicksToWait);
+    bool stop();
 
     int voltage();
     int average();

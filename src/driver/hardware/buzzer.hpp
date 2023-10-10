@@ -35,7 +35,7 @@ namespace driver::hardware
     ~Buzzer();
 
     bool start(uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID);
-    bool stop(TickType_t xTicksToWait);
+    bool stop();
 
     void set(Mode mode, bool loop);
 

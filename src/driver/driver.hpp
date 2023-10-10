@@ -6,7 +6,7 @@ namespace driver
 {
   struct Context
   {
-    Battery *battery;
+    hardware::Battery *battery;
   };
   extern Context ctx;
 }

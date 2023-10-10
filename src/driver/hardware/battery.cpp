@@ -1,22 +1,14 @@
 #include "battery.hpp"
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-
 #include "data/average.hpp"
 #include "driver/peripherals/adc.hpp"
+#include "task.hpp"
 
 namespace driver::hardware
 {
-  class Battery::BatteryImpl
+  class Battery::BatteryImpl final : public task::Task
   {
   private:
-    // 親タスクのハンドラ
-    TaskHandle_t parent_;
-    // 電圧監視タスクのハンドラ
-    TaskHandle_t task_;
-    // 停止リクエスト
-    bool req_stop_;
     // バッテリー分圧抵抗に接続されたADC
     peripherals::Adc adc_;
     // バッテリー電圧を移動平均する
@@ -26,53 +18,37 @@ namespace driver::hardware
     // 移動平均した値
     int average_voltage_;
 
-    static void task(void *pvParameters)
+    void setup() override
     {
-      auto this_ptr = reinterpret_cast<Battery::BatteryImpl *>(pvParameters);
-      this_ptr->average_.reset();
-      this_ptr->voltage_ = 0;
-      this_ptr->average_voltage_ = 0;
-      auto xLastWakeTime = xTaskGetTickCount();
-      while (!this_ptr->req_stop_)
+      average_.reset();
+      voltage_ = 0;
+      average_voltage_ = 0;
+    }
+    void loop() override
+    {
+      adc_.read();
+      // 分圧されているため2倍、実測調整で+100
+      voltage_ = adc_.to_voltage() * 2 + 100;
+      // 電圧の移動平均を取得
+      average_voltage_ = average_.update(voltage_);
+      // 3.5V以下になった場合、ユーザーに知らせる
+      if (average_voltage_ < 3.5)
       {
-        xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
-        this_ptr->adc_.read();
-        // 分圧されているため2倍、実測調整で+100
-        this_ptr->voltage_ = this_ptr->adc_.to_voltage() * 2 + 100;
-        // 電圧の移動平均を取得
-        this_ptr->average_voltage_ = this_ptr->average_.update(this_ptr->voltage_);
-        // 3.5V以下になった場合、ユーザーに知らせる
-        if (this_ptr->average_voltage_ < 3.5)
-        {
-          // TODO: ブザー再生キューの先頭に挿入
-        }
+        // TODO: ブザー再生キューの先頭に挿入
       }
-
-      // 終了完了を停止要求タスクに通知
-      xTaskNotifyGive(this_ptr->parent_);
-      // タスクを削除
-      vTaskDelete(nullptr);
+    }
+    void end() override
+    {
+      // 何もしない
     }
 
   public:
     explicit BatteryImpl(adc_unit_t unit, adc_channel_t channel)
-      : parent_(nullptr), task_(nullptr), req_stop_(false), adc_(unit, channel), voltage_(0), average_voltage_(0)
+      : task::Task(__func__, pdMS_TO_TICKS(1)), adc_(unit, channel), voltage_(0), average_voltage_(0)
     {
     }
-    ~BatteryImpl() = default;
+    ~BatteryImpl() override = default;
 
-    bool start(const uint32_t usStackDepth, UBaseType_t uxPriority, const BaseType_t xCoreID)
-    {
-      auto ret = xTaskCreatePinnedToCore(task, "driver::Battery::BatteryImpl::task", usStackDepth, this, uxPriority,
-                                         &task_, xCoreID);
-      return ret == pdTRUE;
-    }
-    bool stop(TickType_t xTicksToWait)
-    {
-      parent_ = xTaskGetCurrentTaskHandle();
-      req_stop_ = true;
-      return ulTaskNotifyTake(pdFALSE, xTicksToWait) != 0;
-    }
     [[nodiscard]] int voltage() const
     {
       return voltage_;
@@ -91,9 +67,9 @@ namespace driver::hardware
   {
     return impl_->start(usStackDepth, uxPriority, xCoreID);
   }
-  bool Battery::stop(TickType_t xTicksToWait)
+  bool Battery::stop()
   {
-    return impl_->stop(xTicksToWait);
+    return impl_->stop();
   }
   int Battery::voltage()
   {

@@ -5,49 +5,29 @@
 
 #include <iostream>
 
+#include "driver/hardware/battery.hpp"
 #include "driver/hardware/buzzer.hpp"
-#include "driver/hardware/fs.hpp"
 #include "driver/hardware/indicator.hpp"
-
-#include <config.hpp>
-#include <motion.hpp>
-#include <sensor.hpp>
-#include <ui/shell.hpp>
 
 void mainTask(void *)
 {
   std::cout << "mainTask() start. Core ID: " << xPortGetCoreID() << std::endl;
+  driver::hardware::Buzzer buzzer(GPIO_NUM_21);
+  driver::hardware::Battery battery(ADC_UNIT_1, ADC_CHANNEL_4);
+  driver::hardware::Indicator indicator(GPIO_NUM_45, 4);
 
-  for (int i = 0; i < driver::indicator::nums(); i++)
-  {
-    driver::indicator::set(i, 0x0000FF);
-    driver::indicator::update();
-    vTaskDelay(pdMS_TO_TICKS(50));
-    driver::indicator::clear();
-  }
-  vTaskDelay(pdMS_TO_TICKS(50));
-  for (int i = driver::indicator::nums() - 1; i > -1; i--)
-  {
-    driver::indicator::set(i, 0x0000FF);
-    driver::indicator::update();
-    vTaskDelay(pdMS_TO_TICKS(50));
-    driver::indicator::clear();
-  }
-  driver::buzzer::beep();
-  vTaskDelay(pdMS_TO_TICKS(50));
+  buzzer.start(8192, 10, 1);
+  indicator.start(8192, 10, 1);
+  battery.start(8192, 10, 0);
 
-  //config::write("/spiffs/config.json");
-  config::read("/spiffs/config.json");
-  std::cout
-    << "maze size: " << config::maze.size.x << ", " << config::maze.size.y << std::endl
-    << "maze goal: " << config::maze.goal.x << ", " << config::maze.goal.y << std::endl;
+  buzzer.set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
 
-  ui::shell::start();
+  auto xLastWakeTime = xTaskGetTickCount();
   while (true)
   {
-    driver::indicator::rainbow_yield();
-    driver::indicator::update();
-    vTaskDelay(pdMS_TO_TICKS(10));
+    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(20));
+    std::cout << battery.average() << std::endl;
+    indicator.rainbow_yield();
   }
 }
 
@@ -55,12 +35,6 @@ void mainTask(void *)
 extern "C" void app_main(void)
 {
   std::cout << "app_main() start. Core ID: " << xPortGetCoreID() << std::endl;
-
-  driver::buzzer::init();
-  driver::fs::init();
-  driver::indicator::init();
-  sensor::init();
-  motion::init();
 
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 10, nullptr, 1);
 }
