@@ -5,7 +5,7 @@ managed_components
 
 # CLion
 .idea
-cmake-build-debug*
+cmake-build-*
 
 # VSCode
 .vscode
