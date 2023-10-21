@@ -1,7 +1,9 @@
 #include "gpio.hpp"
 
+// C++
 #include <memory>
 
+// ESP-IDF
 #include <driver/gpio.h>
 
 namespace driver::peripherals

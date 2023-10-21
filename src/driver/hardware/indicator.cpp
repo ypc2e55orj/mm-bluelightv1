@@ -1,10 +1,13 @@
 #include "indicator.hpp"
 
+// C++
 #include <cstring>
 
+// ESP-IDF
 #include <driver/rmt_tx.h>
 
-#include "task.hpp"
+// Project
+#include "base.hpp"
 
 namespace driver::hardware
 {
@@ -218,30 +221,26 @@ namespace driver::hardware
     }
   };
 
-  class Indicator::IndicatorImpl final : public task::Task
+  class Indicator::IndicatorImpl final : DriverBase
   {
   private:
     RmtIndicator indicator_;
 
-    void setup() override
+  public:
+    explicit IndicatorImpl(gpio_num_t indicator_num, uint16_t led_counts)
+      : indicator_(indicator_num, led_counts, 4, true)
     {
       indicator_.enable();
     }
-    void loop() override
-    {
-      indicator_.update();
-    }
-    void end() override
+    ~IndicatorImpl()
     {
       indicator_.disable();
     }
 
-  public:
-    explicit IndicatorImpl(gpio_num_t indicator_num, uint16_t led_counts)
-      : task::Task(__func__, pdMS_TO_TICKS(10)), indicator_(indicator_num, led_counts, 4, true)
+    bool update() override
     {
+      return indicator_.update();
     }
-    ~IndicatorImpl() override = default;
 
     void set(size_t pos, uint8_t r, uint8_t g, uint8_t b)
     {
@@ -293,13 +292,9 @@ namespace driver::hardware
   }
   Indicator::~Indicator() = default;
 
-  bool Indicator::start(uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID)
+  bool Indicator::update()
   {
-    return impl_->start(usStackDepth, uxPriority, xCoreID);
-  }
-  bool Indicator::stop()
-  {
-    return impl_->stop();
+    return impl_->update();
   }
 
   void Indicator::set(size_t pos, uint8_t r, uint8_t g, uint8_t b)

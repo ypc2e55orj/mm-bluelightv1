@@ -1,8 +1,10 @@
 #pragma once
 
+// C++
 #include <cstdint>
 #include <memory>
 
+// ESP-IDF
 #include <freertos/FreeRTOS.h>
 #include <hal/gpio_types.h>
 

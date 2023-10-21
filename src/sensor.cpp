@@ -123,7 +123,6 @@ namespace sensor
     assert(xEventGroupSensor != nullptr);
 
     driver::photo::init();
-    driver::encoder::init();
     driver::imu::init();
 
     init_interval();
@@ -156,9 +155,7 @@ namespace sensor
 
   bool wait()
   {
-    driver::encoder::update();
     driver::imu::update();
-    driver::encoder::wait();
     driver::imu::wait();
     EventBits_t uBits =
       xEventGroupWaitBits(xEventGroupSensor, EVENT_GROUP_SENSOR_PHOTO, pdTRUE, pdTRUE, pdMS_TO_TICKS(1));
@@ -171,7 +168,7 @@ namespace sensor
 
   static float calculate_velocity(uint16_t prev, uint16_t curr)
   {
-    const auto RESOLUTION = driver::encoder::resolution();
+    const auto RESOLUTION = 0;
 
     int diff = curr - prev;
     if (std::abs(diff) > RESOLUTION / 2 + 1)
@@ -186,7 +183,7 @@ namespace sensor
   {
     static std::pair<uint16_t, uint16_t> prev = {0, 0};
 
-    const auto curr = driver::encoder::get();
+    const auto curr = std::make_pair<float, float>(1, 1);
     const auto velo_left = calculate_velocity(prev.first, curr.first);
     const auto velo_right = calculate_velocity(prev.second, curr.second);
 

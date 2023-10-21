@@ -1,10 +1,13 @@
 #include "buzzer.hpp"
 
+// C++
 #include <cmath>
 #include <stdexcept>
 
+// ESP-IDF
 #include <driver/rmt_tx.h>
 
+// Project
 #include "task.hpp"
 
 [[maybe_unused]] static constexpr uint32_t C4 = 261;

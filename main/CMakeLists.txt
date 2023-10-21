@@ -9,7 +9,9 @@ file(
   "../third-party/ntshell/src/lib/*.c")
 
 message("### mm-bluelight ##")
-message("SOURCE: ${SOURCES}")
+foreach (SOURCE IN LISTS SOURCES)
+    message("Add: ${SOURCE}")
+endforeach ()
 
 idf_component_register(
   SRCS

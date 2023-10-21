@@ -1,19 +1,32 @@
 #pragma once
 
+// C++
+#include <cstdint>
+#include <memory>
+#include <utility>
+
+// ESP-IDF
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 
-#include <cstdint>
-#include <utility>
+// Project
+#include "../peripherals/spi.hpp"
+#include "base.hpp"
 
-namespace driver::encoder
+namespace driver::hardware
 {
-  uint16_t resolution();
+  class Encoder final : DriverBase
+  {
+  private:
+    class AS5050AImpl;
+    std::unique_ptr<AS5050AImpl> impl_;
 
-  void init();
+  public:
+    explicit Encoder(peripherals::Spi &spi, gpio_num_t spics_io_num);
+    ~Encoder();
 
-  void update();
-  void wait();
+    bool update() override;
 
-  std::pair<uint16_t, uint16_t> get();
+    float radian();
+  };
 }

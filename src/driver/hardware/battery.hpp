@@ -1,13 +1,18 @@
 #pragma once
 
+// C++
 #include <memory>
 
+// ESP-IDF
 #include <freertos/FreeRTOS.h>
 #include <hal/adc_hal.h>
 
+// Project
+#include "base.hpp"
+
 namespace driver::hardware
 {
-  class Battery
+  class Battery final : public DriverBase
   {
   private:
     class BatteryImpl;
@@ -17,8 +22,7 @@ namespace driver::hardware
     explicit Battery(adc_unit_t unit, adc_channel_t channel);
     ~Battery();
 
-    bool start(uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID);
-    bool stop();
+     bool update() override;
 
     int voltage();
     int average();

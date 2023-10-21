@@ -1,14 +1,19 @@
 #pragma once
 
+// C++
 #include <cstdint>
 #include <memory>
 
+// ESP-IDF
 #include <freertos/FreeRTOS.h>
 #include <hal/gpio_types.h>
 
+// Project
+#include "base.hpp"
+
 namespace driver::hardware
 {
-  class Indicator
+  class Indicator final : DriverBase
   {
   private:
     class IndicatorImpl;
@@ -18,8 +23,7 @@ namespace driver::hardware
     explicit Indicator(gpio_num_t indicator_num, uint16_t led_counts);
     ~Indicator();
 
-    bool start(uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID);
-    bool stop();
+    bool update() override;
 
     void set(size_t pos, uint8_t r, uint8_t g, uint8_t b);
     void set(size_t pos, uint32_t rgb);

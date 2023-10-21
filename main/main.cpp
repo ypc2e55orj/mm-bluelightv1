@@ -7,7 +7,9 @@
 
 #include "driver/hardware/battery.hpp"
 #include "driver/hardware/buzzer.hpp"
+#include "driver/peripherals/spi.hpp"
 #include "driver/hardware/indicator.hpp"
+#include "driver/hardware/encoder.hpp"
 
 void mainTask(void *)
 {
@@ -15,10 +17,12 @@ void mainTask(void *)
   driver::hardware::Buzzer buzzer(GPIO_NUM_21);
   driver::hardware::Battery battery(ADC_UNIT_1, ADC_CHANNEL_4);
   driver::hardware::Indicator indicator(GPIO_NUM_45, 4);
+  driver::peripherals::Spi spi(SPI2_HOST, GPIO_NUM_37, GPIO_NUM_35, GPIO_NUM_36, 4);
+  driver::hardware::Encoder left(spi, GPIO_NUM_26);
+  driver::hardware::Encoder right(spi, GPIO_NUM_39);
 
   buzzer.start(8192, 10, 1);
-  indicator.start(8192, 10, 1);
-  battery.start(8192, 10, 0);
+
 
   buzzer.set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
 
@@ -26,7 +30,13 @@ void mainTask(void *)
   while (true)
   {
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(20));
-    std::cout << battery.average() << std::endl;
+    left.update();
+    right.update();
+
+    std::cout << left.radian() << std::endl;
+    std::cout << right.radian() << std::endl;
+
+    indicator.update();
     indicator.rainbow_yield();
   }
 }
