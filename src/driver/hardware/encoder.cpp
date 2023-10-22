@@ -38,10 +38,15 @@ namespace driver::hardware
       reg = (reg << 1) | (is_reading ? 0x8000 : 0x0000);
       return (reg | __builtin_parity(reg));
     }
-    static bool verify_frame(uint16_t res)
+    static bool verify_angle(uint16_t res)
     {
       bool parity_ok = (res & 0x0001) == __builtin_parity(res >> 1);
-      bool command_ok = (res & 0x0002) != 0x0002;
+      bool command_ok = (res & 0x0002) == 0;
+      /*
+      bool alarm_lo_ok = (res & 0x8000) == 0;
+      bool alarm_hi_ok = (res & 0x4000) == 0;
+      return parity_ok && command_ok & alarm_lo_ok & alarm_hi_ok;
+      */
       return parity_ok && command_ok;
     }
 
@@ -79,7 +84,7 @@ namespace driver::hardware
     {
       bool ret = spi_.transmit(index_);
       uint16_t res = rx_buffer_[0] << 8 | rx_buffer_[1];
-      if (verify_frame(res))
+      if (verify_angle(res))
         angle_ = (res >> 2) & 0x3FF;
 
       return ret;
