@@ -15,6 +15,8 @@
 
 namespace driver::hardware
 {
+  static const auto TAG = "driver::hardware::Imu";
+
   class Imu::Lsm6dsrxImpl final : DriverBase
   {
   private:
@@ -26,8 +28,10 @@ namespace driver::hardware
     Axis gyro_;
     Axis accel_;
 
+    // 送受信バッファサイズ
     static constexpr size_t BUFFER_SIZE = 12;
 
+    // レジスタ
     static constexpr uint8_t REG_WHO_AM_I = 0x0F;
 
     static constexpr uint8_t REG_CTRL3_C = 0x12;
@@ -63,7 +67,7 @@ namespace driver::hardware
       trans->length = 8;
       trans->addr = reg | 0x80;
       spi_.transmit(index_);
-      ESP_LOGI(__func__, "read_byte(%02x): %02x %02x %02x %02x", reg, p[0], p[1], p[2], p[3]);
+      ESP_LOGI(TAG, "read_byte(%02x): %02x %02x %02x %02x", reg, p[0], p[1], p[2], p[3]);
       return p[0];
     }
     bool write_byte(uint8_t reg, uint8_t data)
@@ -75,7 +79,7 @@ namespace driver::hardware
       trans->addr = reg;
       trans->tx_data[0] = data;
       bool ret = spi_.transmit(index_);
-      ESP_LOGI(__func__, "write_byte(%02x, %02x): %02x %02x %02x %02x", reg, data, p[0], p[1], p[2], p[3]);
+      ESP_LOGI(TAG, "write_byte(%02x, %02x): %02x %02x %02x %02x", reg, data, p[0], p[1], p[2], p[3]);
       return ret;
     }
 
@@ -91,7 +95,7 @@ namespace driver::hardware
       // 初期設定
       std::bitset<8> reg;
       // IDを取得
-      ESP_LOGI(__func__, "%02x", read_byte(REG_WHO_AM_I));
+      ESP_LOGI(TAG, "%02x", read_byte(REG_WHO_AM_I));
       // ソフトウェア・リセット
       reg = read_byte(REG_CTRL3_C);
       reg[BIT_CTRL3_C_SW_RESET] = true;

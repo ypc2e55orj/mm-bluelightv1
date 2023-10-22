@@ -22,17 +22,20 @@ namespace driver::hardware
     uint8_t *rx_buffer_;
     uint16_t angle_;
 
+    // 送受信バッファサイズ
     static constexpr size_t BUFFER_SIZE = 2;
 
     // 分解能あたりの角度
     static constexpr uint16_t RESOLUTION = 1024; // 10 bit
-    static constexpr float RESOLUTION_PER_RADIAN = (2.0f * std::numbers::pi_v<float>) / static_cast<float>(RESOLUTION);
-    static constexpr float RESOLUTION_PER_DEGREE = 360.f / static_cast<float>(RESOLUTION);
+    static constexpr float RESOLUTION_PER_MILLI_RADIAN =
+      (2.0f * std::numbers::pi_v<float> * 1000.0f) / static_cast<float>(RESOLUTION);
+    static constexpr float RESOLUTION_PER_MILLI_DEGREE = (360.f * 1000.0f) / static_cast<float>(RESOLUTION);
 
-    // 送信データにパリティを付与
+    // レジスタ
     static constexpr uint16_t REG_MASTER_RESET = 0x33A5;
     static constexpr uint16_t REG_ANGULAR_DATA = 0x3FFF;
 
+    // 送信データにパリティを付与
     static constexpr uint16_t command_frame(uint16_t reg, bool is_reading)
     {
       reg = (reg << 1) | (is_reading ? 0x8000 : 0x0000);
@@ -92,12 +95,12 @@ namespace driver::hardware
 
     [[nodiscard]] float radian() const
     {
-      return static_cast<float>(angle_) * RESOLUTION_PER_RADIAN;
+      return static_cast<float>(angle_) * RESOLUTION_PER_MILLI_RADIAN;
     }
 
     [[nodiscard]] float degree() const
     {
-      return static_cast<float>(angle_) * RESOLUTION_PER_DEGREE;
+      return static_cast<float>(angle_) * RESOLUTION_PER_MILLI_DEGREE;
     }
   };
 
