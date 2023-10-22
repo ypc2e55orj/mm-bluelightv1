@@ -18,25 +18,10 @@ namespace driver::peripherals
       spi_device_handle_t handle = nullptr;
       gpio_num_t spics_io_num = GPIO_NUM_NC;
       spi_transaction_t *transaction = nullptr;
-      SpiCallback pre_cb;
-      SpiCallback post_cb;
     };
 
     spi_host_device_t host_id_;
     std::vector<SpiDevice *> devices_;
-
-    // 通信前に呼び出されるISR
-    static void pre_cb(spi_transaction_t *trans)
-    {
-      // ESP32の割り込みではfloatを使ってはいけない
-      reinterpret_cast<SpiDevice *>(trans->user)->pre_cb(trans);
-    }
-    // 通信完了時に呼び出されるISR
-    static void post_cb(spi_transaction_t *trans)
-    {
-      // ESP32の割り込みではfloatを使ってはいけない
-      reinterpret_cast<SpiDevice *>(trans->user)->post_cb(trans);
-    }
 
   public:
     explicit SpiImpl(spi_host_device_t host_id, gpio_num_t miso_io_num, gpio_num_t mosi_io_num, gpio_num_t sclk_io_num,
@@ -64,12 +49,10 @@ namespace driver::peripherals
     }
 
     int add(uint8_t command_bits, uint8_t address_bits, uint8_t mode, int clock_speed_hz, gpio_num_t spics_io_num,
-            int queue_size, SpiCallback &&pre_cb, SpiCallback &&post_cb)
+            int queue_size)
     {
       auto device = new SpiDevice();
       device->spics_io_num = spics_io_num;
-      device->pre_cb = std::forward<SpiCallback>(pre_cb);
-      device->post_cb = std::forward<SpiCallback>(post_cb);
       device->transaction = (spi_transaction_t *)heap_caps_calloc(1, sizeof(spi_transaction_t), MALLOC_CAP_DMA);
       device->transaction->user = device;
 
@@ -80,8 +63,6 @@ namespace driver::peripherals
       device_interface_config.clock_speed_hz = clock_speed_hz;
       device_interface_config.spics_io_num = spics_io_num;
       device_interface_config.queue_size = queue_size;
-      device_interface_config.pre_cb = SpiImpl::pre_cb;
-      device_interface_config.post_cb = SpiImpl::post_cb;
 
       if (spi_bus_add_device(host_id_, &device_interface_config, &device->handle) != ESP_OK)
       {
@@ -93,22 +74,11 @@ namespace driver::peripherals
       devices_.push_back(device);
       return static_cast<int>(devices_.size() - 1);
     }
-
     bool transmit(int index)
     {
       auto device = devices_[index];
-      device->pre_cb(device->transaction);
       return spi_device_transmit(device->handle, device->transaction) == ESP_OK;
     }
-
-    bool transmit(int index, SpiCallback &&pre_cb, SpiCallback &&post_cb)
-    {
-      auto device = devices_[index];
-      device->pre_cb = std::forward<SpiCallback>(pre_cb);
-      device->post_cb = std::forward<SpiCallback>(post_cb);
-      return transmit(index);
-    }
-
     spi_transaction_t *transaction(int index)
     {
       return devices_[index]->transaction;
@@ -123,22 +93,14 @@ namespace driver::peripherals
   Spi::~Spi() = default;
 
   int Spi::add(uint8_t command_bits, uint8_t address_bits, uint8_t mode, int clock_speed_hz, gpio_num_t spics_io_num,
-               int queue_size, SpiCallback &&pre_cb, SpiCallback &&post_cb)
+               int queue_size)
   {
-    return impl_->add(command_bits, address_bits, mode, clock_speed_hz, spics_io_num, queue_size,
-                      std::forward<SpiCallback>(pre_cb), std::forward<SpiCallback>(post_cb));
+    return impl_->add(command_bits, address_bits, mode, clock_speed_hz, spics_io_num, queue_size);
   }
-
-  bool Spi::transmit(int index, SpiCallback &&pre_cb, SpiCallback &&post_cb)
-  {
-    return impl_->transmit(index, std::forward<SpiCallback>(pre_cb), std::forward<SpiCallback>(post_cb));
-  }
-
   bool Spi::transmit(int index)
   {
     return impl_->transmit(index);
   }
-
   spi_transaction_t *Spi::transaction(int index)
   {
     return impl_->transaction(index);

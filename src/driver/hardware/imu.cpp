@@ -26,7 +26,7 @@ namespace driver::hardware
     Axis gyro_;
     Axis accel_;
 
-    static constexpr size_t BUFFER_SIZE = 16;
+    static constexpr size_t BUFFER_SIZE = 12;
 
     static constexpr uint8_t REG_WHO_AM_I = 0x0F;
 
@@ -62,8 +62,7 @@ namespace driver::hardware
       trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
       trans->length = 8;
       trans->addr = reg | 0x80;
-      spi_.transmit(
-        index_, [](spi_transaction_t *) {}, [](spi_transaction_t *) {});
+      spi_.transmit(index_);
       ESP_LOGI(__func__, "read_byte(%02x): %02x %02x %02x %02x", reg, p[0], p[1], p[2], p[3]);
       return p[0];
     }
@@ -75,8 +74,7 @@ namespace driver::hardware
       trans->length = 8;
       trans->addr = reg;
       trans->tx_data[0] = data;
-      bool ret = spi_.transmit(
-        index_, [](spi_transaction_t *) {}, [](spi_transaction_t *) {});
+      bool ret = spi_.transmit(index_);
       ESP_LOGI(__func__, "write_byte(%02x, %02x): %02x %02x %02x %02x", reg, data, p[0], p[1], p[2], p[3]);
       return ret;
     }
@@ -89,8 +87,7 @@ namespace driver::hardware
       rx_buffer_ = reinterpret_cast<uint8_t *>(heap_caps_calloc(BUFFER_SIZE, sizeof(uint8_t), MALLOC_CAP_DMA));
 
       // バスにデバイスを追加
-      index_ = spi_.add(
-        0, 8, 3, SPI_MASTER_FREQ_10M, spics_io_num, 1, [](spi_transaction_t *) {}, [](spi_transaction_t *) {});
+      index_ = spi_.add(0, 8, 3, SPI_MASTER_FREQ_10M, spics_io_num, 1);
       // 初期設定
       std::bitset<8> reg;
       // IDを取得
@@ -139,8 +136,12 @@ namespace driver::hardware
       trans->addr = REG_OUTX_L_G | 0x80;
       trans->length = 12 * 8; // OUTX_L_G(22h) ~ OUTZ_H_A(2Dh)
       trans->rxlength = trans->length;
-      spi_.transmit(
-        index_, [](spi_transaction_t *) {}, [](spi_transaction_t *) {});
+      spi_.transmit(index_);
+    }
+    ~Lsm6dsrxImpl()
+    {
+      free(tx_buffer_);
+      free(rx_buffer_);
     }
 
     bool update() override

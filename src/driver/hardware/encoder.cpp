@@ -6,6 +6,7 @@
 // ESP-IDF
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
+#include <esp_intr_alloc.h>
 
 // Project
 #include "base.hpp"
@@ -17,7 +18,11 @@ namespace driver::hardware
   private:
     peripherals::Spi &spi_;
     int index_;
+    uint8_t *tx_buffer_;
+    uint8_t *rx_buffer_;
     uint16_t angle_;
+
+    static constexpr size_t BUFFER_SIZE = 2;
 
     // 分解能あたりの角度
     static constexpr uint16_t RESOLUTION = 1024; // 10 bit
@@ -43,35 +48,41 @@ namespace driver::hardware
   public:
     explicit AS5050AImpl(peripherals::Spi &spi, gpio_num_t spics_io_num) : spi_(spi), angle_(0)
     {
+      // 転送用バッファを確保
+      tx_buffer_ = reinterpret_cast<uint8_t *>(heap_caps_calloc(BUFFER_SIZE, sizeof(uint8_t), MALLOC_CAP_DMA));
+      rx_buffer_ = reinterpret_cast<uint8_t *>(heap_caps_calloc(BUFFER_SIZE, sizeof(uint8_t), MALLOC_CAP_DMA));
+
       // デバイスを追加
-      index_ = spi_.add(
-        0, 0, 1, SPI_MASTER_FREQ_10M, spics_io_num, 1, [](spi_transaction_t *) {}, [](spi_transaction_t *) {});
+      index_ = spi_.add(0, 0, 1, SPI_MASTER_FREQ_10M, spics_io_num, 1);
       auto trans = spi_.transaction(index_);
       // リセット
-      trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
-      trans->tx_data[0] = command_frame(REG_MASTER_RESET, false) >> 8;
-      trans->tx_data[1] = command_frame(REG_MASTER_RESET, false) & 0xFF;
+      trans->flags = 0;
+      trans->tx_buffer = tx_buffer_;
+      trans->rx_buffer = rx_buffer_;
       trans->length = 16;
+      tx_buffer_[0] = command_frame(REG_MASTER_RESET, false) >> 8;
+      tx_buffer_[1] = command_frame(REG_MASTER_RESET, false) & 0xFF;
       spi_.transmit(index_);
 
       // 角度を取得
-      trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
-      trans->tx_data[0] = command_frame(REG_ANGULAR_DATA, true) >> 8;
-      trans->tx_data[1] = command_frame(REG_ANGULAR_DATA, true) & 0xFF;
-      trans->length = 16;
-      spi_.transmit(
-        index_, [](spi_transaction_t *) {},
-        [&](spi_transaction_t *trans) {
-          uint16_t res = trans->rx_data[0] << 8 | trans->rx_data[1];
-          if (verify_frame(res))
-            angle_ = res >> 2 & 0x3FF;
-        });
+      tx_buffer_[0] = command_frame(REG_ANGULAR_DATA, true) >> 8;
+      tx_buffer_[1] = command_frame(REG_ANGULAR_DATA, true) & 0xFF;
+      spi_.transmit(index_);
     }
-    ~AS5050AImpl() = default;
+    ~AS5050AImpl()
+    {
+      free(tx_buffer_);
+      free(rx_buffer_);
+    }
 
     bool update() override
     {
-      return spi_.transmit(index_);
+      bool ret = spi_.transmit(index_);
+      uint16_t res = rx_buffer_[0] << 8 | rx_buffer_[1];
+      if (verify_frame(res))
+        angle_ = (res >> 2) & 0x3FF;
+
+      return ret;
     }
 
     [[nodiscard]] float radian() const
