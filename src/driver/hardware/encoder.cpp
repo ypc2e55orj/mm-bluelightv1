@@ -22,60 +22,66 @@ namespace driver::hardware
     // 分解能あたりの角度
     static constexpr uint16_t RESOLUTION = 1024; // 10 bit
     static constexpr float RESOLUTION_PER_RADIAN = (2.0f * std::numbers::pi_v<float>) / static_cast<float>(RESOLUTION);
+    static constexpr float RESOLUTION_PER_DEGREE = 360.f / static_cast<float>(RESOLUTION);
 
     // 送信データにパリティを付与
     static constexpr uint16_t REG_MASTER_RESET = 0x33A5;
     static constexpr uint16_t REG_ANGULAR_DATA = 0x3FFF;
-    static constexpr uint16_t read(uint16_t reg)
+
+    static constexpr uint16_t command_frame(uint16_t reg, bool is_reading)
     {
-      reg = (reg << 1) | 0x8000;
+      reg = (reg << 1) | (is_reading ? 0x8000 : 0x0000);
       return (reg | __builtin_parity(reg));
     }
-    static constexpr uint16_t write(uint16_t reg)
+    static bool verify_frame(uint16_t res)
     {
-      return ((reg << 1) | __builtin_parity(reg));
-    }
-
-    // 送信前にデータを準備する
-    static void pre_init(spi_transaction_t *trans)
-    {
-      trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
-      trans->length = 16;
-      trans->tx_data[0] = write(REG_MASTER_RESET) >> 8;
-      trans->tx_data[1] = write(REG_MASTER_RESET) & 0xFF;
-    }
-    static void pre_get(spi_transaction_t *trans)
-    {
-      trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
-      trans->length = 16;
-      trans->tx_data[0] = read(REG_ANGULAR_DATA) >> 8;
-      trans->tx_data[1] = read(REG_ANGULAR_DATA) & 0xFF;
-    }
-    // 受信後にデータを変換
-    void post_get(spi_transaction_t *trans)
-    {
-      angle_ = ((trans->rx_data[0] << 8 | trans->rx_data[1]) & 0x3FFE) >> 2;
+      bool parity_ok = (res & 0x0001) == __builtin_parity(res >> 1);
+      bool command_ok = (res & 0x0002) != 0x0002;
+      return parity_ok && command_ok;
     }
 
   public:
     explicit AS5050AImpl(peripherals::Spi &spi, gpio_num_t spics_io_num) : spi_(spi), angle_(0)
     {
-      // デバイスを追加、リセット
-      index_ = spi_.add(1, SPI_MASTER_FREQ_10M, spics_io_num, 1, pre_init, [](spi_transaction_t *trans) {});
-      // コールバックを更新 (角度を取得)
-      spi_.transaction(
-        index_, pre_get, [&](spi_transaction_t *trans) { post_get(trans); }, portMAX_DELAY);
+      // デバイスを追加
+      index_ = spi_.add(
+        0, 0, 1, SPI_MASTER_FREQ_10M, spics_io_num, 1, [](spi_transaction_t *) {}, [](spi_transaction_t *) {});
+      auto trans = spi_.transaction(index_);
+      // リセット
+      trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
+      trans->tx_data[0] = command_frame(REG_MASTER_RESET, false) >> 8;
+      trans->tx_data[1] = command_frame(REG_MASTER_RESET, false) & 0xFF;
+      trans->length = 16;
+      spi_.transmit(index_);
+
+      // 角度を取得
+      trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
+      trans->tx_data[0] = command_frame(REG_ANGULAR_DATA, true) >> 8;
+      trans->tx_data[1] = command_frame(REG_ANGULAR_DATA, true) & 0xFF;
+      trans->length = 16;
+      spi_.transmit(
+        index_, [](spi_transaction_t *) {},
+        [&](spi_transaction_t *trans) {
+          uint16_t res = trans->rx_data[0] << 8 | trans->rx_data[1];
+          if (verify_frame(res))
+            angle_ = res >> 2 & 0x3FF;
+        });
     }
     ~AS5050AImpl() = default;
 
     bool update() override
     {
-      return spi_.transaction(index_, portMAX_DELAY);
+      return spi_.transmit(index_);
     }
 
     [[nodiscard]] float radian() const
     {
       return static_cast<float>(angle_) * RESOLUTION_PER_RADIAN;
+    }
+
+    [[nodiscard]] float degree() const
+    {
+      return static_cast<float>(angle_) * RESOLUTION_PER_DEGREE;
     }
   };
 
@@ -91,5 +97,9 @@ namespace driver::hardware
   float Encoder::radian()
   {
     return impl_->radian();
+  }
+  float Encoder::degree()
+  {
+    return impl_->degree();
   }
 }

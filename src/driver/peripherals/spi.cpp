@@ -63,8 +63,8 @@ namespace driver::peripherals
       }
     }
 
-    int add(uint8_t mode, int clock_speed_hz, gpio_num_t spics_io_num, int queue_size, SpiCallback &&pre_cb,
-            SpiCallback &&post_cb)
+    int add(uint8_t command_bits, uint8_t address_bits, uint8_t mode, int clock_speed_hz, gpio_num_t spics_io_num,
+            int queue_size, SpiCallback &&pre_cb, SpiCallback &&post_cb)
     {
       auto device = new SpiDevice();
       device->spics_io_num = spics_io_num;
@@ -74,6 +74,8 @@ namespace driver::peripherals
       device->transaction->user = device;
 
       spi_device_interface_config_t device_interface_config = {};
+      device_interface_config.command_bits = command_bits;
+      device_interface_config.address_bits = address_bits;
       device_interface_config.mode = mode;
       device_interface_config.clock_speed_hz = clock_speed_hz;
       device_interface_config.spics_io_num = spics_io_num;
@@ -83,39 +85,33 @@ namespace driver::peripherals
 
       if (spi_bus_add_device(host_id_, &device_interface_config, &device->handle) != ESP_OK)
       {
+        free(device->transaction);
         delete device;
         return -1;
       }
-      else
-      {
-        devices_.push_back(device);
-        return static_cast<int>(devices_.size() - 1);
-      }
+
+      devices_.push_back(device);
+      return static_cast<int>(devices_.size() - 1);
     }
 
-    void update(int index, SpiCallback &&pre_cb, SpiCallback &&post_cb)
+    bool transmit(int index)
+    {
+      auto device = devices_[index];
+      device->pre_cb(device->transaction);
+      return spi_device_transmit(device->handle, device->transaction) == ESP_OK;
+    }
+
+    bool transmit(int index, SpiCallback &&pre_cb, SpiCallback &&post_cb)
     {
       auto device = devices_[index];
       device->pre_cb = std::forward<SpiCallback>(pre_cb);
       device->post_cb = std::forward<SpiCallback>(post_cb);
+      return transmit(index);
     }
 
-    bool transaction(int index, TickType_t ticks_to_wait)
+    spi_transaction_t *transaction(int index)
     {
-      spi_transaction_t *transaction;
-      auto device = devices_[index];
-
-      return spi_device_queue_trans(device->handle, device->transaction, portMAX_DELAY) == ESP_OK &&
-             spi_device_get_trans_result(device->handle, &transaction, ticks_to_wait) == ESP_OK;
-    }
-
-    bool transaction(int index, SpiCallback &&pre_cb, SpiCallback &&post_cb, TickType_t ticks_to_wait)
-    {
-      auto device = devices_[index];
-      device->pre_cb = std::forward<SpiCallback>(pre_cb);
-      device->post_cb = std::forward<SpiCallback>(post_cb);
-
-      return transaction(index, ticks_to_wait);
+      return devices_[index]->transaction;
     }
   };
 
@@ -126,21 +122,25 @@ namespace driver::peripherals
   }
   Spi::~Spi() = default;
 
-  int Spi::add(uint8_t mode, int clock_speed_hz, gpio_num_t spics_io_num, int queue_size, SpiCallback &&pre_cb,
-               SpiCallback &&post_cb)
+  int Spi::add(uint8_t command_bits, uint8_t address_bits, uint8_t mode, int clock_speed_hz, gpio_num_t spics_io_num,
+               int queue_size, SpiCallback &&pre_cb, SpiCallback &&post_cb)
   {
-    return impl_->add(mode, clock_speed_hz, spics_io_num, queue_size, std::forward<SpiCallback>(pre_cb),
-                      std::forward<SpiCallback>(post_cb));
+    return impl_->add(command_bits, address_bits, mode, clock_speed_hz, spics_io_num, queue_size,
+                      std::forward<SpiCallback>(pre_cb), std::forward<SpiCallback>(post_cb));
   }
 
-  bool Spi::transaction(int index, SpiCallback &&pre_cb, SpiCallback &&post_cb, TickType_t ticks_to_wait)
+  bool Spi::transmit(int index, SpiCallback &&pre_cb, SpiCallback &&post_cb)
   {
-    return impl_->transaction(index, std::forward<SpiCallback>(pre_cb), std::forward<SpiCallback>(post_cb),
-                              ticks_to_wait);
+    return impl_->transmit(index, std::forward<SpiCallback>(pre_cb), std::forward<SpiCallback>(post_cb));
   }
 
-  bool Spi::transaction(int index, TickType_t ticks_to_wait)
+  bool Spi::transmit(int index)
   {
-    return impl_->transaction(index, ticks_to_wait);
+    return impl_->transmit(index);
+  }
+
+  spi_transaction_t *Spi::transaction(int index)
+  {
+    return impl_->transaction(index);
   }
 }

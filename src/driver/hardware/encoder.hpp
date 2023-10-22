@@ -3,11 +3,6 @@
 // C++
 #include <cstdint>
 #include <memory>
-#include <utility>
-
-// ESP-IDF
-#include <freertos/FreeRTOS.h>
-#include <freertos/event_groups.h>
 
 // Project
 #include "../peripherals/spi.hpp"
@@ -28,5 +23,6 @@ namespace driver::hardware
     bool update() override;
 
     float radian();
+    float degree();
   };
 }

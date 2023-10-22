@@ -4,7 +4,6 @@
 #include <memory>
 
 // ESP-IDF
-#include <freertos/FreeRTOS.h>
 #include <hal/adc_hal.h>
 
 // Project
@@ -12,7 +11,7 @@
 
 namespace driver::hardware
 {
-  class Battery final : public DriverBase
+  class Battery final : DriverBase
   {
   private:
     class BatteryImpl;
@@ -22,7 +21,7 @@ namespace driver::hardware
     explicit Battery(adc_unit_t unit, adc_channel_t channel);
     ~Battery();
 
-     bool update() override;
+    bool update() override;
 
     int voltage();
     int average();
