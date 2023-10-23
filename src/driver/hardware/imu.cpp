@@ -95,7 +95,7 @@ namespace driver::hardware
       // 初期設定
       std::bitset<8> reg;
       // IDを取得
-      ESP_LOGI(TAG, "%02x", read_byte(REG_WHO_AM_I));
+      ESP_LOGI(TAG, "WHO_AM_I(%02x)", read_byte(REG_WHO_AM_I));
       // ソフトウェア・リセット
       reg = read_byte(REG_CTRL3_C);
       reg[BIT_CTRL3_C_SW_RESET] = true;
