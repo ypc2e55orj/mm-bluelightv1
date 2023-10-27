@@ -55,7 +55,7 @@ void adjust(void)
 				I_tar_ang_vel = 0;
 				tar_ang_vel = 0;
 				ang_vel = 0;
-				driver::motor::enable();
+				//driver::motor::enable();
 				while (1)
 				{
 					// A/D sensor
@@ -63,10 +63,10 @@ void adjust(void)
 					SCI_printf("sen_l.value: %d\n\r", sen_l.value);
 					SCI_printf("sen_fr.value: %d\n\r", sen_fr.value);
 					SCI_printf("sen_fl.value: %d\n\r", sen_fl.value);
-					SCI_printf("sen_r.th_wall: %d\n\r", sen_r.th_wall);
-					SCI_printf("sen_l.th_wall: %d\n\r", sen_l.th_wall);
-					SCI_printf("sen_fr.th_wall: %d\n\r", sen_fr.th_wall);
-					SCI_printf("sen_fl.th_wall: %d\n\r", sen_fl.th_wall);
+					SCI_printf("right: %s\n\r", sen_r.value < sen_r.th_wall ? "true" : "false");
+					SCI_printf("left: %s\n\r", sen_l.value < sen_l.th_wall ? "true" : "false");
+					SCI_printf("front_right: %s\n\r", sen_fr.value < sen_fr.th_wall ? "true" : "false");
+                    SCI_printf("front_left: %s\n\r", sen_fl.value < sen_fl.th_wall ? "true" : "false");
 					SCI_printf("con_wall.omega: %f\n\r", con_wall.omega);
 					SCI_printf("con_fwall.omega: %f\n\r", con_fwall.omega);
 					// motor
@@ -150,8 +150,8 @@ void adjust(void)
 				ANIMATE();
 				log_flag = 1;
 				log_timer = 0;
+                turn(90 * 4 * 5,TURN_ACCEL,TURN_SPEED,RIGHT);
 				log_flag = 0;
-				turn(90,TURN_ACCEL,TURN_SPEED,RIGHT);
 				driver::motor::disable();
 				driver::motor::brake();
 				ANIMATE();
@@ -173,7 +173,7 @@ void adjust(void)
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
 				ANIMATE();
-				wait_ms(500);
+                gyro_get_ref();
 				ANIMATE();
 				log_flag = 1;
 				log_timer = 0;
@@ -212,7 +212,10 @@ void adjust(void)
 				while (true)
 				{
 					adjust_fwall();
-					ANIMATE();
+                    SCI_printf("sen_r.value: %d\n\r", sen_r.value);
+                    SCI_printf("sen_l.value: %d\n\r", sen_l.value);
+                    SCI_printf("sen_fr.value: %d\n\r", sen_fr.value);
+                    SCI_printf("sen_fl.value: %d\n\r", sen_fl.value);
 				}
 				log_flag = 0;
 				driver::motor::disable();
