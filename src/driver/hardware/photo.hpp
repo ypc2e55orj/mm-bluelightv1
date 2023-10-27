@@ -1,22 +1,38 @@
 #pragma once
 
+// C++
 #include <cstdint>
+#include <memory>
 
-namespace driver::photo
+// ESP-IDF
+#include <hal/adc_types.h>
+#include <hal/gpio_types.h>
+
+// Project
+#include "base.hpp"
+
+namespace driver::hardware
 {
-  enum
+  class Photo final : DriverBase
   {
-    PHOTO_LEFT_90 = 0,
-    PHOTO_LEFT_45 = 1,
-    PHOTO_RIGHT_45 = 2,
-    PHOTO_RIGHT_90 = 3,
-    PHOTO_NUMS = 4
+  private:
+    class PhotoImpl;
+    std::unique_ptr<PhotoImpl> impl_;
+
+  public:
+    struct Config
+    {
+      gpio_num_t gpio_num[4];
+      adc_unit_t adc_unit;
+      adc_channel_t adc_channel[4];
+    };
+
+    explicit Photo(Config &config);
+    ~Photo();
+
+    bool update() override;
+
+    const adc_digi_output_data_t *buffer();
+    size_t size();
   };
-
-  void init();
-
-  void tx(uint8_t pos);
-  void rx(uint8_t pos);
-
-  void get(int *dest_ambient, int *dest_flush);
 }
