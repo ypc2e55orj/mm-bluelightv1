@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+#include "data/average.hpp"
 #include "driver/hardware/battery.hpp"
 #include "driver/hardware/buzzer.hpp"
 #include "driver/hardware/encoder.hpp"
@@ -25,11 +26,14 @@ void mainTask(void *)
 
   driver::hardware::Buzzer buzzer(GPIO_NUM_21);
   driver::hardware::Battery battery(ADC_UNIT_1, ADC_CHANNEL_4);
-  driver::hardware::Indicator indicator(GPIO_NUM_45, 4);
   driver::hardware::Imu imu(spi3, GPIO_NUM_34);
   driver::hardware::Encoder left(spi2, GPIO_NUM_26);
   driver::hardware::Encoder right(spi2, GPIO_NUM_39);
   */
+  driver::hardware::Indicator indicator(GPIO_NUM_45, 4);
+  indicator.clear();
+  indicator.update();
+
   driver::hardware::Photo::Config config;
   config.adc_unit = ADC_UNIT_1;
   config.gpio_num[0] = GPIO_NUM_13, config.adc_channel[0] = ADC_CHANNEL_3;
@@ -39,12 +43,10 @@ void mainTask(void *)
   driver::hardware::Photo photo(config);
 
   /*
-  indicator.clear();
-  indicator.update();
-
   buzzer.start(8192, 10, 1);
   buzzer.set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
   */
+
   auto xLastWakeTime = xTaskGetTickCount();
   while (true)
   {
@@ -53,9 +55,8 @@ void mainTask(void *)
     auto buffer = photo.buffer();
     for (size_t i = 0; i < photo.size(); i++)
     {
-      printf("%ld,", buffer[i].val);
+      printf("%d, %d, %d\n", i, buffer[i].type2.channel, buffer[i].type2.data);
     }
-    puts("");
     /*
     imu.update();
     left.update();
