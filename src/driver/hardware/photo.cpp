@@ -11,6 +11,7 @@
 #include <freertos/task.h>
 
 // Project
+#include "base.hpp"
 #include "driver/peripherals/adc.hpp"
 #include "driver/peripherals/gpio.hpp"
 
@@ -18,7 +19,7 @@ namespace driver::hardware
 {
   static const auto TAG = "driver::hardware::Photo";
 
-  class Photo::PhotoImpl
+  class Photo::PhotoImpl final : DriverBase
   {
   private:
     static constexpr uint32_t TIMER_RESOLUTION_HZ = 1'000'000;  // 1MHz
@@ -76,7 +77,7 @@ namespace driver::hardware
       if (this_ptr->index_ == 0x03)
       {
         ESP_ERROR_CHECK(gptimer_stop(this_ptr->flash_timer_));
-        vTaskNotifyGiveFromISR(this_ptr->task_, &xHigherPriorityTaskWoken);
+        vTaskNotifyGiveFromISR(this_ptr->task_, &xHigherPriorityTaskWoken); // NOLINT
       }
       // 更新
       this_ptr->index_ = (this_ptr->index_ + 1) & 0x03;
@@ -133,13 +134,13 @@ namespace driver::hardware
       flash_alarm.flags.auto_reload_on_alarm = true;
       ESP_ERROR_CHECK(gptimer_set_alarm_action(flash_timer_, &flash_alarm));
     }
-    ~PhotoImpl()
+    virtual ~PhotoImpl()
     {
       ESP_ERROR_CHECK(gptimer_del_timer(flash_timer_));
       ESP_ERROR_CHECK(gptimer_del_timer(receive_timer_));
     }
 
-    bool update()
+    bool update() override
     {
       task_ = xTaskGetCurrentTaskHandle();
       ESP_ERROR_CHECK(gptimer_enable(receive_timer_));
