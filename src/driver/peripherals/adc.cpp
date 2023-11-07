@@ -13,6 +13,9 @@ namespace driver::peripherals
   class Adc::AdcImpl
   {
   private:
+    static constexpr auto ATTEN_DB = ADC_ATTEN_DB_6;
+    static constexpr auto BITWIDTH = ADC_BITWIDTH_12;
+
     // 各ユニットのハンドラ
     static adc_oneshot_unit_handle_t unit1_;
     static adc_oneshot_unit_handle_t unit2_;
@@ -38,8 +41,8 @@ namespace driver::peripherals
     {
       adc_oneshot_unit_init_cfg_t init_cfg = {};
       adc_cali_curve_fitting_config_t cali_cfg = {};
-      cali_cfg.atten = ADC_ATTEN_DB_11;
-      cali_cfg.bitwidth = ADC_BITWIDTH_12;
+      cali_cfg.atten = ATTEN_DB;
+      cali_cfg.bitwidth = BITWIDTH;
 
       // ユニットを初期化 (すでに初期化されている場合は処理しない)
       switch (unit)
@@ -72,8 +75,8 @@ namespace driver::peripherals
 
       // チャンネルを初期化
       adc_oneshot_chan_cfg_t chan_cfg = {};
-      chan_cfg.atten = ADC_ATTEN_DB_11;
-      chan_cfg.bitwidth = ADC_BITWIDTH_12;
+      chan_cfg.atten = ATTEN_DB;
+      chan_cfg.bitwidth = BITWIDTH;
       ESP_ERROR_CHECK(adc_oneshot_config_channel(unit_, channel, &chan_cfg));
     }
     ~AdcImpl() = default;
