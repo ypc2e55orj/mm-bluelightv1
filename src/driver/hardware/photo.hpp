@@ -13,6 +13,8 @@
 
 namespace driver::hardware
 {
+  static constexpr size_t PHOTO_COUNTS = 4;
+
   class Photo final : DriverBase
   {
   private:
@@ -20,10 +22,16 @@ namespace driver::hardware
     std::unique_ptr<PhotoImpl> impl_;
 
   public:
+    struct Result
+    {
+      uint16_t ambient;
+      uint16_t flash;
+    };
+
     struct Config
     {
-      gpio_num_t gpio_num[4];
       adc_unit_t adc_unit;
+      gpio_num_t gpio_num[4];
       adc_channel_t adc_channel[4];
     };
 
@@ -32,7 +40,9 @@ namespace driver::hardware
 
     bool update() override;
 
-    const adc_digi_output_data_t *buffer();
-    size_t size();
+    Result &left90();
+    Result &left45();
+    Result &right45();
+    Result &right90();
   };
 }

@@ -19,6 +19,7 @@ namespace driver::peripherals
     ~Adc();
 
     int read();
+    int read_isr();
     int to_voltage();
   };
 }

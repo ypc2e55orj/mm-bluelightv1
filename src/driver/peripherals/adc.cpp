@@ -7,6 +7,7 @@
 #include <esp_adc/adc_cali.h>
 #include <esp_adc/adc_cali_scheme.h>
 #include <esp_adc/adc_oneshot.h>
+#include <esp_private/adc_private.h>
 
 namespace driver::peripherals
 {
@@ -87,6 +88,12 @@ namespace driver::peripherals
       ESP_ERROR_CHECK(adc_oneshot_read(unit_, channel_, &raw_));
       return raw_;
     }
+    int read_isr()
+    {
+      ESP_ERROR_CHECK(adc_oneshot_read_isr(unit_, channel_, &raw_));
+      return raw_;
+    }
+
     // 取得済みのADC値から、電圧値に換算する
     int to_voltage()
     {
@@ -108,6 +115,10 @@ namespace driver::peripherals
   int Adc::read()
   {
     return impl_->read();
+  }
+  int Adc::read_isr()
+  {
+    return impl_->read_isr();
   }
   int Adc::to_voltage()
   {

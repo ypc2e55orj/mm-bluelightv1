@@ -52,11 +52,10 @@ void mainTask(void *)
   {
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
     photo.update();
-    auto buffer = photo.buffer();
-    for (size_t i = 0; i < photo.size(); i++)
-    {
-      printf("%d, %d, %d\n", i, buffer[i].type2.channel, buffer[i].type2.data);
-    }
+    printf("left90: %d, %d\n", photo.left90().ambient, photo.left90().flash);
+    printf("left45: %d, %d\n", photo.left45().ambient, photo.left45().flash);
+    printf("right45: %d, %d\n", photo.right45().ambient, photo.right45().flash);
+    printf("right90: %d, %d\n", photo.right90().ambient, photo.right90().flash);
     /*
     imu.update();
     left.update();
