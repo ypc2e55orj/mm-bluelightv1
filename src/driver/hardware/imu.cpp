@@ -11,7 +11,6 @@
 
 // Project
 #include "base.hpp"
-#include "lsm6dsrx_reg.h"
 
 namespace driver::hardware
 {
