@@ -27,6 +27,7 @@ namespace driver::hardware
     static constexpr uint32_t FLASH_TIMER_FREQUENCY = 10'000; // 10kHz
     static constexpr uint32_t FLASH_TIMER_COUNTS = TIMER_RESOLUTION_HZ / FLASH_TIMER_FREQUENCY;
 
+    // テーブルの添字
     static constexpr size_t LEFT90_POS = 0;
     static constexpr size_t LEFT45_POS = 1;
     static constexpr size_t RIGHT45_POS = 2;
@@ -38,9 +39,14 @@ namespace driver::hardware
     gptimer_handle_t flash_timer_;
     // 受光タイマー
     gptimer_handle_t receive_timer_;
+
+    // GPIOテーブル
     std::array<std::unique_ptr<peripherals::Gpio>, PHOTO_COUNTS> gpio_;
+    // ADCテーブル
     std::array<std::unique_ptr<peripherals::Adc>, PHOTO_COUNTS> adc_;
+    // 結果テーブル
     std::array<Result, PHOTO_COUNTS> result_;
+
     // 完了通知先
     TaskHandle_t task_;
 
@@ -145,19 +151,19 @@ namespace driver::hardware
       return true;
     }
 
-    Result &left90()
+    const Result &left90()
     {
       return result_[LEFT90_POS];
     }
-    Result &left45()
+    const Result &left45()
     {
       return result_[LEFT45_POS];
     }
-    Result &right45()
+    const Result &right45()
     {
       return result_[RIGHT45_POS];
     }
-    Result &right90()
+    const Result &right90()
     {
       return result_[RIGHT90_POS];
     }
@@ -173,19 +179,19 @@ namespace driver::hardware
     return impl_->update();
   }
 
-  Photo::Result &Photo::left90()
+  const Photo::Result &Photo::left90()
   {
     return impl_->left90();
   }
-  Photo::Result &Photo::left45()
+  const Photo::Result &Photo::left45()
   {
     return impl_->left45();
   }
-  Photo::Result &Photo::right45()
+  const Photo::Result &Photo::right45()
   {
     return impl_->right45();
   }
-  Photo::Result &Photo::right90()
+  const Photo::Result &Photo::right90()
   {
     return impl_->right90();
   }

@@ -40,9 +40,9 @@ namespace driver::hardware
 
     bool update() override;
 
-    Result &left90();
-    Result &left45();
-    Result &right45();
-    Result &right90();
+    const Result &left90();
+    const Result &left45();
+    const Result &right45();
+    const Result &right90();
   };
 }
