@@ -14,7 +14,7 @@ namespace driver::peripherals
   class Adc::AdcImpl
   {
   private:
-    static constexpr auto ATTEN_DB = ADC_ATTEN_DB_6;
+    static constexpr auto ATTEN_DB = ADC_ATTEN_DB_11;
     static constexpr auto BITWIDTH = ADC_BITWIDTH_12;
 
     // 各ユニットのハンドラ

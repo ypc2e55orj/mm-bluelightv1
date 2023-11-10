@@ -1,5 +1,9 @@
 #include "battery.hpp"
 
+// C++
+
+// ESP-IDF
+
 // Project
 #include "base.hpp"
 #include "data/average.hpp"
