@@ -24,8 +24,8 @@ namespace driver::hardware
   public:
     struct Result
     {
-      uint16_t ambient;
-      uint16_t flash;
+      int ambient;
+      int flash;
     };
 
     struct Config

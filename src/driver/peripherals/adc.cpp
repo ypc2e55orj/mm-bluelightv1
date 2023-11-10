@@ -88,10 +88,11 @@ namespace driver::peripherals
       ESP_ERROR_CHECK(adc_oneshot_read(unit_, channel_, &raw_));
       return raw_;
     }
-    int read_isr()
+    bool read_isr(int &raw)
     {
-      ESP_ERROR_CHECK(adc_oneshot_read_isr(unit_, channel_, &raw_));
-      return raw_;
+      bool ret = adc_oneshot_read_isr(unit_, channel_, &raw_) == ESP_OK;
+      raw = raw_;
+      return ret;
     }
 
     // 取得済みのADC値から、電圧値に換算する
@@ -112,13 +113,14 @@ namespace driver::peripherals
   {
   }
   Adc::~Adc() = default;
+
   int Adc::read()
   {
     return impl_->read();
   }
-  int Adc::read_isr()
+  bool Adc::read_isr(int &raw)
   {
-    return impl_->read_isr();
+    return impl_->read_isr(raw);
   }
   int Adc::to_voltage()
   {

@@ -55,11 +55,11 @@ namespace driver::hardware
     {
       auto this_ptr = reinterpret_cast<PhotoImpl *>(user_ctx);
       // 読み取り
-      this_ptr->result_[this_ptr->index_].ambient = this_ptr->adc_[this_ptr->index_]->read_isr();
+      this_ptr->adc_[this_ptr->index_]->read_isr(this_ptr->result_[this_ptr->index_].ambient);
       // 点灯
       this_ptr->gpio_[this_ptr->index_]->set(true);
       // 受光タイマー開始
-      ESP_ERROR_CHECK(gptimer_start(this_ptr->receive_timer_));
+      gptimer_start(this_ptr->receive_timer_); // ESP_ERROR_CHECK(gptimer_start(this_ptr->receive_timer_));
       // portYIELD_FROM_ISRと同等
       return false;
     }
@@ -69,14 +69,14 @@ namespace driver::hardware
       auto this_ptr = reinterpret_cast<PhotoImpl *>(user_ctx);
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;
       // 読み取り
-      this_ptr->result_[this_ptr->index_].flash = this_ptr->adc_[this_ptr->index_]->read_isr();
+      this_ptr->adc_[this_ptr->index_]->read_isr(this_ptr->result_[this_ptr->index_].flash);
       // 受光
       this_ptr->gpio_[this_ptr->index_]->set(false);
       // タイマー停止
-      ESP_ERROR_CHECK(gptimer_stop(timer));
+      gptimer_stop(timer); // ESP_ERROR_CHECK(gptimer_stop(timer));
       if (this_ptr->index_ == 0x03)
       {
-        ESP_ERROR_CHECK(gptimer_stop(this_ptr->flash_timer_));
+        gptimer_stop(this_ptr->flash_timer_); // ESP_ERROR_CHECK(gptimer_stop(this_ptr->flash_timer_));
         vTaskNotifyGiveFromISR(this_ptr->task_, &xHigherPriorityTaskWoken); // NOLINT
       }
       // 更新
@@ -143,13 +143,13 @@ namespace driver::hardware
     bool update() override
     {
       task_ = xTaskGetCurrentTaskHandle();
-      ESP_ERROR_CHECK(gptimer_enable(receive_timer_));
-      ESP_ERROR_CHECK(gptimer_enable(flash_timer_));
-      ESP_ERROR_CHECK(gptimer_start(flash_timer_));
+      bool ret = ESP_OK == gptimer_enable(receive_timer_);
+      ret = ret && ESP_OK == gptimer_enable(flash_timer_);
+      ret = ret && ESP_OK == gptimer_start(flash_timer_);
       ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
-      ESP_ERROR_CHECK(gptimer_disable(receive_timer_));
-      ESP_ERROR_CHECK(gptimer_disable(flash_timer_));
-      return true;
+      ret = ret && ESP_OK == gptimer_disable(receive_timer_);
+      ret = ret && ESP_OK == gptimer_disable(flash_timer_);
+      return ret;
     }
 
     const Result &left90()
