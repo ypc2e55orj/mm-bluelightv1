@@ -17,7 +17,7 @@ namespace driver::hardware
   {
   private:
     static constexpr uint32_t MCPWM_TIMER_RESOLUTION_HZ = 80'000'000;
-    static constexpr uint32_t MCPWM_PWM_FREQUENCY_HZ = 800'000;
+    static constexpr uint32_t MCPWM_PWM_FREQUENCY_HZ = 100'000;
     static constexpr uint32_t MCPWM_TIMER_PERIOD_TICKS = MCPWM_TIMER_RESOLUTION_HZ / MCPWM_PWM_FREQUENCY_HZ;
 
     mcpwm_timer_handle_t timer_;
@@ -42,6 +42,7 @@ namespace driver::hardware
       timer_config.clk_src = MCPWM_TIMER_CLK_SRC_DEFAULT;
       timer_config.resolution_hz = MCPWM_TIMER_RESOLUTION_HZ;
       timer_config.period_ticks = MCPWM_TIMER_PERIOD_TICKS;
+      timer_config.count_mode = MCPWM_TIMER_COUNT_MODE_UP;
       ESP_ERROR_CHECK(mcpwm_new_timer(&timer_config, &timer_));
 
       mcpwm_operator_config_t operator_config = {};
@@ -63,6 +64,8 @@ namespace driver::hardware
       ESP_ERROR_CHECK(mcpwm_new_generator(operator_, &generator_config, &generator_.b));
 
       // https://docs.espressif.com/projects/esp-idf/en/v5.1.1/esp32s3/api-reference/peripherals/mcpwm.html#asymmetric-single-edge-active-high
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
       ESP_ERROR_CHECK(mcpwm_generator_set_actions_on_timer_event(
         generator_.a,
         MCPWM_GEN_TIMER_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, MCPWM_TIMER_EVENT_EMPTY, MCPWM_GEN_ACTION_HIGH),
@@ -77,6 +80,7 @@ namespace driver::hardware
       ESP_ERROR_CHECK(mcpwm_generator_set_actions_on_compare_event(
         generator_.b, MCPWM_GEN_COMPARE_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, comparator_.b, MCPWM_GEN_ACTION_LOW),
         MCPWM_GEN_COMPARE_EVENT_ACTION_END()));
+#pragma GCC diagnostic pop
     }
     ~MotorImpl()
     {
