@@ -7,14 +7,12 @@
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
 #include <esp_intr_alloc.h>
-#include <esp_log.h>
 
 // Project
 #include "base.hpp"
 
 namespace driver::hardware
 {
-  static const auto TAG = "driver::hardware::Imu";
 
   class Imu::Lsm6dsrxImpl final : DriverBase
   {
@@ -32,6 +30,7 @@ namespace driver::hardware
 
     // レジスタ
     static constexpr uint8_t REG_WHO_AM_I = 0x0F;
+    static constexpr uint8_t DAT_WHO_AM_I = 0x6B;
 
     static constexpr uint8_t REG_CTRL3_C = 0x12;
     static constexpr uint8_t BIT_CTRL3_C_SW_RESET = 0;
@@ -66,19 +65,16 @@ namespace driver::hardware
       trans->length = 8;
       trans->addr = reg | 0x80;
       spi_.transmit(index_);
-      ESP_LOGI(TAG, "read_byte(%02x): %02x %02x %02x %02x", reg, p[0], p[1], p[2], p[3]);
       return p[0];
     }
     bool write_byte(uint8_t reg, uint8_t data)
     {
       auto trans = spi_.transaction(index_);
-      uint8_t *p = trans->rx_data;
       trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
       trans->length = 8;
       trans->addr = reg;
       trans->tx_data[0] = data;
       bool ret = spi_.transmit(index_);
-      ESP_LOGI(TAG, "write_byte(%02x, %02x): %02x %02x %02x %02x", reg, data, p[0], p[1], p[2], p[3]);
       return ret;
     }
 
@@ -94,7 +90,7 @@ namespace driver::hardware
       // 初期設定
       std::bitset<8> reg;
       // IDを取得
-      ESP_LOGI(TAG, "WHO_AM_I(%02x)", read_byte(REG_WHO_AM_I));
+      assert(read_byte(REG_WHO_AM_I) == DAT_WHO_AM_I);
       // ソフトウェア・リセット
       reg = read_byte(REG_CTRL3_C);
       reg[BIT_CTRL3_C_SW_RESET] = true;

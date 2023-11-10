@@ -6,7 +6,6 @@
 
 // ESP-IDF
 #include <driver/gptimer.h>
-#include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -17,11 +16,12 @@
 
 namespace driver::hardware
 {
-  static const auto TAG = "driver::hardware::Photo";
 
   class Photo::PhotoImpl final : DriverBase
   {
   private:
+    static constexpr auto TAG = "driver::hardware::Photo::PhotoImpl";
+
     static constexpr uint32_t TIMER_RESOLUTION_HZ = 1'000'000;  // 1MHz
     static constexpr uint32_t INTERVAL_TIMER_FREQUENCY = 4'000; // 4kHz
     static constexpr uint32_t INTERVAL_TIMER_COUNTS = TIMER_RESOLUTION_HZ / INTERVAL_TIMER_FREQUENCY;
@@ -87,8 +87,6 @@ namespace driver::hardware
   public:
     explicit PhotoImpl(Config &config) : index_(0), flash_timer_(), receive_timer_(), result_(), task_()
     {
-      ESP_LOGI(TAG, "PhotoFlashTimer Initialized");
-
       // GPIO/ADCを初期化
       for (size_t i = 0; i < PHOTO_COUNTS; i++)
       {
