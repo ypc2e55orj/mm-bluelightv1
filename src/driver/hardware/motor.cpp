@@ -1,91 +1,152 @@
 #include "motor.hpp"
 
-#include "bdc_motor.h"
-#include <driver/gpio.h>
-
+// C++
 #include <cmath>
 
-namespace driver::motor
+// ESP-IDF
+#include <driver/mcpwm_prelude.h>
+
+// Project
+
+namespace driver::hardware
 {
-  static const uint32_t BDC_MCPWM_TIMER_RESOLUTION_HZ = 80'000'000;
-  static const uint32_t BDC_MCPWM_FREQ_HZ = 800'000;
-  static constexpr uint32_t BDC_MCPWM_DUTY_TICK_MAX = BDC_MCPWM_TIMER_RESOLUTION_HZ / BDC_MCPWM_FREQ_HZ;
-
-  static const gpio_num_t AIN1 = GPIO_NUM_42;
-  static const gpio_num_t AIN2 = GPIO_NUM_41;
-  static const gpio_num_t BIN1 = GPIO_NUM_40;
-  static const gpio_num_t BIN2 = GPIO_NUM_38;
-
-  static bool enabled = false;
-
-  static bdc_motor_handle_t bdc_handler[2] = {};
-  static esp_err_t (*bdc_direction[])(bdc_motor_handle_t) = {
-    bdc_motor_forward,
-    bdc_motor_reverse,
-  };
-
-  void init()
+  /**
+   * 参考: https://github.com/espressif/idf-extra-components/tree/458086bb459f6e37a3a5eba203ba75a70cece59f/bdc_motor
+   */
+  class Motor::MotorImpl
   {
-    bdc_motor_config_t motor_cfg = {};
-    motor_cfg.pwm_freq_hz = BDC_MCPWM_FREQ_HZ;
+  private:
+    static constexpr uint32_t MCPWM_TIMER_RESOLUTION_HZ = 80'000'000;
+    static constexpr uint32_t MCPWM_PWM_FREQUENCY_HZ = 800'000;
+    static constexpr uint32_t MCPWM_TIMER_PERIOD_TICKS = MCPWM_TIMER_RESOLUTION_HZ / MCPWM_PWM_FREQUENCY_HZ;
 
-    bdc_motor_mcpwm_config_t mcpwm_cfg = {};
-    mcpwm_cfg.resolution_hz = BDC_MCPWM_TIMER_RESOLUTION_HZ;
+    mcpwm_timer_handle_t timer_;
+    mcpwm_oper_handle_t operator_;
 
-    // left
-    motor_cfg.pwma_gpio_num = AIN1;
-    motor_cfg.pwmb_gpio_num = AIN2;
-    mcpwm_cfg.group_id = 0;
-
-    ESP_ERROR_CHECK(bdc_motor_new_mcpwm_device(&motor_cfg, &mcpwm_cfg, &bdc_handler[0]));
-
-    // right
-    motor_cfg.pwma_gpio_num = BIN1;
-    motor_cfg.pwmb_gpio_num = BIN2;
-    mcpwm_cfg.group_id = 1;
-
-    ESP_ERROR_CHECK(bdc_motor_new_mcpwm_device(&motor_cfg, &mcpwm_cfg, &bdc_handler[1]));
-  }
-
-  void enable()
-  {
-    enabled = true;
-    ESP_ERROR_CHECK(bdc_motor_enable(bdc_handler[0]));
-    ESP_ERROR_CHECK(bdc_motor_enable(bdc_handler[1]));
-  }
-  void disable()
-  {
-    ESP_ERROR_CHECK(bdc_motor_disable(bdc_handler[0]));
-    ESP_ERROR_CHECK(bdc_motor_disable(bdc_handler[1]));
-    enabled = false;
-  }
-
-  void brake()
-  {
-    ESP_ERROR_CHECK(bdc_motor_brake(bdc_handler[0]));
-    ESP_ERROR_CHECK(bdc_motor_brake(bdc_handler[1]));
-  }
-  void coast()
-  {
-    ESP_ERROR_CHECK(bdc_motor_coast(bdc_handler[0]));
-    ESP_ERROR_CHECK(bdc_motor_coast(bdc_handler[1]));
-  }
-
-  static void duty(uint8_t pos, float val)
-  {
-    auto duty_tick = static_cast<uint32_t>(static_cast<float>(BDC_MCPWM_DUTY_TICK_MAX) * std::abs(val));
-    ESP_ERROR_CHECK(bdc_direction[val < 0.0f ? 1 : 0](bdc_handler[pos]));
-    ESP_ERROR_CHECK(bdc_motor_set_speed(bdc_handler[pos], duty_tick));
-  }
-  void duty(std::pair<float, float> val)
-  {
-    if (!enabled)
+    struct
     {
-      return;
+      mcpwm_cmpr_handle_t a, b;
+    } comparator_;
+    struct
+    {
+      mcpwm_gen_handle_t a, b;
+    } generator_;
+
+  public:
+    explicit MotorImpl(int mcpwm_timer_group_id, gpio_num_t a_num, gpio_num_t b_num)
+      : timer_(), operator_(), comparator_(), generator_()
+    {
+      // タイマーを初期化
+      mcpwm_timer_config_t timer_config = {};
+      timer_config.group_id = mcpwm_timer_group_id;
+      timer_config.clk_src = MCPWM_TIMER_CLK_SRC_DEFAULT;
+      timer_config.resolution_hz = MCPWM_TIMER_RESOLUTION_HZ;
+      timer_config.period_ticks = MCPWM_TIMER_PERIOD_TICKS;
+      ESP_ERROR_CHECK(mcpwm_new_timer(&timer_config, &timer_));
+
+      mcpwm_operator_config_t operator_config = {};
+      operator_config.group_id = mcpwm_timer_group_id;
+      ESP_ERROR_CHECK(mcpwm_new_operator(&operator_config, &operator_));
+      ESP_ERROR_CHECK(mcpwm_operator_connect_timer(operator_, timer_));
+
+      mcpwm_comparator_config_t comparator_config = {};
+      comparator_config.flags.update_cmp_on_tez = true;
+      ESP_ERROR_CHECK(mcpwm_new_comparator(operator_, &comparator_config, &comparator_.a));
+      ESP_ERROR_CHECK(mcpwm_new_comparator(operator_, &comparator_config, &comparator_.b));
+      mcpwm_comparator_set_compare_value(comparator_.a, 0);
+      mcpwm_comparator_set_compare_value(comparator_.b, 0);
+
+      mcpwm_generator_config_t generator_config = {};
+      generator_config.gen_gpio_num = a_num;
+      ESP_ERROR_CHECK(mcpwm_new_generator(operator_, &generator_config, &generator_.a));
+      generator_config.gen_gpio_num = b_num;
+      ESP_ERROR_CHECK(mcpwm_new_generator(operator_, &generator_config, &generator_.b));
+
+      // https://docs.espressif.com/projects/esp-idf/en/v5.1.1/esp32s3/api-reference/peripherals/mcpwm.html#asymmetric-single-edge-active-high
+      ESP_ERROR_CHECK(mcpwm_generator_set_actions_on_timer_event(
+        generator_.a,
+        MCPWM_GEN_TIMER_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, MCPWM_TIMER_EVENT_EMPTY, MCPWM_GEN_ACTION_HIGH),
+        MCPWM_GEN_TIMER_EVENT_ACTION_END()));
+      ESP_ERROR_CHECK(mcpwm_generator_set_actions_on_compare_event(
+        generator_.a, MCPWM_GEN_COMPARE_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, comparator_.a, MCPWM_GEN_ACTION_LOW),
+        MCPWM_GEN_COMPARE_EVENT_ACTION_END()));
+      ESP_ERROR_CHECK(mcpwm_generator_set_actions_on_timer_event(
+        generator_.b,
+        MCPWM_GEN_TIMER_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, MCPWM_TIMER_EVENT_EMPTY, MCPWM_GEN_ACTION_HIGH),
+        MCPWM_GEN_TIMER_EVENT_ACTION_END()));
+      ESP_ERROR_CHECK(mcpwm_generator_set_actions_on_compare_event(
+        generator_.b, MCPWM_GEN_COMPARE_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, comparator_.b, MCPWM_GEN_ACTION_LOW),
+        MCPWM_GEN_COMPARE_EVENT_ACTION_END()));
+    }
+    ~MotorImpl()
+    {
+      mcpwm_del_generator(generator_.a);
+      mcpwm_del_generator(generator_.b);
+
+      mcpwm_del_comparator(comparator_.a);
+      mcpwm_del_comparator(comparator_.b);
+
+      mcpwm_del_operator(operator_);
+
+      mcpwm_del_timer(timer_);
     }
 
-    auto [left, right] = val;
-    duty(0, left);
-    duty(1, right);
+    bool enable()
+    {
+      return mcpwm_timer_enable(timer_) == ESP_OK &&
+             mcpwm_timer_start_stop(timer_, MCPWM_TIMER_START_NO_STOP) == ESP_OK;
+    }
+    bool disable()
+    {
+      return mcpwm_timer_start_stop(timer_, MCPWM_TIMER_START_STOP_EMPTY) == ESP_OK &&
+             mcpwm_timer_disable(timer_) == ESP_OK;
+    }
+
+    void brake() const
+    {
+      mcpwm_generator_set_force_level(generator_.a, 1, true);
+      mcpwm_generator_set_force_level(generator_.b, 1, true);
+    }
+    void coast() const
+    {
+      mcpwm_generator_set_force_level(generator_.a, 0, true);
+      mcpwm_generator_set_force_level(generator_.b, 0, true);
+    }
+    void speed(int motor_voltage, int battery_voltage) const
+    {
+      auto duty = static_cast<float>(motor_voltage) / static_cast<float>(battery_voltage);
+      mcpwm_generator_set_force_level(generator_.a, duty < 0.0f ? 0 : -1, true);
+      mcpwm_generator_set_force_level(generator_.b, duty < 0.0f ? -1 : 0, true);
+      auto duty_ticks = static_cast<uint32_t>(MCPWM_TIMER_PERIOD_TICKS * std::abs(duty));
+      mcpwm_comparator_set_compare_value(comparator_.a, duty_ticks);
+      mcpwm_comparator_set_compare_value(comparator_.b, duty_ticks);
+    }
+  };
+
+  Motor::Motor(int mcpwm_timer_group_id, gpio_num_t a_num, gpio_num_t b_num)
+    : impl_(new MotorImpl(mcpwm_timer_group_id, a_num, b_num))
+  {
+  }
+  Motor::~Motor() = default;
+
+  bool Motor::enable()
+  {
+    return impl_->enable();
+  }
+  bool Motor::disable()
+  {
+    return impl_->disable();
+  }
+  void Motor::brake()
+  {
+    return impl_->brake();
+  }
+  void Motor::coast()
+  {
+    return impl_->coast();
+  }
+  void Motor::speed(int motor_voltage, int battery_voltage)
+  {
+    return impl_->speed(motor_voltage, battery_voltage);
   }
 }
