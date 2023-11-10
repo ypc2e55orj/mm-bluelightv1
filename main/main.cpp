@@ -27,8 +27,8 @@
   driver::hardware::Imu imu(spi3, GPIO_NUM_34);
   driver::hardware::Encoder encoder_left(spi2, GPIO_NUM_26);
   driver::hardware::Encoder encoder_right(spi2, GPIO_NUM_39);
-  driver::hardware::Motor motor_left(0, GPIO_NUM_42, GPIO_NUM_41);
-  driver::hardware::Motor motor_right(1, GPIO_NUM_38, GPIO_NUM_40);
+  driver::hardware::Motor motor_left(0, GPIO_NUM_40, GPIO_NUM_38);
+  driver::hardware::Motor motor_right(1, GPIO_NUM_42, GPIO_NUM_41);
   driver::hardware::Indicator indicator(GPIO_NUM_45, 4);
 
   driver::hardware::Photo::Config config{};
@@ -54,8 +54,9 @@
 
   printf("motor test\n");
   motor_left.enable(), motor_right.enable();
-  motor_right.speed(2000, 4000);
+  motor_left.speed(2000, 4000), motor_right.speed(2000, 4000);
   vTaskDelay(pdMS_TO_TICKS(2000));
+  motor_left.speed(0, 4000), motor_right.speed(0, 4000);
   motor_left.disable(), motor_right.disable();
 
   printf("\x1b[2J");
