@@ -148,7 +148,7 @@ namespace driver::hardware
       return spi_.transmit(index_);
     }
 
-    Axis &gyro()
+    const Axis &gyro()
     {
       constexpr float gyro_const = 70.0f; // 2000dps
       auto res = reinterpret_cast<int16_t *>(rx_buffer_);
@@ -158,7 +158,7 @@ namespace driver::hardware
       return gyro_;
     }
 
-    Axis &accel()
+    const Axis &accel()
     {
       constexpr float accel_const = 9.80665f * 0.061f; // fs2g
       auto res = reinterpret_cast<int16_t *>(rx_buffer_);
@@ -178,11 +178,11 @@ namespace driver::hardware
   {
     return impl_->update();
   }
-  Imu::Axis &Imu::gyro()
+  const Imu::Axis &Imu::gyro()
   {
     return impl_->gyro();
   }
-  Imu::Axis &Imu::accel()
+  const Imu::Axis &Imu::accel()
   {
     return impl_->accel();
   }

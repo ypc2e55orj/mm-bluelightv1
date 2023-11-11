@@ -1,29 +1,36 @@
 #include "driver.hpp"
 
+// C++
+#include <memory>
+
+// ESP-IDF
+
+// Project
+
 namespace driver
 {
-  Context ctx;
-
-  void Context::initialize()
+  Driver::Driver()
   {
-    spi2_ = new driver::peripherals::Spi(SPI2_HOST, GPIO_NUM_37, GPIO_NUM_35, GPIO_NUM_36, 4);
-    spi3_ = new driver::peripherals::Spi(SPI3_HOST, GPIO_NUM_48, GPIO_NUM_47, GPIO_NUM_33, 16);
+    spi_encoder_ = std::make_unique<peripherals::Spi>(SPI2_HOST, GPIO_NUM_ENCODER_SPI_MISO, GPIO_NUM_ENCODER_SPI_MOSI,
+                                                      GPIO_NUM_ENCODER_SPI_SCLK, 4);
+    spi_imu_ = std::make_unique<peripherals::Spi>(SPI3_HOST, GPIO_NUM_IMU_SPI_MISO, GPIO_NUM_IMU_SPI_MOSI,
+                                                  GPIO_NUM_IMU_SPI_SCLK, 16);
+    buzzer = std::make_unique<hardware::Buzzer>(GPIO_NUM_BUZZER);
+    battery = std::make_unique<hardware::Battery>(ADC_UNIT_BATTERY, ADC_CHANNEL_BATTERY);
+    imu = std::make_unique<hardware::Imu>(*spi_imu_, GPIO_NUM_IMU_SPI_CS);
+    encoder_left = std::make_unique<hardware::Encoder>(*spi_encoder_, GPIO_NUM_ENCODER_SPI_CS_LEFT);
+    encoder_right = std::make_unique<hardware::Encoder>(*spi_encoder_, GPIO_NUM_ENCODER_SPI_CS_RIGHT);
+    motor_left = std::make_unique<hardware::Motor>(0, GPIO_NUM_MOTOR_LEFT_IN1, GPIO_NUM_MOTOR_LEFT_IN2);
+    motor_right = std::make_unique<hardware::Motor>(1, GPIO_NUM_MOTOR_RIGHT_IN1, GPIO_NUM_MOTOR_RIGHT_IN2);
+    indicator = std::make_unique<hardware::Indicator>(GPIO_NUM_INDICATOR, NUM_INDICATORS);
 
-    buzzer = new driver::hardware::Buzzer(GPIO_NUM_21);
-    battery = new driver::hardware::Battery(ADC_UNIT_1, ADC_CHANNEL_4);
-    imu = new driver::hardware::Imu(*spi3_, GPIO_NUM_34);
-    encoder_left = new driver::hardware::Encoder(*spi2_, GPIO_NUM_26);
-    encoder_right = new driver::hardware::Encoder(*spi2_, GPIO_NUM_39);
-    motor_left = new driver::hardware::Motor(0, GPIO_NUM_40, GPIO_NUM_38);
-    motor_right = new driver::hardware::Motor(1, GPIO_NUM_42, GPIO_NUM_41);
-    indicator = new driver::hardware::Indicator(GPIO_NUM_45, 4);
-
-    driver::hardware::Photo::Config config{};
-    config.adc_unit = ADC_UNIT_1;
-    config.gpio_num[0] = GPIO_NUM_13, config.adc_channel[0] = ADC_CHANNEL_3;
-    config.gpio_num[1] = GPIO_NUM_12, config.adc_channel[1] = ADC_CHANNEL_2;
-    config.gpio_num[2] = GPIO_NUM_11, config.adc_channel[2] = ADC_CHANNEL_1;
-    config.gpio_num[3] = GPIO_NUM_10, config.adc_channel[3] = ADC_CHANNEL_0;
-    photo = new driver::hardware::Photo(config);
+    hardware::Photo::Config config{};
+    config.adc_unit = ADC_UNIT_PHOTO;
+    config.gpio_num[0] = GPIO_NUM_PHOTO_LEFT90, config.adc_channel[0] = ADC_CHANNEL_PHOTO_LEFT90;
+    config.gpio_num[1] = GPIO_NUM_PHOTO_LEFT45, config.adc_channel[1] = ADC_CHANNEL_PHOTO_LEFT45;
+    config.gpio_num[2] = GPIO_NUM_PHOTO_RIGHT45, config.adc_channel[2] = ADC_CHANNEL_PHOTO_RIGHT45;
+    config.gpio_num[3] = GPIO_NUM_PHOTO_RIGHT90, config.adc_channel[3] = ADC_CHANNEL_PHOTO_RIGHT90;
+    photo = std::make_unique<hardware::Photo>(config);
   }
+  Driver::~Driver() = default;
 }

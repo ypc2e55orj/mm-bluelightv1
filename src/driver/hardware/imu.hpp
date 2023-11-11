@@ -29,7 +29,7 @@ namespace driver::hardware
 
     bool update() override;
 
-    Axis &gyro();
-    Axis &accel();
+    const Axis &gyro();
+    const Axis &accel();
   };
 }
