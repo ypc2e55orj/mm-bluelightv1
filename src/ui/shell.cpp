@@ -5,8 +5,8 @@
 #include <rom/uart.h>
 
 #include "driver/hardware/fs.hpp"
-#include <ntshell/src/lib/core/ntshell.h>
-#include <ntshell/src/lib/util/ntopt.h>
+#include <ntopt.h>
+#include <ntshell.h>
 
 #include <cstring>
 

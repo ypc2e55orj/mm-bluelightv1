@@ -2,8 +2,7 @@ file(
         GLOB_RECURSE SOURCES
         "main.cpp"
         "../src/*.cpp"
-        "../src/*.hpp"
-        "../third-party/ntshell/src/lib/*.c")
+        "../src/*.hpp")
 
 message("### mm-bluelight ##")
 foreach (SOURCE IN LISTS SOURCES)
@@ -14,9 +13,7 @@ idf_component_register(
         SRCS
         ${SOURCES}
         INCLUDE_DIRS
-        "../src"
-        "../third-party/ntshell/src/lib/core"
-        "../third-party/ntshell/src/lib/util")
+        "../src")
 
 component_compile_options(
         -std=gnu++23
