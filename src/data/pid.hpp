@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-class PID
+class Pid
 {
 private:
   float kp_;
@@ -16,7 +16,7 @@ private:
   float sum_;
 
 public:
-  PID()
+  explicit Pid()
   {
     reset();
   }
