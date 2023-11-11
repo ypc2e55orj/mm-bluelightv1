@@ -1,86 +1,43 @@
 #include "fs.hpp"
 
+// C++
+
+// ESP-IDF
 #include <esp_spiffs.h>
-#include <esp_vfs.h>
 
-#include <cstring>
-#include <dirent.h>
-
-namespace driver::fs
+namespace driver::hardware
 {
-  static const char *const BASE_PATH = "/spiffs";
-  static const char *const PARTITION_LABEL = "storage";
-
-  void init()
+  class Fs::FsImpl
   {
-    if (mounted())
+  private:
+    static constexpr auto BASE_PATH = "/spiffs";
+    static constexpr auto PARTITION_LABEL = "storage";
+
+  public:
+    explicit FsImpl(size_t max_files)
     {
-      return;
+      esp_vfs_spiffs_conf_t spiffs_config = {};
+      spiffs_config.base_path = BASE_PATH;
+      spiffs_config.partition_label = PARTITION_LABEL;
+      spiffs_config.max_files = max_files;
+      spiffs_config.format_if_mount_failed = true;
+
+      ESP_ERROR_CHECK(esp_vfs_spiffs_register(&spiffs_config));
     }
 
-    esp_vfs_spiffs_conf_t spiffs_cfg = {};
-    spiffs_cfg.base_path = BASE_PATH;
-    spiffs_cfg.partition_label = PARTITION_LABEL;
-    spiffs_cfg.max_files = 5;
-    spiffs_cfg.format_if_mount_failed = true;
-
-    ESP_ERROR_CHECK(esp_vfs_spiffs_register(&spiffs_cfg));
-  }
-
-  bool mounted()
-  {
-    return esp_spiffs_mounted(PARTITION_LABEL);
-  }
-
-  void df()
-  {
-    size_t total = 0, used = 0;
-    esp_spiffs_info(PARTITION_LABEL, &total, &used);
-    printf("%-10s %-10s %-10s %-.10s\r\n", "Size", "Used", "Avail", "Mounted on");
-    printf("%-10d %-10d %-10d %-.64s\r\n", total, used, total - used, BASE_PATH);
-  }
-
-  int ls(char *path)
-  {
-    DIR *dir = opendir(path);
-    if (dir == nullptr)
+    static void info(size_t &total, size_t &used)
     {
-      return 1;
+      ESP_ERROR_CHECK(esp_spiffs_info(PARTITION_LABEL, &total, &used));
     }
+  };
 
-    int index = 0;
-    struct dirent *ent;
-    while ((ent = readdir(dir)) != nullptr)
-    {
-      printf("%-4d %-.64s\r\n", index++, ent->d_name);
-    }
-
-    closedir(dir);
-
-    return 0;
-  }
-
-  int rm(char *path)
+  Fs::Fs(size_t max_files) : impl_(new FsImpl(max_files))
   {
-    return unlink(path);
   }
+  Fs::~Fs() = default;
 
-  int cat(char *path)
+  void Fs::info(size_t &total, size_t &used)
   {
-    char buffer[256] = {};
-
-    FILE *file = fopen(path, "r");
-    if (!file)
-    {
-      return 1;
-    }
-    
-    while (fgets(buffer, 256, file) != nullptr)
-    {
-      printf("%s", buffer);
-    }
-    fclose(file);
-
-    return 0;
+    return impl_->info(total, used);
   }
 }

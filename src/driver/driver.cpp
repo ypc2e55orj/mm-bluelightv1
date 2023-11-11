@@ -20,6 +20,7 @@ namespace driver
     imu = std::make_unique<hardware::Imu>(*spi_imu_, GPIO_NUM_IMU_SPI_CS);
     encoder_left = std::make_unique<hardware::Encoder>(*spi_encoder_, GPIO_NUM_ENCODER_SPI_CS_LEFT);
     encoder_right = std::make_unique<hardware::Encoder>(*spi_encoder_, GPIO_NUM_ENCODER_SPI_CS_RIGHT);
+    fs = std::make_unique<hardware::Fs>(10);
     motor_left = std::make_unique<hardware::Motor>(0, GPIO_NUM_MOTOR_LEFT_IN1, GPIO_NUM_MOTOR_LEFT_IN2);
     motor_right = std::make_unique<hardware::Motor>(1, GPIO_NUM_MOTOR_RIGHT_IN1, GPIO_NUM_MOTOR_RIGHT_IN2);
     indicator = std::make_unique<hardware::Indicator>(GPIO_NUM_INDICATOR, NUM_INDICATORS);

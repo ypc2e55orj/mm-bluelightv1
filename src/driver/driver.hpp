@@ -9,6 +9,7 @@
 #include "hardware/battery.hpp"
 #include "hardware/buzzer.hpp"
 #include "hardware/encoder.hpp"
+#include "hardware/fs.hpp"
 #include "hardware/imu.hpp"
 #include "hardware/indicator.hpp"
 #include "hardware/motor.hpp"
@@ -69,6 +70,7 @@ namespace driver
     std::unique_ptr<hardware::Buzzer> buzzer;
     std::unique_ptr<hardware::Encoder> encoder_left;
     std::unique_ptr<hardware::Encoder> encoder_right;
+    std::unique_ptr<hardware::Fs> fs;
     std::unique_ptr<hardware::Imu> imu;
     std::unique_ptr<hardware::Indicator> indicator;
     std::unique_ptr<hardware::Motor> motor_left;

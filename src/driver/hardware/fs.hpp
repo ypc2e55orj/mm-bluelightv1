@@ -1,12 +1,24 @@
 #pragma once
 
-namespace driver::fs
-{
-  void init();
-  bool mounted();
+// C++
+#include <memory>
 
-  void df();
-  int ls(char *path);
-  int rm(char *path);
-  int cat(char *path);
+// ESP-IDF
+
+// Project
+
+namespace driver::hardware
+{
+  class Fs
+  {
+  private:
+    class FsImpl;
+    std::unique_ptr<FsImpl> impl_;
+
+  public:
+    explicit Fs(size_t max_files);
+    ~Fs();
+
+    void info(size_t &total, size_t &used);
+  };
 }
