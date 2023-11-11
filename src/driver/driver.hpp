@@ -39,7 +39,7 @@ namespace driver
 
   // Motor
   constexpr auto GPIO_NUM_MOTOR_LEFT_IN1 = GPIO_NUM_40;
-  constexpr auto GPIO_NUM_MOTOR_LEFT_IN2 = GPIO_NUM_40;
+  constexpr auto GPIO_NUM_MOTOR_LEFT_IN2 = GPIO_NUM_38;
   constexpr auto GPIO_NUM_MOTOR_RIGHT_IN1 = GPIO_NUM_42;
   constexpr auto GPIO_NUM_MOTOR_RIGHT_IN2 = GPIO_NUM_41;
 
