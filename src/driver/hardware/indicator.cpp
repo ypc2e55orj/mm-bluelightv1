@@ -190,12 +190,14 @@ namespace driver::hardware
 
     bool enable()
     {
-      return rmt_enable(channel_) == ESP_OK;
+      esp_err_t enable_err = rmt_enable(channel_);
+      return enable_err == ESP_OK;
     }
 
     bool disable()
     {
-      return rmt_disable(channel_) == ESP_OK;
+      esp_err_t disable_err = rmt_disable(channel_);
+      return disable_err == ESP_OK;
     }
 
     void set(size_t pos, uint8_t r, uint8_t g, uint8_t b)
@@ -217,7 +219,8 @@ namespace driver::hardware
     {
       rmt_transmit_config_t tx_config = {};
       tx_config.loop_count = 0;
-      return rmt_transmit(channel_, &encoder_->base, buffer_, buffer_size_, &tx_config) == ESP_OK;
+      esp_err_t transmit_err = rmt_transmit(channel_, &encoder_->base, buffer_, buffer_size_, &tx_config);
+      return transmit_err == ESP_OK;
     }
   };
 

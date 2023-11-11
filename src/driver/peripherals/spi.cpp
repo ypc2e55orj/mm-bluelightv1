@@ -77,7 +77,8 @@ namespace driver::peripherals
     bool transmit(int index)
     {
       auto device = devices_[index];
-      return spi_device_transmit(device->handle, device->transaction) == ESP_OK;
+      esp_err_t transmit_err = spi_device_transmit(device->handle, device->transaction);
+      return transmit_err == ESP_OK;
     }
     spi_transaction_t *transaction(int index)
     {

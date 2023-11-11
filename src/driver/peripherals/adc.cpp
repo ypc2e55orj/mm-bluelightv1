@@ -90,9 +90,9 @@ namespace driver::peripherals
     }
     bool read_isr(int &raw)
     {
-      bool ret = adc_oneshot_read_isr(unit_, channel_, &raw_) == ESP_OK;
+      esp_err_t read_err = adc_oneshot_read_isr(unit_, channel_, &raw_);
       raw = raw_;
-      return ret;
+      return read_err == ESP_OK;
     }
 
     // 取得済みのADC値から、電圧値に換算する

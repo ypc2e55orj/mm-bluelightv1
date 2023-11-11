@@ -97,13 +97,15 @@ namespace driver::hardware
 
     bool enable()
     {
-      return mcpwm_timer_enable(timer_) == ESP_OK &&
-             mcpwm_timer_start_stop(timer_, MCPWM_TIMER_START_NO_STOP) == ESP_OK;
+      esp_err_t enable_err = mcpwm_timer_enable(timer_);
+      esp_err_t start_err = mcpwm_timer_start_stop(timer_, MCPWM_TIMER_START_NO_STOP);
+      return enable_err == ESP_OK && start_err == ESP_OK;
     }
     bool disable()
     {
-      return mcpwm_timer_start_stop(timer_, MCPWM_TIMER_START_STOP_EMPTY) == ESP_OK &&
-             mcpwm_timer_disable(timer_) == ESP_OK;
+      esp_err_t stop_err = mcpwm_timer_start_stop(timer_, MCPWM_TIMER_START_STOP_EMPTY);
+      esp_err_t disable_err = mcpwm_timer_disable(timer_);
+      return stop_err == ESP_OK && disable_err == ESP_OK;
     }
 
     void brake() const

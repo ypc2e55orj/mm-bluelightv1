@@ -195,19 +195,22 @@ namespace driver::hardware
 
     bool enable()
     {
-      return rmt_enable(channel_) == ESP_OK;
+      esp_err_t enable_err = rmt_enable(channel_);
+      return enable_err == ESP_OK;
     }
 
     bool disable()
     {
-      return rmt_disable(channel_) == ESP_OK;
+      esp_err_t disable_err = rmt_disable(channel_);
+      return disable_err == ESP_OK;
     }
 
     bool tone(const Note *note)
     {
       rmt_transmit_config_t tx_config = {};
       tx_config.loop_count = static_cast<int>(note->duration * note->frequency / 1000);
-      return rmt_transmit(channel_, &encoder_->base, note, sizeof(Note), &tx_config) == ESP_OK;
+      esp_err_t transmit_err = rmt_transmit(channel_, &encoder_->base, note, sizeof(Note), &tx_config);
+      return transmit_err == ESP_OK;
     }
   };
 

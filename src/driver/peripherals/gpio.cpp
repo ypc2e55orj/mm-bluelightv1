@@ -29,7 +29,8 @@ namespace driver::peripherals
     // 出力
     bool set(bool level)
     {
-      return gpio_set_level(num_, level ? 1 : 0) == ESP_OK;
+      esp_err_t set_err = gpio_set_level(num_, level ? 1 : 0);
+      return set_err == ESP_OK;
     }
 
     // 入力
