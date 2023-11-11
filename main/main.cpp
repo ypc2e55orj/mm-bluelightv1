@@ -7,13 +7,19 @@
 #include <freertos/task.h>
 
 // Project
+#include "config.hpp"
 #include "driver/driver.hpp"
 
 driver::Driver *dri = nullptr;
 
 [[noreturn]] void mainTask(void *)
 {
+  vTaskDelay(pdMS_TO_TICKS(100));
   std::cout << "mainTask() start. Core ID: " << xPortGetCoreID() << std::endl;
+
+  conf.read_stdin();
+  conf.write_stdout();
+
   printf("indicator & buzzer test\n");
   dri->buzzer->start(8192, 10, 1);
   for (int i = 0; i < 100; i++)

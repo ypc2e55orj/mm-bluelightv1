@@ -1,88 +1,49 @@
 #pragma once
 
-#include <cstdint>
+// C++
+#include <memory>
 
 namespace config
 {
-  struct ConfigPair
+  struct Config
   {
-    float left;
-    float right;
-  };
-  struct HardwareConfig
-  {
-    float vehicleWeight;
-    float vehicleTread;
-    float vehicleInertiaMoment;
-    float tireDiameter;
-    int spurGearTeeth;
-    int pinionGearTeeth;
-    ConfigPair motorResistance;
-    ConfigPair motorInductance;
-    ConfigPair motorBackForce;
- };
-  struct PIDConfig
-  {
-    float kp;
-    float ki;
-    float kd;
-  };
-  struct PhotoReference {
-    int left90;
-    int left45;
-    int right45;
-    int right90;
-  };
-  struct SensorConfig
-  {
-    PhotoReference photoReference;
-    PhotoReference photoThreshold;
-    PIDConfig wallControl;
-  };
-  struct StraightRunConfig
-  {
-    float maxVelo;
-    float maxAccel;
-    float maxJerk;
-    PIDConfig pid;
-  };
-  struct TurnConfig
-  {
-    float maxAngVelo;
-    float maxAngAccel;
-    float maxAngJerk;
-    PIDConfig pid;
-  };
-  struct SlalomTurnConfig
-  {
-    TurnConfig turn;
-    float offsetPre;
-    float offsetPost;
-  };
-  struct RunParameterConfig
-  {
-    StraightRunConfig straight;
-    TurnConfig turn;
-    SlalomTurnConfig slalomTurn;
-  };
-  struct ConfigCoord
-  {
-    int x;
-    int y;
-  };
-  struct MazeConfig
-  {
-    ConfigCoord goal;
-    ConfigCoord size;
-  };
+    // タイヤの直径
+    float tire_diameter;
+    // ギア比
+    float spur_gear_teeth;
+    float pinion_gear_teeth;
+    // 壁センサ 壁があるかないかのしきい値
+    int photo_wall_threshold[4];
+    // 壁センサ 迷路中央にいるときの値
+    int photo_wall_reference[4];
+    // 走行パラメータ
+    float straight_pid[3];
+    float straight_velocity;
+    float straight_accel;
+    float straight_jerk;
+    float turn_pid[3];
+    float turn_velocity;
+    float turn_accel;
+    float turn_jerk;
+    float slalom_turn_velocity;
+    float slalom_turn_accel;
+    float slalom_turn_jerk;
+    float slalom_turn_offset_pre;
+    float slalom_turn_offset_post;
+    // 迷路情報
+    int maze_goal[2];
+    int size[2];
 
-  void read(const char *path);
-  void write(const char *path);
+    [[maybe_unused]] bool read_file(const char *path);
+    [[maybe_unused]] bool read_stdin();
 
-  constexpr int FAST_PARAMETER_COUNTS = 5;
-  extern MazeConfig maze;
-  extern HardwareConfig hardware;
-  extern SensorConfig sensor;
-  extern RunParameterConfig paramSearch;
-  extern RunParameterConfig paramFast[FAST_PARAMETER_COUNTS];
+    [[maybe_unused]] bool write_file(const char *path);
+    [[maybe_unused]] bool write_stdout();
+
+  private:
+    bool to_struct(std::string_view str);
+    std::string to_str();
+  };
 }
+
+extern config::Config conf;
