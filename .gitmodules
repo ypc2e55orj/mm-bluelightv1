@@ -1,6 +1,3 @@
-[submodule "third-party/lsm6dsrx-pid"]
-	path = third-party/lsm6dsrx-pid
-	url = git@github.com:STMicroelectronics/lsm6dsrx-pid
 [submodule "third-party/ntshell"]
 	path = third-party/ntshell
 	url = git@github.com:chiabrian/ntshell
