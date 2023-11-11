@@ -4,12 +4,6 @@ dependencies:
     source:
       type: idf
     version: 5.1.1
-  ntshell:
-    component_hash: null
-    source:
-      path: /home/user/proj/mm-bluelight/component/ntshell
-      type: local
-    version: '*'
-manifest_hash: df938992ab6bd0d371de12620e8af267301f1c00802efcc0f3b4857674545b50
+manifest_hash: 5fb96794747c855bcbabce2b158f6fe8ee035ba03072ef2dee31659eb36b529c
 target: esp32s3
 version: 1.0.0

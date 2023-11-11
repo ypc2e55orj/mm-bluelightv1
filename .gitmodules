@@ -1,3 +1,0 @@
-[submodule "component/ntshell/ntshell"]
-	path = component/ntshell/ntshell
-	url = git@github.com:chiabrian/ntshell
