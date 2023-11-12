@@ -60,237 +60,210 @@
 [[maybe_unused]] static constexpr uint32_t B7 = 3951;
 [[maybe_unused]] static constexpr uint32_t C8 = 4186;
 
-namespace driver::hardware
-{
-  // 単音定義
-  struct Note
-  {
-    // 周波数
-    uint32_t frequency; // [Hz]
-    // 長さ
-    uint32_t duration; // [ms]
+namespace driver::hardware {
+// 単音定義
+struct Note {
+  // 周波数
+  uint32_t frequency;  // [Hz]
+  // 長さ
+  uint32_t duration;  // [ms]
+};
+
+// メロディ定義
+struct Melody {
+  const Note *notes;
+  const size_t size;
+
+  template <size_t SIZE>
+  [[maybe_unused]] explicit Melody(Note (&notes_ref)[SIZE])
+      : notes(&notes_ref[0]), size(SIZE) {}
+};
+
+static Melody melodies[] = {
+    Melody((Note[]){{0, 0}}),     // None               無音
+    Melody((Note[]){{0, 0}}),     // InitializeFailed   初期化失敗
+    Melody((Note[]){{C5, 100}}),  // InitializeSuccess  初期化成功
+    Melody((Note[]){{0, 0}}),  // Searching          迷路探索中(ループ再生)
+    Melody((Note[]){{0, 0}}),  // SearchWarning      迷路探索中警告
+    Melody((Note[]){{0, 0}}),  // SearchFailed       迷路探索失敗
+    Melody((Note[]){{0, 0}}),  // SearchSuccess      迷路探索成功
+    Melody((Note[]){{0, 0}}),  // FastFailed         最短走行失敗
+    Melody((Note[]){{0, 0}}),  // FastSuccess        最短走行成功
+    Melody((Note[]){{0, 0}}),  // StartRunning       走行開始
+    Melody((Note[]){{0, 0}}),  // EndRunning         走行終了
+    Melody((Note[]){{0, 0}}),  // LowBattery         バッテリー切れ
+    Melody((Note[]){{0, 0}}),  // Select             モード選択
+    Melody((Note[]){{0, 0}}),  // Ok                 確定
+    Melody((Note[]){{0, 0}}),  // Cancel             キャンセル
+};
+
+/**
+ * 参考:
+ * https://github.com/espressif/esp-idf/tree/release/v5.1/examples/peripherals/rmt/musical_buzzer
+ */
+class RmtBuzzer {
+ private:
+  // DMA有効時、DMAのバッファサイズ
+  // DMA無効時、チャンネルが専有するメモリブロック(48以上)
+  static constexpr size_t BUZZER_MEM_BLOCK_SYMBOLS = 64;
+  // 内部カウンタの精度
+  static constexpr uint32_t BUZZER_RESOLUTION_HZ = 1'000'000;
+  // エンコーダーに渡す構造体
+  struct BuzzerEncoder {
+    rmt_encoder_t base;
+    rmt_encoder_t *copy_encoder;
+    uint32_t resolution;
   };
+  using BuzzerEncoderHandle = BuzzerEncoder *;
 
-  // メロディ定義
-  struct Melody
-  {
-    const Note *notes;
-    const size_t size;
+  // copy_encoderをハンドルするコールバック
+  static size_t rmt_buzzer_encode(rmt_encoder_t *encoder,
+                                  rmt_channel_handle_t channel,
+                                  const void *primary_data, size_t,
+                                  rmt_encode_state_t *ret_state) {
+    auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
+    auto copy_encoder = buzzer_encoder->copy_encoder;
+    auto note = reinterpret_cast<const Note *>(primary_data);
+    auto duration = buzzer_encoder->resolution / note->frequency / 2;
+    rmt_symbol_word_t symbol = {};
+    symbol.level0 = 0;
+    symbol.duration0 = static_cast<uint16_t>(duration);
+    symbol.level1 = 1;
+    symbol.duration1 = static_cast<uint16_t>(duration);
 
-    template <size_t SIZE> [[maybe_unused]] explicit Melody(Note (&notes_ref)[SIZE]) : notes(&notes_ref[0]), size(SIZE)
-    {
+    return copy_encoder->encode(copy_encoder, channel, &symbol,
+                                sizeof(rmt_symbol_word_t), ret_state);
+  }
+
+  static esp_err_t rmt_buzzer_delete(rmt_encoder_t *encoder) {
+    auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
+    rmt_del_encoder(buzzer_encoder->copy_encoder);
+    free(buzzer_encoder);
+
+    return ESP_OK;
+  }
+
+  static esp_err_t rmt_buzzer_reset(rmt_encoder_t *encoder) {
+    auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
+    rmt_encoder_reset(buzzer_encoder->copy_encoder);
+
+    return ESP_OK;
+  }
+
+  // 送信チャンネルのハンドラ
+  rmt_channel_handle_t channel_;
+  // エンコーダーのハンドラ
+  BuzzerEncoderHandle encoder_;
+
+ public:
+  explicit RmtBuzzer(gpio_num_t buzzer_num, uint32_t queue_size, bool with_dma)
+      : channel_(nullptr), encoder_(nullptr) {
+    // RMT送信チャンネルを初期化
+    rmt_tx_channel_config_t rmt_config = {};
+    rmt_config.gpio_num = buzzer_num;
+    rmt_config.clk_src = RMT_CLK_SRC_DEFAULT;
+    rmt_config.resolution_hz = BUZZER_RESOLUTION_HZ;
+    rmt_config.mem_block_symbols = BUZZER_MEM_BLOCK_SYMBOLS;
+    rmt_config.trans_queue_depth = queue_size;
+    rmt_config.flags.with_dma = with_dma ? 1 : 0;
+    ESP_ERROR_CHECK(rmt_new_tx_channel(&rmt_config, &channel_));
+
+    // ブザー用エンコーダーを初期化
+    encoder_ = reinterpret_cast<BuzzerEncoder *>(
+        heap_caps_calloc(1, sizeof(BuzzerEncoder), MALLOC_CAP_DMA));
+    encoder_->base.encode = RmtBuzzer::rmt_buzzer_encode;
+    encoder_->base.del = RmtBuzzer::rmt_buzzer_delete;
+    encoder_->base.reset = RmtBuzzer::rmt_buzzer_reset;
+    encoder_->resolution = BUZZER_RESOLUTION_HZ;
+    // copy_encoderを初期化
+    rmt_copy_encoder_config_t copy_encoder_config = {};
+    if (rmt_new_copy_encoder(&copy_encoder_config, &encoder_->copy_encoder)) {
+      free(encoder_);
+      encoder_ = nullptr;
+      throw std::runtime_error(
+          "Buzzer::RmtBuzzer::RmtBuzzer(): Failed to rmt_new_copy_encoder()");
     }
-  };
+  }
 
-  static Melody melodies[] = {
-    Melody((Note[]){{0, 0}}),    // None               無音
-    Melody((Note[]){{0, 0}}),    // InitializeFailed   初期化失敗
-    Melody((Note[]){{C5, 100}}), // InitializeSuccess  初期化成功
-    Melody((Note[]){{0, 0}}),    // Searching          迷路探索中(ループ再生)
-    Melody((Note[]){{0, 0}}),    // SearchWarning      迷路探索中警告
-    Melody((Note[]){{0, 0}}),    // SearchFailed       迷路探索失敗
-    Melody((Note[]){{0, 0}}),    // SearchSuccess      迷路探索成功
-    Melody((Note[]){{0, 0}}),    // FastFailed         最短走行失敗
-    Melody((Note[]){{0, 0}}),    // FastSuccess        最短走行成功
-    Melody((Note[]){{0, 0}}),    // StartRunning       走行開始
-    Melody((Note[]){{0, 0}}),    // EndRunning         走行終了
-    Melody((Note[]){{0, 0}}),    // LowBattery         バッテリー切れ
-    Melody((Note[]){{0, 0}}),    // Select             モード選択
-    Melody((Note[]){{0, 0}}),    // Ok                 確定
-    Melody((Note[]){{0, 0}}),    // Cancel             キャンセル
-  };
+  ~RmtBuzzer() { rmt_del_channel(channel_); }
 
-  /**
-   * 参考: https://github.com/espressif/esp-idf/tree/release/v5.1/examples/peripherals/rmt/musical_buzzer
-   */
-  class RmtBuzzer
-  {
-  private:
-    // DMA有効時、DMAのバッファサイズ
-    // DMA無効時、チャンネルが専有するメモリブロック(48以上)
-    static constexpr size_t BUZZER_MEM_BLOCK_SYMBOLS = 64;
-    // 内部カウンタの精度
-    static constexpr uint32_t BUZZER_RESOLUTION_HZ = 1'000'000;
-    // エンコーダーに渡す構造体
-    struct BuzzerEncoder
-    {
-      rmt_encoder_t base;
-      rmt_encoder_t *copy_encoder;
-      uint32_t resolution;
-    };
-    using BuzzerEncoderHandle = BuzzerEncoder *;
+  bool enable() {
+    esp_err_t enable_err = rmt_enable(channel_);
+    return enable_err == ESP_OK;
+  }
 
-    // copy_encoderをハンドルするコールバック
-    static size_t rmt_buzzer_encode(rmt_encoder_t *encoder, rmt_channel_handle_t channel, const void *primary_data,
-                                    size_t, rmt_encode_state_t *ret_state)
-    {
-      auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
-      auto copy_encoder = buzzer_encoder->copy_encoder;
-      auto note = reinterpret_cast<const Note *>(primary_data);
-      auto duration = buzzer_encoder->resolution / note->frequency / 2;
-      rmt_symbol_word_t symbol = {};
-      symbol.level0 = 0;
-      symbol.duration0 = static_cast<uint16_t>(duration);
-      symbol.level1 = 1;
-      symbol.duration1 = static_cast<uint16_t>(duration);
+  bool disable() {
+    esp_err_t disable_err = rmt_disable(channel_);
+    return disable_err == ESP_OK;
+  }
 
-      return copy_encoder->encode(copy_encoder, channel, &symbol, sizeof(rmt_symbol_word_t), ret_state);
-    }
+  bool tone(const Note *note) {
+    rmt_transmit_config_t tx_config = {};
+    tx_config.loop_count =
+        static_cast<int>(note->duration * note->frequency / 1000);
+    esp_err_t transmit_err =
+        rmt_transmit(channel_, &encoder_->base, note, sizeof(Note), &tx_config);
+    return transmit_err == ESP_OK;
+  }
+};
 
-    static esp_err_t rmt_buzzer_delete(rmt_encoder_t *encoder)
-    {
-      auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
-      rmt_del_encoder(buzzer_encoder->copy_encoder);
-      free(buzzer_encoder);
+class Buzzer::BuzzerImpl final : public task::Task {
+ private:
+  // ブザー操作
+  RmtBuzzer buzzer_;
+  // 再生する配列ポインタ
+  Melody *melody_;
+  // 再生中のインデックス
+  size_t index_;
+  // ループするかどうか
+  bool loop_;
 
-      return ESP_OK;
-    }
-
-    static esp_err_t rmt_buzzer_reset(rmt_encoder_t *encoder)
-    {
-      auto buzzer_encoder = __containerof(encoder, BuzzerEncoder, base);
-      rmt_encoder_reset(buzzer_encoder->copy_encoder);
-
-      return ESP_OK;
-    }
-
-    // 送信チャンネルのハンドラ
-    rmt_channel_handle_t channel_;
-    // エンコーダーのハンドラ
-    BuzzerEncoderHandle encoder_;
-
-  public:
-    explicit RmtBuzzer(gpio_num_t buzzer_num, uint32_t queue_size, bool with_dma) : channel_(nullptr), encoder_(nullptr)
-    {
-      // RMT送信チャンネルを初期化
-      rmt_tx_channel_config_t rmt_config = {};
-      rmt_config.gpio_num = buzzer_num;
-      rmt_config.clk_src = RMT_CLK_SRC_DEFAULT;
-      rmt_config.resolution_hz = BUZZER_RESOLUTION_HZ;
-      rmt_config.mem_block_symbols = BUZZER_MEM_BLOCK_SYMBOLS;
-      rmt_config.trans_queue_depth = queue_size;
-      rmt_config.flags.with_dma = with_dma ? 1 : 0;
-      ESP_ERROR_CHECK(rmt_new_tx_channel(&rmt_config, &channel_));
-
-      // ブザー用エンコーダーを初期化
-      encoder_ = reinterpret_cast<BuzzerEncoder *>(heap_caps_calloc(1, sizeof(BuzzerEncoder), MALLOC_CAP_DMA));
-      encoder_->base.encode = RmtBuzzer::rmt_buzzer_encode;
-      encoder_->base.del = RmtBuzzer::rmt_buzzer_delete;
-      encoder_->base.reset = RmtBuzzer::rmt_buzzer_reset;
-      encoder_->resolution = BUZZER_RESOLUTION_HZ;
-      // copy_encoderを初期化
-      rmt_copy_encoder_config_t copy_encoder_config = {};
-      if (rmt_new_copy_encoder(&copy_encoder_config, &encoder_->copy_encoder))
-      {
-        free(encoder_);
-        encoder_ = nullptr;
-        throw std::runtime_error("Buzzer::RmtBuzzer::RmtBuzzer(): Failed to rmt_new_copy_encoder()");
+  void setup() override {
+    buzzer_.enable();
+    index_ = 0;
+  }
+  void loop() override {
+    if (index_ < melody_->size) {
+      const Note *p = melody_->notes + index_;
+      if (p->frequency != 0 && p->duration != 0) {
+        buzzer_.tone(p);
+      } else if (p->duration != 0) {
+        vTaskDelay(pdMS_TO_TICKS(p->duration));
       }
-    }
-
-    ~RmtBuzzer()
-    {
-      rmt_del_channel(channel_);
-    }
-
-    bool enable()
-    {
-      esp_err_t enable_err = rmt_enable(channel_);
-      return enable_err == ESP_OK;
-    }
-
-    bool disable()
-    {
-      esp_err_t disable_err = rmt_disable(channel_);
-      return disable_err == ESP_OK;
-    }
-
-    bool tone(const Note *note)
-    {
-      rmt_transmit_config_t tx_config = {};
-      tx_config.loop_count = static_cast<int>(note->duration * note->frequency / 1000);
-      esp_err_t transmit_err = rmt_transmit(channel_, &encoder_->base, note, sizeof(Note), &tx_config);
-      return transmit_err == ESP_OK;
-    }
-  };
-
-  class Buzzer::BuzzerImpl final : public task::Task
-  {
-  private:
-    // ブザー操作
-    RmtBuzzer buzzer_;
-    // 再生する配列ポインタ
-    Melody *melody_;
-    // 再生中のインデックス
-    size_t index_;
-    // ループするかどうか
-    bool loop_;
-
-    void setup() override
-    {
-      buzzer_.enable();
+      index_++;
+    } else if (loop_) {
       index_ = 0;
     }
-    void loop() override
-    {
-      if (index_ < melody_->size)
-      {
-        const Note *p = melody_->notes + index_;
-        if (p->frequency != 0 && p->duration != 0)
-        {
-          buzzer_.tone(p);
-        }
-        else if (p->duration != 0)
-        {
-          vTaskDelay(pdMS_TO_TICKS(p->duration));
-        }
-        index_++;
-      }
-      else if (loop_)
-      {
-        index_ = 0;
-      }
-    }
-    void end() override
-    {
-      buzzer_.disable();
-    }
-
-  public:
-    explicit BuzzerImpl(gpio_num_t buzzer_num)
-      : task::Task(__func__, pdMS_TO_TICKS(10)), buzzer_(buzzer_num, 4, false), melody_(nullptr), index_(0),
-        loop_(false)
-    {
-    }
-
-    ~BuzzerImpl() override = default;
-
-    void set(Mode mode, bool loop)
-    {
-      Melody *melody = &melodies[static_cast<int>(mode)];
-      melody_ = melody;
-      loop_ = loop;
-    }
-  };
-
-  Buzzer::Buzzer(gpio_num_t buzzer_num) : impl_(new BuzzerImpl(buzzer_num))
-  {
   }
+  void end() override { buzzer_.disable(); }
 
-  Buzzer::~Buzzer() = default;
+ public:
+  explicit BuzzerImpl(gpio_num_t buzzer_num)
+      : task::Task(__func__, pdMS_TO_TICKS(10)),
+        buzzer_(buzzer_num, 4, false),
+        melody_(nullptr),
+        index_(0),
+        loop_(false) {}
 
-  bool Buzzer::start(const uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID)
-  {
-    return impl_->start(usStackDepth, uxPriority, xCoreID);
+  ~BuzzerImpl() override = default;
+
+  void set(Mode mode, bool loop) {
+    Melody *melody = &melodies[static_cast<int>(mode)];
+    melody_ = melody;
+    loop_ = loop;
   }
+};
 
-  bool Buzzer::stop()
-  {
-    return impl_->stop();
-  }
+Buzzer::Buzzer(gpio_num_t buzzer_num) : impl_(new BuzzerImpl(buzzer_num)) {}
 
-  void Buzzer::set(Mode mode, bool loop)
-  {
-    impl_->set(mode, loop);
-  }
+Buzzer::~Buzzer() = default;
+
+bool Buzzer::start(const uint32_t usStackDepth, UBaseType_t uxPriority,
+                   BaseType_t xCoreID) {
+  return impl_->start(usStackDepth, uxPriority, xCoreID);
 }
+
+bool Buzzer::stop() { return impl_->stop(); }
+
+void Buzzer::set(Mode mode, bool loop) { impl_->set(mode, loop); }
+}  // namespace driver::hardware

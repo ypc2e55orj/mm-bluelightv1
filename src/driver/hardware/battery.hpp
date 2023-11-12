@@ -9,21 +9,19 @@
 // Project
 #include "base.hpp"
 
-namespace driver::hardware
-{
-  class Battery final : DriverBase
-  {
-  private:
-    class BatteryImpl;
-    std::unique_ptr<BatteryImpl> impl_;
+namespace driver::hardware {
+class Battery final : DriverBase {
+ private:
+  class BatteryImpl;
+  std::unique_ptr<BatteryImpl> impl_;
 
-  public:
-    explicit Battery(adc_unit_t unit, adc_channel_t channel);
-    ~Battery();
+ public:
+  explicit Battery(adc_unit_t unit, adc_channel_t channel);
+  ~Battery();
 
-    bool update() override;
+  bool update() override;
 
-    int voltage();
-    int average();
-  };
-}
+  int voltage();
+  int average();
+};
+}  // namespace driver::hardware

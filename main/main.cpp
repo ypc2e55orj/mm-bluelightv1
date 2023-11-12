@@ -12,8 +12,7 @@
 
 driver::Driver *dri = nullptr;
 
-[[noreturn]] void mainTask(void *)
-{
+[[noreturn]] void mainTask(void *) {
   vTaskDelay(pdMS_TO_TICKS(100));
   std::cout << "mainTask() start. Core ID: " << xPortGetCoreID() << std::endl;
 
@@ -22,8 +21,7 @@ driver::Driver *dri = nullptr;
 
   printf("indicator & buzzer test\n");
   dri->buzzer->start(8192, 10, 1);
-  for (int i = 0; i < 100; i++)
-  {
+  for (int i = 0; i < 100; i++) {
     dri->buzzer->set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
     dri->indicator->rainbow_yield();
     dri->indicator->update();
@@ -43,9 +41,8 @@ driver::Driver *dri = nullptr;
   printf("\x1b[2J");
   printf("\x1b[?25l");
   auto xLastWakeTime = xTaskGetTickCount();
-  while (true)
-  {
-    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1)); // NOLINT
+  while (true) {
+    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));  // NOLINT
     dri->photo->update();
     dri->battery->update();
     dri->imu->update();
@@ -54,43 +51,52 @@ driver::Driver *dri = nullptr;
     auto gyro = dri->imu->gyro();
     auto accel = dri->imu->accel();
     printf("\x1b[0;0H");
-    printf("Battery\n"
-           "  voltage: %4d\n"
-           "  average: %4d\n\n",
-           dri->battery->voltage(), dri->battery->average());
+    printf(
+        "Battery\n"
+        "  voltage: %4d\n"
+        "  average: %4d\n\n",
+        dri->battery->voltage(), dri->battery->average());
 
-    printf("Photo\n"
-           "  left90 : %4d, %4d\n"
-           "  left45 : %4d, %4d\n"
-           "  right45: %4d, %4d\n"
-           "  right90: %4d, %4d\n\n",
-           dri->photo->left90().ambient, dri->photo->left90().flash, dri->photo->left45().ambient,
-           dri->photo->left45().flash, dri->photo->right45().ambient, dri->photo->right45().flash,
-           dri->photo->right90().ambient, dri->photo->right90().flash);
+    printf(
+        "Photo\n"
+        "  left90 : %4d, %4d\n"
+        "  left45 : %4d, %4d\n"
+        "  right45: %4d, %4d\n"
+        "  right90: %4d, %4d\n\n",
+        dri->photo->left90().ambient, dri->photo->left90().flash,
+        dri->photo->left45().ambient, dri->photo->left45().flash,
+        dri->photo->right45().ambient, dri->photo->right45().flash,
+        dri->photo->right90().ambient, dri->photo->right90().flash);
 
-    printf("Gyro \n"
-           "  x: %f\n"
-           "  y: %f\n"
-           "  z: %f\n\n",
-           static_cast<double>(gyro.x), static_cast<double>(gyro.y), static_cast<double>(gyro.z));
+    printf(
+        "Gyro \n"
+        "  x: %f\n"
+        "  y: %f\n"
+        "  z: %f\n\n",
+        static_cast<double>(gyro.x), static_cast<double>(gyro.y),
+        static_cast<double>(gyro.z));
 
-    printf("Accel\n"
-           "  x: %f\n"
-           "  y: %f\n"
-           "  z: %f\n\n",
-           static_cast<double>(accel.x), static_cast<double>(accel.y), static_cast<double>(accel.z));
+    printf(
+        "Accel\n"
+        "  x: %f\n"
+        "  y: %f\n"
+        "  z: %f\n\n",
+        static_cast<double>(accel.x), static_cast<double>(accel.y),
+        static_cast<double>(accel.z));
 
-    printf("Encoder\n"
-           "  left : %f\n"
-           "  right: %f\n\n",
-           static_cast<double>(dri->encoder_left->degree()), static_cast<double>(dri->encoder_right->degree()));
+    printf(
+        "Encoder\n"
+        "  left : %f\n"
+        "  right: %f\n\n",
+        static_cast<double>(dri->encoder_left->degree()),
+        static_cast<double>(dri->encoder_right->degree()));
   }
 }
 
 // entrypoint
-extern "C" [[maybe_unused]] void app_main(void)
-{
+extern "C" [[maybe_unused]] void app_main(void) {
   std::cout << "app_main() start. Core ID: " << xPortGetCoreID() << std::endl;
   dri = new driver::Driver();
-  xTaskCreatePinnedToCore(mainTask, "mainTask", 8192 * 2, nullptr, 10, nullptr, 1);
+  xTaskCreatePinnedToCore(mainTask, "mainTask", 8192 * 2, nullptr, 10, nullptr,
+                          1);
 }

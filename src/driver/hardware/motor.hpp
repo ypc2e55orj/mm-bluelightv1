@@ -9,23 +9,21 @@
 // Project
 #include "base.hpp"
 
-namespace driver::hardware
-{
-  class Motor
-  {
-  private:
-    class MotorImpl;
-    std::unique_ptr<MotorImpl> impl_;
+namespace driver::hardware {
+class Motor {
+ private:
+  class MotorImpl;
+  std::unique_ptr<MotorImpl> impl_;
 
-  public:
-    explicit Motor(int mcpwm_timer_group_id, gpio_num_t a_num, gpio_num_t b_num);
-    ~Motor();
+ public:
+  explicit Motor(int mcpwm_timer_group_id, gpio_num_t a_num, gpio_num_t b_num);
+  ~Motor();
 
-    bool enable();
-    bool disable();
+  bool enable();
+  bool disable();
 
-    void brake();
-    void coast();
-    void speed(int motor_voltage, int battery_voltage);
-  };
-}
+  void brake();
+  void coast();
+  void speed(int motor_voltage, int battery_voltage);
+};
+}  // namespace driver::hardware

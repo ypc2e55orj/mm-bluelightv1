@@ -8,21 +8,19 @@
 #include "../peripherals/spi.hpp"
 #include "base.hpp"
 
-namespace driver::hardware
-{
-  class Encoder final : DriverBase
-  {
-  private:
-    class AS5050AImpl;
-    std::unique_ptr<AS5050AImpl> impl_;
+namespace driver::hardware {
+class Encoder final : DriverBase {
+ private:
+  class AS5050AImpl;
+  std::unique_ptr<AS5050AImpl> impl_;
 
-  public:
-    explicit Encoder(peripherals::Spi &spi, gpio_num_t spics_io_num);
-    ~Encoder();
+ public:
+  explicit Encoder(peripherals::Spi &spi, gpio_num_t spics_io_num);
+  ~Encoder();
 
-    bool update() override;
+  bool update() override;
 
-    float radian();
-    float degree();
-  };
-}
+  float radian();
+  float degree();
+};
+}  // namespace driver::hardware
