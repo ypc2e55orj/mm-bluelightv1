@@ -29,23 +29,23 @@ static constexpr auto TAG = "config::Config";
     }                                                                   \
   } while (0)
 
-#define JSON_READ_NUMBER_ARRAY(root, field, len)                             \
-  do {                                                                       \
-    const cJSON *array = cJSON_GetObjectItemCaseSensitive(root, #field);     \
-    if (!cJSON_IsArray(array)) {                                             \
-      ESP_LOGE(TAG, "Error: Config::" #field " is not array.");              \
-    } else {                                                                 \
-      size_t i = 0;                                                          \
-      for (cJSON *item = array->child; i < (len) && item != nullptr;         \
-           i++, item = item->next) {                                         \
-        if (!cJSON_IsNumber(item)) {                                         \
-          ESP_LOGE(TAG, "Error: Config::" #field "[%d] is not number", i);   \
-        } else {                                                             \
-          field[i] = static_cast<std::remove_reference_t<decltype(*field)>>( \
-              item->valuedouble);                                            \
-        }                                                                    \
-      }                                                                      \
-    }                                                                        \
+#define JSON_READ_NUMBER_ARRAY(root, field)                                 \
+  do {                                                                      \
+    const cJSON *array = cJSON_GetObjectItemCaseSensitive(root, #field);    \
+    if (!cJSON_IsArray(array)) {                                            \
+      ESP_LOGE(TAG, "Error: Config::" #field " is not array.");             \
+    } else {                                                                \
+      size_t i = 0;                                                         \
+      for (cJSON *item = array->child; i < field.size() && item != nullptr; \
+           i++, item = item->next) {                                        \
+        if (!cJSON_IsNumber(item)) {                                        \
+          ESP_LOGE(TAG, "Error: Config::" #field "[%d] is not number.", i); \
+        } else {                                                            \
+          field[i] =                                                        \
+              static_cast<decltype(field)::value_type>(item->valuedouble);  \
+        }                                                                   \
+      }                                                                     \
+    }                                                                       \
   } while (0)
 
 bool Config::to_struct(std::string_view str) {
@@ -61,13 +61,13 @@ bool Config::to_struct(std::string_view str) {
   JSON_READ_NUMBER(json, tire_diameter);
   JSON_READ_NUMBER(json, spur_gear_teeth);
   JSON_READ_NUMBER(json, pinion_gear_teeth);
-  JSON_READ_NUMBER_ARRAY(json, photo_wall_threshold, 4);
-  JSON_READ_NUMBER_ARRAY(json, photo_wall_reference, 4);
-  JSON_READ_NUMBER_ARRAY(json, straight_pid, 3);
+  JSON_READ_NUMBER_ARRAY(json, photo_wall_threshold);
+  JSON_READ_NUMBER_ARRAY(json, photo_wall_reference);
+  JSON_READ_NUMBER_ARRAY(json, straight_pid);
   JSON_READ_NUMBER(json, straight_velocity);
   JSON_READ_NUMBER(json, straight_accel);
   JSON_READ_NUMBER(json, straight_jerk);
-  JSON_READ_NUMBER_ARRAY(json, turn_pid, 3);
+  JSON_READ_NUMBER_ARRAY(json, turn_pid);
   JSON_READ_NUMBER(json, turn_velocity);
   JSON_READ_NUMBER(json, turn_accel);
   JSON_READ_NUMBER(json, turn_jerk);
@@ -76,8 +76,8 @@ bool Config::to_struct(std::string_view str) {
   JSON_READ_NUMBER(json, slalom_turn_jerk);
   JSON_READ_NUMBER(json, slalom_turn_offset_pre);
   JSON_READ_NUMBER(json, slalom_turn_offset_post);
-  JSON_READ_NUMBER_ARRAY(json, maze_goal, 2);
-  JSON_READ_NUMBER_ARRAY(json, size, 2);
+  JSON_READ_NUMBER_ARRAY(json, maze_goal);
+  JSON_READ_NUMBER_ARRAY(json, maze_size);
 
   return true;
 }
@@ -104,20 +104,20 @@ bool Config::to_struct(std::string_view str) {
 #define JSON_WRITE_NUMBER(root, field)                                        \
   do {                                                                        \
     if (!cJSON_AddNumberToObject(root, #field, static_cast<double>(field))) { \
-      JSON_LOGE(TAG, "Error: Failed to write" #field ".");                    \
+      JSON_LOGE(TAG, "Error: Failed to write Config::" #field ".");           \
     }                                                                         \
   } while (0)
 
-#define JSON_WRITE_NUMBER_ARRAY(root, field, len)                            \
+#define JSON_WRITE_NUMBER_ARRAY(root, field)                                 \
   do {                                                                       \
     cJSON *array = cJSON_AddArrayToObject(root, #field);                     \
     if (!array) {                                                            \
       JSON_LOGE(TAG, "Error: Failed to add array.");                         \
     } else {                                                                 \
-      for (size_t i = 0; i < len; i++) {                                     \
+      for (size_t i = 0; i < field.size(); i++) {                            \
         if (!cJSON_AddItemToArray(                                           \
                 array, cJSON_CreateNumber(static_cast<double>(field[i])))) { \
-          ESP_LOGE(TAG, "Error: Failed to add Config" #field "[%d]", i);     \
+          ESP_LOGE(TAG, "Error: Failed to add Config::" #field "[%d].", i);  \
         }                                                                    \
       }                                                                      \
     }                                                                        \
@@ -132,13 +132,13 @@ std::string Config::to_str() {
   JSON_WRITE_NUMBER(json, tire_diameter);
   JSON_WRITE_NUMBER(json, spur_gear_teeth);
   JSON_WRITE_NUMBER(json, pinion_gear_teeth);
-  JSON_WRITE_NUMBER_ARRAY(json, photo_wall_threshold, 4);
-  JSON_WRITE_NUMBER_ARRAY(json, photo_wall_reference, 4);
-  JSON_WRITE_NUMBER_ARRAY(json, straight_pid, 3);
+  JSON_WRITE_NUMBER_ARRAY(json, photo_wall_threshold);
+  JSON_WRITE_NUMBER_ARRAY(json, photo_wall_reference);
+  JSON_WRITE_NUMBER_ARRAY(json, straight_pid);
   JSON_WRITE_NUMBER(json, straight_velocity);
   JSON_WRITE_NUMBER(json, straight_accel);
   JSON_WRITE_NUMBER(json, straight_jerk);
-  JSON_WRITE_NUMBER_ARRAY(json, turn_pid, 3);
+  JSON_WRITE_NUMBER_ARRAY(json, turn_pid);
   JSON_WRITE_NUMBER(json, turn_velocity);
   JSON_WRITE_NUMBER(json, turn_accel);
   JSON_WRITE_NUMBER(json, turn_jerk);
@@ -147,8 +147,8 @@ std::string Config::to_str() {
   JSON_WRITE_NUMBER(json, slalom_turn_jerk);
   JSON_WRITE_NUMBER(json, slalom_turn_offset_pre);
   JSON_WRITE_NUMBER(json, slalom_turn_offset_post);
-  JSON_WRITE_NUMBER_ARRAY(json, maze_goal, 2);
-  JSON_WRITE_NUMBER_ARRAY(json, size, 2);
+  JSON_WRITE_NUMBER_ARRAY(json, maze_goal);
+  JSON_WRITE_NUMBER_ARRAY(json, maze_size);
 
   char *c_str = cJSON_Print(json);
   std::string str(c_str);
@@ -193,4 +193,6 @@ config::Config conf = {
     .slalom_turn_jerk = 0.0f,
     .slalom_turn_offset_pre = 0.0f,
     .slalom_turn_offset_post = 0.0f,
+    .maze_goal = {0, 0},
+    .maze_size = {0, 0},
 };

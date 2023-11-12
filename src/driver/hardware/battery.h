@@ -4,7 +4,7 @@
 #include <memory>
 
 // ESP-IDF
-#include <hal/adc_hal.h>
+#include <hal/adc_types.h>
 
 // Project
 #include "base.h"

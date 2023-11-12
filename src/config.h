@@ -1,7 +1,8 @@
 #pragma once
 
 // C++
-#include <memory>
+#include <array>
+#include <string>
 
 namespace config {
 struct Config {
@@ -11,15 +12,15 @@ struct Config {
   float spur_gear_teeth;
   float pinion_gear_teeth;
   // 壁センサ 壁があるかないかのしきい値
-  int photo_wall_threshold[4];
+  std::array<int, 4> photo_wall_threshold;
   // 壁センサ 迷路中央にいるときの値
-  int photo_wall_reference[4];
+  std::array<int, 4> photo_wall_reference;
   // 走行パラメータ
-  float straight_pid[3];
+  std::array<float, 3> straight_pid;
   float straight_velocity;
   float straight_accel;
   float straight_jerk;
-  float turn_pid[3];
+  std::array<float, 3> turn_pid;
   float turn_velocity;
   float turn_accel;
   float turn_jerk;
@@ -29,8 +30,8 @@ struct Config {
   float slalom_turn_offset_pre;
   float slalom_turn_offset_post;
   // 迷路情報
-  int maze_goal[2];
-  int size[2];
+  std::array<int, 2> maze_goal;
+  std::array<int, 2> maze_size;
 
   [[maybe_unused]] bool read_file(const char *path);
   [[maybe_unused]] bool read_stdin();
