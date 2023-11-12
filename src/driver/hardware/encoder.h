@@ -5,8 +5,8 @@
 #include <memory>
 
 // Project
-#include "../peripherals/spi.hpp"
-#include "base.hpp"
+#include "../peripherals/spi.h"
+#include "base.h"
 
 namespace driver::hardware {
 class Encoder final : DriverBase {

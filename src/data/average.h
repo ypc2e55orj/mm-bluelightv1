@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ringbuffer.hpp"
+#include "ringbuffer.h"
 
 namespace data {
 template <typename T>

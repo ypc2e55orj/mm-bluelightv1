@@ -1,4 +1,4 @@
-#include "imu.hpp"
+#include "imu.h"
 
 // C++
 #include <bitset>
@@ -9,7 +9,7 @@
 #include <esp_intr_alloc.h>
 
 // Project
-#include "base.hpp"
+#include "base.h"
 
 namespace driver::hardware {
 

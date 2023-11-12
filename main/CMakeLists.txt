@@ -1,8 +1,8 @@
 file(
         GLOB_RECURSE SOURCES
-        "main.cpp"
-        "../src/*.cpp"
-        "../src/*.hpp")
+        "main.cc"
+        "../src/*.cc"
+        "../src/*.h")
 
 message("### mm-bluelight ##")
 foreach (SOURCE IN LISTS SOURCES)

@@ -1,12 +1,10 @@
-#include "motor.hpp"
+#include "motor.h"
 
 // C++
 #include <cmath>
 
 // ESP-IDF
 #include <driver/mcpwm_prelude.h>
-
-// Project
 
 namespace driver::hardware {
 /**

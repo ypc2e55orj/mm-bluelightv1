@@ -1,6 +1,4 @@
-#include "fs.hpp"
-
-// C++
+#include "fs.h"
 
 // ESP-IDF
 #include <esp_spiffs.h>

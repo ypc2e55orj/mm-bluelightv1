@@ -1,13 +1,9 @@
-#include "battery.hpp"
-
-// C++
-
-// ESP-IDF
+#include "battery.h"
 
 // Project
-#include "base.hpp"
-#include "data/average.hpp"
-#include "driver/peripherals/adc.hpp"
+#include "base.h"
+#include "data/average.h"
+#include "driver/peripherals/adc.h"
 
 namespace driver::hardware {
 class Battery::BatteryImpl final : DriverBase {

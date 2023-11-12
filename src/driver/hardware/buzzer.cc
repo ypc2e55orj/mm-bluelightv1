@@ -1,4 +1,4 @@
-#include "buzzer.hpp"
+#include "buzzer.h"
 
 // C++
 #include <cmath>
@@ -8,7 +8,7 @@
 #include <driver/rmt_tx.h>
 
 // Project
-#include "task.hpp"
+#include "task.h"
 
 [[maybe_unused]] static constexpr uint32_t C4 = 261;
 [[maybe_unused]] static constexpr uint32_t Cs4 = 277;

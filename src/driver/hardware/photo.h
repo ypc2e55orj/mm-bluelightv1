@@ -9,7 +9,7 @@
 #include <hal/gpio_types.h>
 
 // Project
-#include "base.hpp"
+#include "base.h"
 
 namespace driver::hardware {
 static constexpr size_t PHOTO_COUNTS = 4;

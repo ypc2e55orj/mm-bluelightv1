@@ -1,4 +1,4 @@
-#include "gpio.hpp"
+#include "gpio.h"
 
 // C++
 #include <memory>

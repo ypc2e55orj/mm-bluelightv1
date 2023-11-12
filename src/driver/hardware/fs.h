@@ -3,10 +3,6 @@
 // C++
 #include <memory>
 
-// ESP-IDF
-
-// Project
-
 namespace driver::hardware {
 class Fs {
  private:

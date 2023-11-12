@@ -7,8 +7,8 @@
 #include <freertos/task.h>
 
 // Project
-#include "config.hpp"
-#include "driver/driver.hpp"
+#include "config.h"
+#include "driver/driver.h"
 
 driver::Driver *dri = nullptr;
 

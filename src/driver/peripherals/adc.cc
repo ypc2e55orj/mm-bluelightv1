@@ -1,4 +1,4 @@
-#include "adc.hpp"
+#include "adc.h"
 
 // C++
 #include <stdexcept>

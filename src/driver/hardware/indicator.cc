@@ -1,4 +1,4 @@
-#include "indicator.hpp"
+#include "indicator.h"
 
 // C++
 #include <cstring>
@@ -7,7 +7,7 @@
 #include <driver/rmt_tx.h>
 
 // Project
-#include "base.hpp"
+#include "base.h"
 
 namespace driver::hardware {
 /**

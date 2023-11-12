@@ -3,18 +3,16 @@
 // C++
 #include <memory>
 
-// ESP-IDF
-
 // Project
-#include "hardware/battery.hpp"
-#include "hardware/buzzer.hpp"
-#include "hardware/encoder.hpp"
-#include "hardware/fs.hpp"
-#include "hardware/imu.hpp"
-#include "hardware/indicator.hpp"
-#include "hardware/motor.hpp"
-#include "hardware/photo.hpp"
-#include "peripherals/spi.hpp"
+#include "hardware/battery.h"
+#include "hardware/buzzer.h"
+#include "hardware/encoder.h"
+#include "hardware/fs.h"
+#include "hardware/imu.h"
+#include "hardware/indicator.h"
+#include "hardware/motor.h"
+#include "hardware/photo.h"
+#include "peripherals/spi.h"
 
 namespace driver {
 // Encoder

@@ -1,4 +1,4 @@
-#include "encoder.hpp"
+#include "encoder.h"
 
 // C++
 #include <numbers>
@@ -9,7 +9,7 @@
 #include <esp_intr_alloc.h>
 
 // Project
-#include "base.hpp"
+#include "base.h"
 
 namespace driver::hardware {
 class Encoder::AS5050AImpl final : DriverBase {

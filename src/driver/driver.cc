@@ -1,11 +1,7 @@
-#include "driver.hpp"
+#include "driver.h"
 
 // C++
 #include <memory>
-
-// ESP-IDF
-
-// Project
 
 namespace driver {
 Driver::Driver() {

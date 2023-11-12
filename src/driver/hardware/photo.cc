@@ -1,4 +1,4 @@
-#include "photo.hpp"
+#include "photo.h"
 
 // C++
 #include <array>
@@ -10,9 +10,9 @@
 #include <freertos/task.h>
 
 // Project
-#include "base.hpp"
-#include "driver/peripherals/adc.hpp"
-#include "driver/peripherals/gpio.hpp"
+#include "base.h"
+#include "driver/peripherals/adc.h"
+#include "driver/peripherals/gpio.h"
 
 namespace driver::hardware {
 

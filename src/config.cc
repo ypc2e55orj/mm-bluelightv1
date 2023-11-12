@@ -1,4 +1,4 @@
-#include "config.hpp"
+#include "config.h"
 
 // C++
 #include <cstdint>
@@ -9,8 +9,6 @@
 // ESP-IDF
 #include <cJSON.h>
 #include <esp_log.h>
-
-// Project
 
 namespace config {
 static constexpr auto TAG = "config::Config";

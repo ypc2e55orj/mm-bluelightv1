@@ -4,9 +4,9 @@
 #include <cstdint>
 #include <memory>
 
-// Projects
-#include "../peripherals/spi.hpp"
-#include "base.hpp"
+// Project
+#include "../peripherals/spi.h"
+#include "base.h"
 
 namespace driver::hardware {
 class Imu final : DriverBase {

@@ -7,7 +7,7 @@
 #include <hal/adc_hal.h>
 
 // Project
-#include "base.hpp"
+#include "base.h"
 
 namespace driver::hardware {
 class Battery final : DriverBase {

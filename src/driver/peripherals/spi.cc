@@ -1,4 +1,4 @@
-#include "spi.hpp"
+#include "spi.h"
 
 // C++
 #include <functional>
