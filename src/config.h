@@ -7,31 +7,31 @@
 namespace config {
 struct Config {
   // タイヤの直径
-  float tire_diameter;
+  float tire_diameter = 12.80f;
   // ギア比
-  float spur_gear_teeth;
-  float pinion_gear_teeth;
+  float spur_gear_teeth = 38.0f;
+  float pinion_gear_teeth = 9.0f;
   // 壁センサ 壁があるかないかのしきい値
-  std::array<int, 4> photo_wall_threshold;
+  std::array<int, 4> photo_wall_threshold{0, 0, 0, 0};
   // 壁センサ 迷路中央にいるときの値
-  std::array<int, 4> photo_wall_reference;
+  std::array<int, 4> photo_wall_reference{0, 0, 0, 0};
   // 走行パラメータ
-  std::array<float, 3> straight_pid;
-  float straight_velocity;
-  float straight_accel;
-  float straight_jerk;
-  std::array<float, 3> turn_pid;
-  float turn_velocity;
-  float turn_accel;
-  float turn_jerk;
-  float slalom_turn_velocity;
-  float slalom_turn_accel;
-  float slalom_turn_jerk;
-  float slalom_turn_offset_pre;
-  float slalom_turn_offset_post;
+  std::array<float, 3> straight_pid{0.0f, 0.0f, 0.0f};
+  float straight_velocity = 0.0f;
+  float straight_accel = 0.0f;
+  float straight_jerk = 0.0f;
+  std::array<float, 3> turn_pid{0.0f, 0.0f, 0.0f};
+  float turn_velocity = 0.0f;
+  float turn_accel = 0.0f;
+  float turn_jerk = 0.0f;
+  float slalom_turn_velocity = 0.0f;
+  float slalom_turn_accel = 0.0f;
+  float slalom_turn_jerk = 0.0f;
+  float slalom_turn_offset_pre = 0.0f;
+  float slalom_turn_offset_post = 0.0f;
   // 迷路情報
-  std::array<int, 2> maze_goal;
-  std::array<int, 2> maze_size;
+  std::array<int, 2> maze_goal{0, 0};
+  std::array<int, 2> maze_size{0, 0};
 
   [[maybe_unused]] bool read_file(const char *path);
   [[maybe_unused]] bool read_stdin();
@@ -44,5 +44,3 @@ struct Config {
   std::string to_str();
 };
 }  // namespace config
-
-extern config::Config conf;

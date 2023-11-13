@@ -19,6 +19,7 @@ class Fs::FsImpl {
 
     ESP_ERROR_CHECK(esp_vfs_spiffs_register(&spiffs_config));
   }
+  ~FsImpl() { ESP_ERROR_CHECK(esp_vfs_spiffs_unregister(PARTITION_LABEL)); }
 
   static void info(size_t &total, size_t &used) {
     ESP_ERROR_CHECK(esp_spiffs_info(PARTITION_LABEL, &total, &used));

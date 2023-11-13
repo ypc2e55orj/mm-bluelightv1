@@ -11,13 +11,15 @@
 #include "driver/driver.h"
 
 driver::Driver *dri = nullptr;
+config::Config *conf = nullptr;
 
 [[noreturn]] void mainTask(void *) {
-  vTaskDelay(pdMS_TO_TICKS(100));
+  dri->init_app();
+  vTaskDelay(pdMS_TO_TICKS(500));
   std::cout << "mainTask() start. Core ID: " << xPortGetCoreID() << std::endl;
 
-  conf.read_stdin();
-  conf.write_stdout();
+  conf->read_stdin();
+  conf->write_stdout();
 
   printf("indicator & buzzer test\n");
   dri->buzzer->start(8192, 10, 1);
@@ -31,15 +33,17 @@ driver::Driver *dri = nullptr;
   dri->indicator->update();
   dri->buzzer->stop();
 
+  /*
   printf("motor test\n");
   dri->motor_left->enable(), dri->motor_right->enable();
   dri->motor_left->speed(2000, 4000), dri->motor_right->speed(2000, 4000);
   vTaskDelay(pdMS_TO_TICKS(2000));
   dri->motor_left->speed(0, 4000), dri->motor_right->speed(0, 4000);
   dri->motor_left->disable(), dri->motor_right->disable();
+  */
 
   printf("\x1b[2J");
-  printf("\x1b[?25l");
+  // printf("\x1b[?25l");
   auto xLastWakeTime = xTaskGetTickCount();
   while (true) {
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));  // NOLINT
@@ -95,8 +99,10 @@ driver::Driver *dri = nullptr;
 
 // entrypoint
 extern "C" [[maybe_unused]] void app_main(void) {
-  std::cout << "app_main() start. Core ID: " << xPortGetCoreID() << std::endl;
   dri = new driver::Driver();
+  conf = new config::Config();
+  dri->init_pro();
+  std::cout << "app_main() start. Core ID: " << xPortGetCoreID() << std::endl;
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192 * 2, nullptr, 10, nullptr,
                           1);
 }

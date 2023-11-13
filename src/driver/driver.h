@@ -12,6 +12,7 @@
 #include "hardware/indicator.h"
 #include "hardware/motor.h"
 #include "hardware/photo.h"
+#include "hardware/uart.h"
 #include "peripherals/spi.h"
 
 namespace driver {
@@ -67,6 +68,7 @@ class Driver {
   std::unique_ptr<hardware::Encoder> encoder_left;
   std::unique_ptr<hardware::Encoder> encoder_right;
   std::unique_ptr<hardware::Fs> fs;
+  std::unique_ptr<hardware::Uart> uart;
   std::unique_ptr<hardware::Imu> imu;
   std::unique_ptr<hardware::Indicator> indicator;
   std::unique_ptr<hardware::Motor> motor_left;
@@ -75,5 +77,8 @@ class Driver {
 
   explicit Driver();
   ~Driver();
+
+  void init_pro();
+  void init_app();
 };
 }  // namespace driver

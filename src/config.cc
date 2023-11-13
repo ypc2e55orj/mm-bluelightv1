@@ -92,7 +92,11 @@ bool Config::to_struct(std::string_view str) {
 }
 [[maybe_unused]] bool Config::read_stdin() {
   std::string buf, str;
-  while (std::cin >> buf) {
+  while (std::getline(std::cin, buf)) {
+    if (buf[0] == '$') {
+      break;
+    }
+    std::cout << buf << std::endl;
     str += buf;
   }
 
@@ -173,26 +177,3 @@ std::string Config::to_str() {
 #undef JSON_WRITE_NUMBER
 #undef JSON_WRITE_NUMBER_ARRAY
 }  // namespace config
-
-config::Config conf = {
-    .tire_diameter = 12.80f,
-    .spur_gear_teeth = 38.0f,
-    .pinion_gear_teeth = 9.0f,
-    .photo_wall_threshold = {0, 0, 0, 0},
-    .photo_wall_reference = {0, 0, 0, 0},
-    .straight_pid = {0.0f, 0.0f, 0.0f},
-    .straight_velocity = 0.0f,
-    .straight_accel = 0.0f,
-    .straight_jerk = 0.0f,
-    .turn_pid = {0.0f, 0.0f, 0.0f},
-    .turn_velocity = 0.0f,
-    .turn_accel = 0.0f,
-    .turn_jerk = 0.0f,
-    .slalom_turn_velocity = 0.0f,
-    .slalom_turn_accel = 0.0f,
-    .slalom_turn_jerk = 0.0f,
-    .slalom_turn_offset_pre = 0.0f,
-    .slalom_turn_offset_post = 0.0f,
-    .maze_goal = {0, 0},
-    .maze_size = {0, 0},
-};
