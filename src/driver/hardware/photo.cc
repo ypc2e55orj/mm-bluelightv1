@@ -76,7 +76,7 @@ class Photo::PhotoImpl final : DriverBase {
     // 読み取り
     this_ptr->adc_[this_ptr->index_]->read_isr(
         this_ptr->result_[this_ptr->index_].flash);
-    // 受光
+    // 消灯
     this_ptr->gpio_[this_ptr->index_]->set(false);
     // タイマー停止
     gptimer_stop(timer);  // ESP_ERROR_CHECK(gptimer_stop(timer));
