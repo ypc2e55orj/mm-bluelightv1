@@ -11,8 +11,8 @@
 namespace driver::hardware {
 class Encoder final : DriverBase {
  private:
-  class AS5050AImpl;
-  std::unique_ptr<AS5050AImpl> impl_;
+  class As5050aImpl;
+  std::unique_ptr<As5050aImpl> impl_;
 
  public:
   explicit Encoder(peripherals::Spi &spi, gpio_num_t spics_io_num);
