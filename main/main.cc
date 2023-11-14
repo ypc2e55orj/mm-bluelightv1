@@ -3,35 +3,39 @@
 #include <iostream>
 
 // ESP-IDF
+#include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
 // Project
 #include "config.h"
 #include "driver/driver.h"
+#include "sensor.h"
+
+static constexpr auto TAG = "mm-bluelight";
 
 driver::Driver *dri = nullptr;
 config::Config *conf = nullptr;
+sensor::Sensor *sens = nullptr;
 
 [[noreturn]] void mainTask(void *) {
+  ESP_LOGI(TAG, "mainTask() is started. Core ID: %d", xPortGetCoreID());
+  ESP_LOGI(TAG, "Initializing driver (for app cpu)");
   dri->init_app();
-  vTaskDelay(pdMS_TO_TICKS(500));
-  std::cout << "mainTask() start. Core ID: " << xPortGetCoreID() << std::endl;
-
-  conf->read_stdin();
-  conf->write_stdout();
-
-  printf("indicator & buzzer test\n");
-  dri->buzzer->start(8192, 10, 1);
-  for (int i = 0; i < 100; i++) {
-    dri->buzzer->set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
-    dri->indicator->rainbow_yield();
-    dri->indicator->update();
-    vTaskDelay(pdMS_TO_TICKS(20));
-  }
   dri->indicator->clear();
   dri->indicator->update();
-  dri->buzzer->stop();
+
+  const auto config_path = std::string(dri->fs->base_path()) + "/config.json";
+  ESP_LOGI(TAG, "Reading %s", config_path.c_str());
+  if (!conf->read_file(config_path)) {
+    ESP_LOGW(TAG, "%s is not found. creating...", config_path.c_str());
+    conf->write_file(config_path);
+  }
+  conf->write_stdout();
+
+  dri->buzzer->start(8192, 10, 1);
+  dri->buzzer->set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
+  sens->start(8192, 10, 0);
 
   /*
   printf("motor test\n");
@@ -42,16 +46,14 @@ config::Config *conf = nullptr;
   dri->motor_left->disable(), dri->motor_right->disable();
   */
 
+  // dri->console->start();
   printf("\x1b[2J");
   // printf("\x1b[?25l");
   auto xLastWakeTime = xTaskGetTickCount();
   while (true) {
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));  // NOLINT
-    dri->photo->update();
-    dri->battery->update();
-    dri->imu->update();
-    dri->encoder_left->update();
-    dri->encoder_right->update();
+    dri->indicator->rainbow_yield();
+    dri->indicator->update();
     auto gyro = dri->imu->gyro();
     auto accel = dri->imu->accel();
     printf("\x1b[0;0H");
@@ -99,10 +101,12 @@ config::Config *conf = nullptr;
 
 // entrypoint
 extern "C" [[maybe_unused]] void app_main(void) {
+  ESP_LOGI(TAG, "app_main() is started. Core ID: %d", xPortGetCoreID());
   dri = new driver::Driver();
   conf = new config::Config();
+  sens = new sensor::Sensor(dri);
+  ESP_LOGI(TAG, "Initializing driver (for pro cpu)");
   dri->init_pro();
-  std::cout << "app_main() start. Core ID: " << xPortGetCoreID() << std::endl;
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192 * 2, nullptr, 10, nullptr,
                           1);
 }
