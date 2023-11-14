@@ -14,7 +14,7 @@
 namespace driver::hardware {
 static constexpr size_t PHOTO_COUNTS = 4;
 
-class Photo final : DriverBase {
+class Photo final : public DriverBase {
  private:
   class PhotoImpl;
   std::unique_ptr<PhotoImpl> impl_;

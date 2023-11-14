@@ -12,7 +12,7 @@
 #include "base.h"
 
 namespace driver::hardware {
-class Indicator final : DriverBase {
+class Indicator final : public DriverBase {
  private:
   class IndicatorImpl;
   std::unique_ptr<IndicatorImpl> impl_;

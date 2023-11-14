@@ -6,7 +6,7 @@
 #include "driver/peripherals/adc.h"
 
 namespace driver::hardware {
-class Battery::BatteryImpl final : DriverBase {
+class Battery::BatteryImpl final : public DriverBase {
  private:
   // バッテリー分圧抵抗に接続されたADC
   peripherals::Adc adc_;

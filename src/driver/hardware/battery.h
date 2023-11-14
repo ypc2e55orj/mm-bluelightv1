@@ -10,7 +10,7 @@
 #include "base.h"
 
 namespace driver::hardware {
-class Battery final : DriverBase {
+class Battery final : public DriverBase {
  private:
   class BatteryImpl;
   std::unique_ptr<BatteryImpl> impl_;

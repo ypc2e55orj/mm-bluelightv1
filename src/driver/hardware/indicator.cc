@@ -219,7 +219,7 @@ class RmtIndicator {
   }
 };
 
-class Indicator::IndicatorImpl final : DriverBase {
+class Indicator::IndicatorImpl final : public DriverBase {
  private:
   RmtIndicator indicator_;
 

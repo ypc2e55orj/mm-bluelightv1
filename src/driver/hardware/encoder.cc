@@ -12,7 +12,7 @@
 #include "base.h"
 
 namespace driver::hardware {
-class Encoder::As5050aImpl final : DriverBase {
+class Encoder::As5050aImpl final : public DriverBase {
  private:
   peripherals::Spi &spi_;
   int index_;

@@ -9,7 +9,7 @@
 #include "base.h"
 
 namespace driver::hardware {
-class Imu final : DriverBase {
+class Imu final : public DriverBase {
  private:
   class Lsm6dsrxImpl;
   std::unique_ptr<Lsm6dsrxImpl> impl_;

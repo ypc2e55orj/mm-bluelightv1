@@ -16,7 +16,7 @@
 
 namespace driver::hardware {
 
-class Photo::PhotoImpl final : DriverBase {
+class Photo::PhotoImpl final : public DriverBase {
  private:
   static constexpr auto TAG = "driver::hardware::Photo::PhotoImpl";
 

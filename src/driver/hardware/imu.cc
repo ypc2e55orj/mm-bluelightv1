@@ -13,7 +13,7 @@
 
 namespace driver::hardware {
 
-class Imu::Lsm6dsrxImpl final : DriverBase {
+class Imu::Lsm6dsrxImpl final : public DriverBase {
  private:
   peripherals::Spi &spi_;
   int index_;

@@ -9,7 +9,7 @@
 #include "base.h"
 
 namespace driver::hardware {
-class Encoder final : DriverBase {
+class Encoder final : public DriverBase {
  private:
   class As5050aImpl;
   std::unique_ptr<As5050aImpl> impl_;
