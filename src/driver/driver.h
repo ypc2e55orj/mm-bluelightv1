@@ -7,13 +7,13 @@
 #include "hardware/battery.h"
 #include "hardware/buzzer.h"
 #include "hardware/encoder.h"
-#include "hardware/fs.h"
 #include "hardware/imu.h"
 #include "hardware/indicator.h"
 #include "hardware/motor.h"
 #include "hardware/photo.h"
-#include "hardware/uart.h"
 #include "peripherals/spi.h"
+#include "system/console.h"
+#include "system/fs.h"
 
 namespace driver {
 // Encoder
@@ -63,12 +63,13 @@ class Driver {
   std::unique_ptr<peripherals::Spi> spi_imu_;
 
  public:
+  std::unique_ptr<system::Fs> fs;
+  std::unique_ptr<system::Console> console;
+
   std::unique_ptr<hardware::Battery> battery;
   std::unique_ptr<hardware::Buzzer> buzzer;
   std::unique_ptr<hardware::Encoder> encoder_left;
   std::unique_ptr<hardware::Encoder> encoder_right;
-  std::unique_ptr<hardware::Fs> fs;
-  std::unique_ptr<hardware::Uart> uart;
   std::unique_ptr<hardware::Imu> imu;
   std::unique_ptr<hardware::Indicator> indicator;
   std::unique_ptr<hardware::Motor> motor_left;

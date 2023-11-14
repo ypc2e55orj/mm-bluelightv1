@@ -4,7 +4,7 @@
 #include <memory>
 
 namespace driver {
-Driver::Driver() {}
+Driver::Driver() = default;
 Driver::~Driver() = default;
 
 void Driver::init_pro() {
@@ -63,8 +63,8 @@ void Driver::init_pro() {
 
 void Driver::init_app() {
   // clang-format off
-  uart = std::make_unique<hardware::Uart>();
-  fs = std::make_unique<hardware::Fs>(10);
+  console = std::make_unique<system::Console>();
+  fs = std::make_unique<system::Fs>(10);
 
   indicator = std::make_unique<hardware::Indicator>(
       GPIO_NUM_INDICATOR,

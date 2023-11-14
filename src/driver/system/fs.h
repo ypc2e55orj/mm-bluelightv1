@@ -3,7 +3,7 @@
 // C++
 #include <memory>
 
-namespace driver::hardware {
+namespace driver::system {
 class Fs {
  private:
   class FsImpl;
@@ -14,5 +14,6 @@ class Fs {
   ~Fs();
 
   void info(size_t &total, size_t &used);
+  const char *base_path();
 };
-}  // namespace driver::hardware
+}  // namespace driver::system
