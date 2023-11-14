@@ -22,5 +22,7 @@ class Sensor {
 
   bool start(uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID);
   bool stop();
+
+  int64_t delta_us();
 };
 }  // namespace sensor

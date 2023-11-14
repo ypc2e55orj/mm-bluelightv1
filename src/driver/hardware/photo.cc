@@ -150,13 +150,18 @@ class Photo::PhotoImpl final : public DriverBase {
 
   bool update() override {
     task_ = xTaskGetCurrentTaskHandle();
-    bool ret = ESP_OK == gptimer_enable(receive_timer_);
-    ret = ret && ESP_OK == gptimer_enable(flash_timer_);
-    ret = ret && ESP_OK == gptimer_start(flash_timer_);
+    esp_err_t receive_enable_err = gptimer_enable(receive_timer_);
+    esp_err_t flash_enable_err = gptimer_enable(flash_timer_);
+    esp_err_t flash_start_err = gptimer_start(flash_timer_);
+    return receive_enable_err == ESP_OK && flash_enable_err == ESP_OK &&
+           flash_start_err == ESP_OK;
+  }
+
+  bool wait() {
     ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
-    ret = ret && ESP_OK == gptimer_disable(receive_timer_);
-    ret = ret && ESP_OK == gptimer_disable(flash_timer_);
-    return ret;
+    esp_err_t receive_disable_err = gptimer_disable(receive_timer_);
+    esp_err_t flash_disable_err = gptimer_disable(flash_timer_);
+    return receive_disable_err == ESP_OK && flash_disable_err == ESP_OK;
   }
 
   const Result &left90() { return result_[LEFT90_POS]; }
@@ -169,6 +174,7 @@ Photo::Photo(Config &config) : impl_(new PhotoImpl(config)) {}
 Photo::~Photo() = default;
 
 bool Photo::update() { return impl_->update(); }
+bool Photo::wait() { return impl_->wait(); }
 
 const Photo::Result &Photo::left90() { return impl_->left90(); }
 const Photo::Result &Photo::left45() { return impl_->left45(); }

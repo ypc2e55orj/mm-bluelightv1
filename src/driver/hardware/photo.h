@@ -35,6 +35,7 @@ class Photo final : public DriverBase {
   ~Photo();
 
   bool update() override;
+  bool wait();
 
   const Result &left90();
   const Result &left45();

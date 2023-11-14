@@ -57,6 +57,12 @@ sensor::Sensor *sens = nullptr;
     auto gyro = dri->imu->gyro();
     auto accel = dri->imu->accel();
     printf("\x1b[0;0H");
+
+    printf(
+        "Sensor\n"
+        "  delta: %lld\n\n",
+        sens->delta_us());
+
     printf(
         "Battery\n"
         "  voltage: %4d\n"
