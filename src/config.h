@@ -33,10 +33,10 @@ struct Config {
   std::array<int, 2> maze_goal{0, 0};
   std::array<int, 2> maze_size{0, 0};
 
-  [[maybe_unused]] bool read_file(const char *path);
+  [[maybe_unused]] bool read_file(std::string_view path);
   [[maybe_unused]] bool read_stdin();
 
-  [[maybe_unused]] bool write_file(const char *path);
+  [[maybe_unused]] bool write_file(std::string_view path);
   [[maybe_unused]] bool write_stdout();
 
  private:

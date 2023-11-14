@@ -81,8 +81,8 @@ bool Config::to_struct(std::string_view str) {
 
   return true;
 }
-[[maybe_unused]] bool Config::read_file(const char *const path) {
-  std::ifstream file(path);
+[[maybe_unused]] bool Config::read_file(std::string_view path) {
+  std::ifstream file((std::string(path)));
   std::stringstream ss;
   if (!file) {
     return false;
@@ -161,8 +161,8 @@ std::string Config::to_str() {
 
   return str;
 }
-[[maybe_unused]] bool Config::write_file(const char *path) {
-  std::ofstream file(path);
+[[maybe_unused]] bool Config::write_file(std::string_view path) {
+  std::ofstream file((std::string(path)));
   if (!file) {
     return false;
   }
