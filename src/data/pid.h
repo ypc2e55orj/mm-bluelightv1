@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+namespace data {
 class Pid {
  private:
   float kp_;
@@ -48,3 +49,4 @@ class Pid {
     return ret;
   }
 };
+}  // namespace data
