@@ -10,10 +10,12 @@
 // Project
 #include "config.h"
 #include "driver/driver.h"
+#include "odometry.h"
 #include "sensor.h"
 
 static constexpr auto TAG = "mm-bluelight";
 
+odometry::Odometry *odom = nullptr;
 driver::Driver *dri = nullptr;
 config::Config *conf = nullptr;
 sensor::Sensor *sens = nullptr;
@@ -60,7 +62,7 @@ sensor::Sensor *sens = nullptr;
 
     printf(
         "Sensor\n"
-        "  delta: %lld\n\n",
+        "  delta: %ld\n\n",
         sens->delta_us());
 
     printf(
@@ -99,9 +101,13 @@ sensor::Sensor *sens = nullptr;
     printf(
         "Encoder\n"
         "  left : %f\n"
-        "  right: %f\n\n",
+        "  right: %f\n"
+        "  speed: %f\n"
+        "  length: %f\n\n",
         static_cast<double>(dri->encoder_left->degree()),
-        static_cast<double>(dri->encoder_right->degree()));
+        static_cast<double>(dri->encoder_right->degree()),
+        static_cast<double>(odom->velocity()),
+        static_cast<double>(odom->length()));
   }
 }
 
@@ -110,7 +116,8 @@ extern "C" [[maybe_unused]] void app_main(void) {
   ESP_LOGI(TAG, "app_main() is started. Core ID: %d", xPortGetCoreID());
   dri = new driver::Driver();
   conf = new config::Config();
-  sens = new sensor::Sensor(dri);
+  odom = new odometry::Odometry(dri, conf);
+  sens = new sensor::Sensor(dri, odom);
   ESP_LOGI(TAG, "Initializing driver (for pro cpu)");
   dri->init_pro();
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192 * 2, nullptr, 10, nullptr,

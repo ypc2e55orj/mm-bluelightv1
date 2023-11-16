@@ -25,11 +25,10 @@ class Encoder::As5050aImpl final : public DriverBase {
 
   // 分解能あたりの角度
   static constexpr uint16_t RESOLUTION = 1024;  // 10 bit
-  static constexpr float RESOLUTION_PER_MILLI_RADIAN =
-      (2.0f * std::numbers::pi_v<float> * 1000.0f) /
-      static_cast<float>(RESOLUTION);
-  static constexpr float RESOLUTION_PER_MILLI_DEGREE =
-      (360.f * 1000.0f) / static_cast<float>(RESOLUTION);
+  static constexpr float RESOLUTION_PER_RADIAN =
+      (2.0f * std::numbers::pi_v<float>) / static_cast<float>(RESOLUTION - 1);
+  static constexpr float RESOLUTION_PER_DEGREE =
+      360.f / static_cast<float>(RESOLUTION - 1);
 
   // レジスタ
   static constexpr uint16_t REG_MASTER_RESET = 0x33A5;
@@ -91,11 +90,11 @@ class Encoder::As5050aImpl final : public DriverBase {
   }
 
   [[nodiscard]] float radian() const {
-    return static_cast<float>(angle_) * RESOLUTION_PER_MILLI_RADIAN;
+    return static_cast<float>(angle_) * RESOLUTION_PER_RADIAN;
   }
 
   [[nodiscard]] float degree() const {
-    return static_cast<float>(angle_) * RESOLUTION_PER_MILLI_DEGREE;
+    return static_cast<float>(angle_) * RESOLUTION_PER_DEGREE;
   }
 };
 
