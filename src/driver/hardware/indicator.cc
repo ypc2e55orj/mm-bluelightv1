@@ -113,6 +113,10 @@ class RmtIndicator {
         buffer_(nullptr),
         led_counts_(led_counts),
         buffer_size_(0) {
+    // 送信バッファを初期化
+    buffer_ = reinterpret_cast<uint8_t *>(heap_caps_calloc(
+        WS2812C_COLOR_DEPTH * led_counts, sizeof(uint8_t), MALLOC_CAP_DMA));
+    buffer_size_ = WS2812C_COLOR_DEPTH * led_counts * sizeof(uint8_t);
     // RMT送信チャンネルを初期化
     rmt_tx_channel_config_t rmt_config = {};
     rmt_config.gpio_num = indicator_num;
@@ -150,34 +154,12 @@ class RmtIndicator {
     bytes_encoder_config.bit1.duration1 =
         static_cast<uint16_t>(0.3 * bit_ticks);
     bytes_encoder_config.flags.msb_first = 1;
-    if (rmt_new_bytes_encoder(&bytes_encoder_config,
-                              &encoder_->bytes_encoder)) {
-      free(encoder_);
-      encoder_ = nullptr;
-      throw std::runtime_error(
-          "Indicator::RmtIndicator::RmtIndicator(): Failed to "
-          "rmt_new_bytes_encoder()");
-    }
+    ESP_ERROR_CHECK(
+        rmt_new_bytes_encoder(&bytes_encoder_config, &encoder_->bytes_encoder));
     // copy_encoderを初期化
     rmt_copy_encoder_config_t copy_encoder_config = {};
-    if (rmt_new_copy_encoder(&copy_encoder_config, &encoder_->copy_encoder)) {
-      free(encoder_);
-      encoder_ = nullptr;
-      throw std::runtime_error(
-          "Indicator::RmtIndicator::RmtIndicator(): Failed to "
-          "rmt_new_copy_encoder()");
-    }
-    // 送信バッファを初期化
-    buffer_ = reinterpret_cast<uint8_t *>(heap_caps_calloc(
-        WS2812C_COLOR_DEPTH * led_counts, sizeof(uint8_t), MALLOC_CAP_DMA));
-    if (!buffer_) {
-      free(encoder_);
-      encoder_ = nullptr;
-      throw std::runtime_error(
-          "Indicator::RmtIndicator::RmtIndicator(): Failed to "
-          "heap_caps_calloc()");
-    }
-    buffer_size_ = WS2812C_COLOR_DEPTH * led_counts * sizeof(uint8_t);
+    ESP_ERROR_CHECK(
+        rmt_new_copy_encoder(&copy_encoder_config, &encoder_->copy_encoder));
   }
   ~RmtIndicator() {
     rmt_del_channel(channel_);
@@ -222,10 +204,11 @@ class RmtIndicator {
 class Indicator::IndicatorImpl final : public DriverBase {
  private:
   RmtIndicator indicator_;
+  uint8_t rainbow_index_;
 
  public:
   explicit IndicatorImpl(gpio_num_t indicator_num, uint16_t led_counts)
-      : indicator_(indicator_num, led_counts, 4, true) {
+      : indicator_(indicator_num, led_counts, 4, true), rainbow_index_(0) {
     indicator_.enable();
   }
   ~IndicatorImpl() { indicator_.disable(); }
@@ -251,15 +234,14 @@ class Indicator::IndicatorImpl final : public DriverBase {
   };
   // https://github.com/adafruit/Adafruit_NeoPixel/blob/9cf5e96e8f436cc3460f6e7a32b20aceab6e905c/examples/strandtest_wheel/strandtest_wheel.ino
   void rainbow_yield(bool reset) {
-    static uint8_t p = 0;
     if (reset) {
-      p = 0;
+      rainbow_index_ = 0;
     }
 
     for (int i = 0; i < indicator_.counts(); i++) {
-      indicator_.set(i, wheel((i + p) & 0xFF));
+      indicator_.set(i, wheel((i + rainbow_index_) & 0xFF));
     }
-    p++;
+    rainbow_index_++;
   }
 };
 

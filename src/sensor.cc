@@ -11,24 +11,31 @@ namespace sensor {
 class Sensor::SensorImpl final : public task::Task {
  private:
   driver::Driver *dri_;
-  int64_t delta_us_;
+  int64_t prev_us_, delta_us_;
 
-  void setup() override {}
+  void setup() override { prev_us_ = esp_timer_get_time(); }
   void loop() override {
-    auto start = esp_timer_get_time();
+    auto curr_us = esp_timer_get_time();
+    delta_us_ = curr_us - prev_us_;
+    prev_us_ = curr_us;
     dri_->photo->update();
     dri_->imu->update();
     dri_->encoder_left->update();
     dri_->encoder_right->update();
     dri_->battery->update();
     dri_->photo->wait();
-    delta_us_ = esp_timer_get_time() - start;
   }
-  void end() override {}
+  void end() override {
+    prev_us_ = 0;
+    delta_us_ = 0;
+  }
 
  public:
   explicit SensorImpl(driver::Driver *dri)
-      : task::Task(__func__, pdMS_TO_TICKS(1)), dri_(dri), delta_us_() {}
+      : task::Task(__func__, pdMS_TO_TICKS(1)),
+        dri_(dri),
+        prev_us_(),
+        delta_us_() {}
   ~SensorImpl() override = default;
 
   [[nodiscard]] int64_t delta_us() const { return delta_us_; }

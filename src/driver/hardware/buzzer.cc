@@ -177,12 +177,8 @@ class RmtBuzzer {
     encoder_->resolution = BUZZER_RESOLUTION_HZ;
     // copy_encoderを初期化
     rmt_copy_encoder_config_t copy_encoder_config = {};
-    if (rmt_new_copy_encoder(&copy_encoder_config, &encoder_->copy_encoder)) {
-      free(encoder_);
-      encoder_ = nullptr;
-      throw std::runtime_error(
-          "Buzzer::RmtBuzzer::RmtBuzzer(): Failed to rmt_new_copy_encoder()");
-    }
+    ESP_ERROR_CHECK(
+        rmt_new_copy_encoder(&copy_encoder_config, &encoder_->copy_encoder));
   }
 
   ~RmtBuzzer() { rmt_del_channel(channel_); }
@@ -228,7 +224,8 @@ class Buzzer::BuzzerImpl final : public task::Task {
       if (p->frequency != 0 && p->duration != 0) {
         buzzer_.tone(p);
       } else if (p->duration != 0) {
-        vTaskDelay(pdMS_TO_TICKS(p->duration));
+        auto xLastWakeTime = xTaskGetTickCount();
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(p->duration));  // NOLINT
       }
       index_++;
     } else if (loop_) {
