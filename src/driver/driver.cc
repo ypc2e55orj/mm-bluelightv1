@@ -58,6 +58,10 @@ void Driver::init_pro() {
           GPIO_NUM_PHOTO_RIGHT45,
           GPIO_NUM_PHOTO_RIGHT90}};
   photo = std::make_unique<hardware::Photo>(config);
+
+  indicator = std::make_unique<hardware::Indicator>(
+    GPIO_NUM_INDICATOR,
+    NUM_INDICATORS);
   // clang-format off
 }
 
@@ -66,12 +70,8 @@ void Driver::init_app() {
   console = std::make_unique<system::Console>();
   fs = std::make_unique<system::Fs>(10);
 
-  indicator = std::make_unique<hardware::Indicator>(
-      GPIO_NUM_INDICATOR,
-      NUM_INDICATORS);
-
   buzzer = std::make_unique<hardware::Buzzer>(
-      GPIO_NUM_BUZZER);
+    GPIO_NUM_BUZZER);
   // clang-format on
 }
 }  // namespace driver
