@@ -6,7 +6,9 @@
 
 namespace config {
 struct Config {
-  // タイヤの直径
+  // 停止電圧 [mV]
+  int low_voltage = 3500;
+  // タイヤの直径 [mm]
   float tire_diameter = 12.80f;
   // ギア比
   float spur_gear_teeth = 38.0f;
