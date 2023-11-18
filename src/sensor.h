@@ -9,7 +9,7 @@
 
 // Project
 #include "driver/driver.h"
-#include "odometry.h"
+#include "motion.h"
 
 namespace sensor {
 class Sensor {
@@ -18,12 +18,12 @@ class Sensor {
   std::unique_ptr<SensorImpl> impl_;
 
  public:
-  explicit Sensor(driver::Driver *dri, odometry::Odometry *odom);
+  explicit Sensor(driver::Driver &dri, motion::Motion &mot);
   ~Sensor();
 
   bool start(uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID);
   bool stop();
 
-  int32_t delta_us();
+  uint32_t delta_us();
 };
 }  // namespace sensor

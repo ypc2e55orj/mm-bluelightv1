@@ -65,5 +65,7 @@ class Task {
     req_stop_ = true;
     return ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != 0;
   }
+  // タスクハンドル取得
+  TaskHandle_t handle() { return task_; }
 };
 }  // namespace task

@@ -1,6 +1,5 @@
 // C++
 #include <cstdio>
-#include <iostream>
 
 // ESP-IDF
 #include <esp_log.h>
@@ -10,11 +9,13 @@
 // Project
 #include "config.h"
 #include "driver/driver.h"
+#include "motion.h"
 #include "odometry.h"
 #include "sensor.h"
 
 static constexpr auto TAG = "mm-bluelight";
 
+motion::Motion *mot = nullptr;
 odometry::Odometry *odom = nullptr;
 driver::Driver *dri = nullptr;
 config::Config *conf = nullptr;
@@ -28,6 +29,7 @@ sensor::Sensor *sens = nullptr;
   dri->indicator->update();
 
   const auto config_path = std::string(dri->fs->base_path()) + "/config.json";
+  // conf->write_file(config_path);
   ESP_LOGI(TAG, "Reading %s", config_path.c_str());
   if (!conf->read_file(config_path)) {
     ESP_LOGW(TAG, "%s is not found. creating...", config_path.c_str());
@@ -37,16 +39,8 @@ sensor::Sensor *sens = nullptr;
 
   dri->buzzer->start(8192, 10, 1);
   dri->buzzer->set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
-  sens->start(8192, 10, 0);
-
-  /*
-  printf("motor test\n");
-  dri->motor_left->enable(), dri->motor_right->enable();
-  dri->motor_left->speed(2000, 4000), dri->motor_right->speed(2000, 4000);
-  vTaskDelay(pdMS_TO_TICKS(2000));
-  dri->motor_left->speed(0, 4000), dri->motor_right->speed(0, 4000);
-  dri->motor_left->disable(), dri->motor_right->disable();
-  */
+  mot->start(8192, 25, 0);
+  sens->start(8192, 25, 0);
 
   // dri->console->start();
   printf("\x1b[2J");
@@ -64,6 +58,11 @@ sensor::Sensor *sens = nullptr;
         "Sensor\n"
         "  delta: %ld\n\n",
         sens->delta_us());
+
+    printf(
+        "Motion\n"
+        "  delta: %ld\n\n",
+        mot->delta_us());
 
     printf(
         "Battery\n"
@@ -100,14 +99,12 @@ sensor::Sensor *sens = nullptr;
 
     printf(
         "Encoder\n"
-        "  left : %f\n"
-        "  right: %f\n"
-        "  speed: %f\n"
-        "  length: %f\n\n",
-        static_cast<double>(dri->encoder_left->degree()),
-        static_cast<double>(dri->encoder_right->degree()),
-        static_cast<double>(odom->velocity()),
-        static_cast<double>(odom->length()));
+        "  Left\n"
+        "    raw    : %f\n"
+        "  Right\n"
+        "    raw    : %f\n",
+        static_cast<double>(dri->encoder_left->radian()),
+        static_cast<double>(dri->encoder_right->radian()));
   }
 }
 
@@ -116,8 +113,9 @@ extern "C" [[maybe_unused]] void app_main(void) {
   ESP_LOGI(TAG, "app_main() is started. Core ID: %d", xPortGetCoreID());
   dri = new driver::Driver();
   conf = new config::Config();
-  odom = new odometry::Odometry(dri, conf);
-  sens = new sensor::Sensor(dri, odom);
+  odom = new odometry::Odometry(*dri, *conf);
+  mot = new motion::Motion(*dri, *conf, *odom);
+  sens = new sensor::Sensor(*dri, *mot);
   ESP_LOGI(TAG, "Initializing driver (for pro cpu)");
   dri->init_pro();
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192 * 2, nullptr, 10, nullptr,

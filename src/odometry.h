@@ -14,14 +14,25 @@ class Odometry {
   std::unique_ptr<OdometryImpl> impl_;
 
  public:
-  explicit Odometry(driver::Driver *dri, config::Config *conf);
+  struct Wheel {
+    bool reset;
+    float previous;          // [rad]
+    float angular_velocity;  // [rad/s]
+    float velocity;          // [mm/s]
+    float length;            // [mm]
+  };
+  struct Wheels {
+    Wheel left, right;
+    float velocity;  // [mm/s]
+    float length;    // [mm]
+  };
+
+  explicit Odometry(driver::Driver &dri, config::Config &conf);
   ~Odometry();
 
   void reset();
-  void update(int32_t delta_us);
+  void update(uint32_t delta_us);
 
-  float velocity();
-  float length();
+  const Wheels &wheels();
 };
-
 }  // namespace odometry
