@@ -1,9 +1,12 @@
 #pragma once
 
+// C++
+#include <cstdint>
+
+// ESP-IDF
+#include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-
-#include <cstdint>
 
 namespace task {
 // タスク基底クラス
@@ -19,6 +22,10 @@ class Task {
   TaskHandle_t notify_dest_;
   // 停止リクエスト
   bool req_stop_;
+  // 前回の時刻
+  int64_t prev_us_;
+  // 前回との差分
+  uint32_t delta_us_;
 
  protected:
   // 実行されるタスク
@@ -26,9 +33,14 @@ class Task {
     auto this_ptr = reinterpret_cast<Task *>(pvParameters);
     // 初期化
     this_ptr->setup();
+    this_ptr->delta_us_ = 0;
+    this_ptr->prev_us_ = esp_timer_get_time();
     auto xLastWakeTime = xTaskGetTickCount();
     while (!this_ptr->req_stop_) {
       xTaskDelayUntil(&xLastWakeTime, this_ptr->tick_);
+      auto curr_us = esp_timer_get_time();
+      this_ptr->delta_us_ = static_cast<uint32_t>(curr_us - this_ptr->prev_us_);
+      this_ptr->prev_us_ = curr_us;
       this_ptr->loop();
     }
     // 終了
@@ -48,7 +60,9 @@ class Task {
         task_(nullptr),
         tick_(tick),
         notify_dest_(nullptr),
-        req_stop_(false) {}
+        req_stop_(false),
+        prev_us_(),
+        delta_us_() {}
   virtual ~Task() = default;
 
   // タスク開始
@@ -67,5 +81,7 @@ class Task {
   }
   // タスクハンドル取得
   TaskHandle_t handle() { return task_; }
+  // 計測実行周期の取得
+  [[nodiscard]] uint32_t delta_us() const { return delta_us_; }
 };
 }  // namespace task

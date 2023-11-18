@@ -1,7 +1,6 @@
 #include "sensor.h"
 
 // ESP-IDF
-#include <esp_timer.h>
 
 // Project
 #include "driver/driver.h"
@@ -16,18 +15,13 @@ class Sensor::SensorImpl final : public task::Task {
   driver::Driver &dri_;
   motion::Motion &mot_;
 
-  int64_t prev_us_;
-  uint32_t delta_us_;
-
-  void update() {
-    auto curr_us = esp_timer_get_time();
-    delta_us_ = static_cast<uint32_t>(curr_us - prev_us_);
-    prev_us_ = curr_us;
+  void update() const {
     dri_.photo->update();
     dri_.imu->update();
     dri_.encoder_left->update();
     dri_.encoder_right->update();
     dri_.battery->update();
+    dri_.indicator->update();
     dri_.photo->wait();
   }
 
@@ -41,23 +35,14 @@ class Sensor::SensorImpl final : public task::Task {
   void loop() override {
     update();
     // motionタスクにセンサ値更新完了通知
-    mot_.update_notify(delta_us_);
+    mot_.update_notify(delta_us());
   }
-  void end() override {
-    prev_us_ = 0;
-    delta_us_ = 0;
-  }
+  void end() override {}
 
  public:
   explicit SensorImpl(driver::Driver &dri, motion::Motion &mot)
-      : task::Task(__func__, pdMS_TO_TICKS(1)),
-        dri_(dri),
-        mot_(mot),
-        prev_us_(),
-        delta_us_() {}
+      : task::Task(__func__, pdMS_TO_TICKS(1)), dri_(dri), mot_(mot) {}
   ~SensorImpl() override = default;
-
-  [[nodiscard]] uint32_t delta_us() const { return delta_us_; }
 };
 
 Sensor::Sensor(driver::Driver &dri, motion::Motion &mot)
