@@ -13,17 +13,11 @@
 namespace config {
 static constexpr auto TAG = "config::Config";
 
-#define JSON_DEBUG
-#if defined(JSON_DEBUG)
-#define JSON_LOGE(tag, format, ...) ESP_LOGE(tag, format, __VA_ARGS__);
-#else
-#define JSON_LOGE(tag, format, ...)
-#endif
 #define JSON_READ_NUMBER(root, field)                                   \
   do {                                                                  \
     const cJSON *item = cJSON_GetObjectItemCaseSensitive(root, #field); \
     if (!cJSON_IsNumber(item)) {                                        \
-      JSON_LOGE(TAG, "Error: Config::" #field " is not number.");       \
+      ESP_LOGE(TAG, "Error: Config::" #field " is not number.");        \
     } else {                                                            \
       field = static_cast<decltype(field)>(item->valuedouble);          \
     }                                                                   \
@@ -109,7 +103,7 @@ bool Config::to_struct(std::string_view str) {
 #define JSON_WRITE_NUMBER(root, field)                                        \
   do {                                                                        \
     if (!cJSON_AddNumberToObject(root, #field, static_cast<double>(field))) { \
-      JSON_LOGE(TAG, "Error: Failed to write Config::" #field ".");           \
+      ESP_LOGE(TAG, "Error: Failed to write Config::" #field ".");            \
     }                                                                         \
   } while (0)
 
@@ -117,7 +111,7 @@ bool Config::to_struct(std::string_view str) {
   do {                                                                       \
     cJSON *array = cJSON_AddArrayToObject(root, #field);                     \
     if (!array) {                                                            \
-      JSON_LOGE(TAG, "Error: Failed to add array.");                         \
+      ESP_LOGE(TAG, "Error: Failed to add array.");                          \
     } else {                                                                 \
       for (size_t i = 0; i < field.size(); i++) {                            \
         if (!cJSON_AddItemToArray(                                           \
