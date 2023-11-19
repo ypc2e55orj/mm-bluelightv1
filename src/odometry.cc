@@ -41,13 +41,14 @@ class Odometry::OdometryImpl {
     wheel.velocity = 0.0f;
     wheel.length = 0.0f;
   }
-  void update_wheel(Wheel &wheel, float curr, uint32_t delta_us) const {
+  void update_wheel(Wheel &wheel, bool invert, float curr,
+                    uint32_t delta_us) const {
     if (wheel.reset) [[unlikely]] {
       wheel.previous = curr;
       wheel.reset = false;
     }
-    wheel.angular_velocity =
-        calculate_wheel_angular_velocity(false, wheel.previous, curr, delta_us);
+    wheel.angular_velocity = calculate_wheel_angular_velocity(
+        invert, wheel.previous, curr, delta_us);
     wheel.velocity = wheel.angular_velocity * conf_.tire_diameter / 2.0f;
     wheel.length += wheel.velocity;
     wheel.previous = curr;
@@ -63,9 +64,9 @@ class Odometry::OdometryImpl {
   }
   void update_wheels(uint32_t delta_us) {
     // 左
-    update_wheel(wheels_.left, dri_.encoder_left->radian(), delta_us);
+    update_wheel(wheels_.left, false, dri_.encoder_left->radian(), delta_us);
     // 右
-    update_wheel(wheels_.left, dri_.encoder_right->radian(), delta_us);
+    update_wheel(wheels_.right, true, dri_.encoder_right->radian(), delta_us);
     // 並進方向
     wheels_.velocity = (wheels_.left.velocity + wheels_.right.velocity) / 2.0f;
     wheels_.length += wheels_.velocity;

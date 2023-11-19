@@ -39,72 +39,45 @@ sensor::Sensor *sens = nullptr;
 
   dri->buzzer->start(8192, 10, 1);
   dri->buzzer->set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
-  mot->start(8192, 25, 0);
-  sens->start(8192, 25, 0);
+  mot->start(8192, 10, 0);
+  sens->start(8192, 20, 0);
 
-  // dri->console->start();
-  printf("\x1b[2J");
-  // printf("\x1b[?25l");
+  printf(
+      "\x02SenseDelta,MotionDelta,"
+      "BatteryVoltage,BatteryVoltageAverage,"
+      "AmbientLeft90,AmbientLeft45,AmbientRight45,AmbientRight90,"
+      "FlashLeft90,FlashLeft45,FlashRight45,FlashRight90,"
+      "GyroX,GyroY,GyroZ,"
+      "AccelX,AccelY,AccelZ,"
+      "EncoderLeft,WheelVelocityLeft,WheelLengthLeft,"
+      "EncoderRight,WheelVelocityRight,WheelLengthRight\x03");
   auto xLastWakeTime = xTaskGetTickCount();
   while (true) {
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));  // NOLINT
     dri->indicator->rainbow_yield();
-    dri->indicator->update();
     auto gyro = dri->imu->gyro();
     auto accel = dri->imu->accel();
-    printf("\x1b[0;0H");
+    auto wheels = odom->wheels();
 
+    // clang-format off
     printf(
-        "Sensor\n"
-        "  delta: %ld\n\n",
-        sens->delta_us());
-
-    printf(
-        "Motion\n"
-        "  delta: %ld\n\n",
-        mot->delta_us());
-
-    printf(
-        "Battery\n"
-        "  voltage: %4d\n"
-        "  average: %4d\n\n",
-        dri->battery->voltage(), dri->battery->average());
-
-    printf(
-        "Photo\n"
-        "  left90 : %4d, %4d\n"
-        "  left45 : %4d, %4d\n"
-        "  right45: %4d, %4d\n"
-        "  right90: %4d, %4d\n\n",
-        dri->photo->left90().ambient, dri->photo->left90().flash,
-        dri->photo->left45().ambient, dri->photo->left45().flash,
-        dri->photo->right45().ambient, dri->photo->right45().flash,
-        dri->photo->right90().ambient, dri->photo->right90().flash);
-
-    printf(
-        "Gyro \n"
-        "  x: %f\n"
-        "  y: %f\n"
-        "  z: %f\n\n",
-        static_cast<double>(gyro.x), static_cast<double>(gyro.y),
-        static_cast<double>(gyro.z));
-
-    printf(
-        "Accel\n"
-        "  x: %f\n"
-        "  y: %f\n"
-        "  z: %f\n\n",
-        static_cast<double>(accel.x), static_cast<double>(accel.y),
-        static_cast<double>(accel.z));
-
-    printf(
-        "Encoder\n"
-        "  Left\n"
-        "    raw    : %f\n"
-        "  Right\n"
-        "    raw    : %f\n",
-        static_cast<double>(dri->encoder_left->radian()),
-        static_cast<double>(dri->encoder_right->radian()));
+        "\x02%ld,%ld,"
+        "%d,%d,"
+        "%d,%d,%d,%d,"
+        "%d,%d,%d,%d,"
+        "%f,%f,%f,"
+        "%f,%f,%f,"
+        "%f,%f,%f,"
+        "%f,%f,%f\n\x03",
+        sens->delta_us(), mot->delta_us(),
+        dri->battery->voltage(), dri->battery->average(),
+        dri->photo->left90().ambient, dri->photo->left45().ambient, dri->photo->right45().ambient, dri->photo->right90().ambient,
+        dri->photo->left90().flash, dri->photo->left45().flash, dri->photo->right45().flash, dri->photo->right90().flash,
+        static_cast<double>(gyro.x), static_cast<double>(gyro.y), static_cast<double>(gyro.z),
+        static_cast<double>(accel.x), static_cast<double>(accel.y), static_cast<double>(accel.z),
+        static_cast<double>(dri->encoder_left->radian()), static_cast<double>(wheels.left.velocity), static_cast<double>(wheels.left.length),
+        static_cast<double>(dri->encoder_right->radian()), static_cast<double>(wheels.right.velocity), static_cast<double>(wheels.right.length));
+    // clang-format on
   }
 }
 

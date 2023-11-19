@@ -1,7 +1,5 @@
 #include "sensor.h"
 
-// ESP-IDF
-
 // Project
 #include "driver/driver.h"
 #include "motion.h"

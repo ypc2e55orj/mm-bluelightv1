@@ -1,9 +1,12 @@
 #include "motion.h"
 
 // C++
+#include <cmath>
 
 // ESP-IDF
 #include <esp_system.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
 
 // Project
 #include "config.h"
@@ -18,24 +21,26 @@ class Motion::MotionImpl final : public task::Task {
   config::Config &conf_;
   odometry::Odometry &odom_;
 
-  uint32_t delta_us_;
+  QueueHandle_t queue_;
 
   void setup() override {}
   void loop() override {
-    if (xTaskNotifyWait(0, 0, &delta_us_, portMAX_DELAY) == pdTRUE) {
-      if (delta_us_ == 0) {
-        // 開始
-      } else {
-        // センサ取得通知
-        if (conf_.low_voltage > dri_.battery->average()) {
-          esp_restart();
-        }
-        odom_.update(delta_us_);
-        dri_.motor_left->enable();
-        dri_.motor_right->enable();
-        dri_.motor_left->disable();
-        dri_.motor_right->disable();
+    uint32_t delta_us;
+    if (xTaskNotifyWait(0, 0, &delta_us, portMAX_DELAY) != pdTRUE) {
+      return;
+    }
+    if (delta_us == 0) {
+      // 開始
+    } else {
+      // センサ取得通知
+      if (conf_.low_voltage > dri_.battery->average()) {
+        esp_restart();
       }
+      odom_.update(delta_us);
+      dri_.motor_left->enable();
+      dri_.motor_right->enable();
+      dri_.motor_left->disable();
+      dri_.motor_right->disable();
     }
   }
   void end() override {}
@@ -46,15 +51,18 @@ class Motion::MotionImpl final : public task::Task {
       : task::Task(__func__, pdMS_TO_TICKS(1)),
         dri_(dri),
         conf_(conf),
-        odom_(odom),
-        delta_us_() {}
+        odom_(odom) {
+    queue_ = xQueueCreate(1, sizeof(Target));
+  }
+  ~MotionImpl() override { vQueueDelete(queue_); }
 
   bool update_notify(uint32_t delta_us) {
     auto pdRet = xTaskNotify(handle(), delta_us, eSetValueWithOverwrite);
     return pdRet == pdTRUE;
   }
-
-  [[nodiscard]] uint32_t delta_us() const { return delta_us_; }
+  bool enqueue(Target &target) {
+    return xQueueSend(queue_, &target, 0) == pdTRUE;
+  }
 };
 
 Motion::Motion(driver::Driver &dri, config::Config &conf,
@@ -68,8 +76,12 @@ bool Motion::start(uint32_t usStackDepth, UBaseType_t uxPriority,
 }
 bool Motion::stop() { return impl_->stop(); }
 
+uint32_t Motion::delta_us() { return impl_->delta_us(); };
+
 bool Motion::update_notify(uint32_t delta_us) {
   return impl_->update_notify(delta_us);
 }
-uint32_t Motion::delta_us() { return impl_->delta_us(); }
+bool Motion::enqueue(motion::Motion::Target &target) {
+  return impl_->enqueue(target);
+}
 }  // namespace motion
