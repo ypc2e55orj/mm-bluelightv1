@@ -110,9 +110,9 @@ class RmtIndicator {
                         uint32_t queue_size, bool with_dma)
       : channel_(nullptr),
         encoder_(nullptr),
-        buffer_(nullptr),
+        buffer_(),
         led_counts_(led_counts),
-        buffer_size_(0) {
+        buffer_size_() {
     // 送信バッファを初期化
     buffer_ = reinterpret_cast<uint8_t *>(heap_caps_calloc(
         WS2812C_COLOR_DEPTH * led_counts, sizeof(uint8_t), MALLOC_CAP_DMA));
@@ -213,6 +213,8 @@ class Indicator::IndicatorImpl final : public DriverBase {
   }
   ~IndicatorImpl() { indicator_.disable(); }
 
+  uint16_t counts() { return indicator_.counts(); }
+
   bool update() override { return indicator_.update(); }
 
   void set(size_t pos, uint8_t r, uint8_t g, uint8_t b) {
@@ -248,9 +250,8 @@ class Indicator::IndicatorImpl final : public DriverBase {
 Indicator::Indicator(gpio_num_t indicator_num, uint16_t led_counts)
     : impl_(new IndicatorImpl(indicator_num, led_counts)) {}
 Indicator::~Indicator() = default;
-
+uint16_t Indicator::counts() { return impl_->counts(); }
 bool Indicator::update() { return impl_->update(); }
-
 void Indicator::set(size_t pos, uint8_t r, uint8_t g, uint8_t b) {
   return impl_->set(pos, r, g, b);
 }

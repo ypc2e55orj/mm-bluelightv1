@@ -21,6 +21,8 @@ class Indicator final : public DriverBase {
   explicit Indicator(gpio_num_t indicator_num, uint16_t led_counts);
   ~Indicator();
 
+  uint16_t counts();
+
   bool update() override;
 
   void set(size_t pos, uint8_t r, uint8_t g, uint8_t b);
