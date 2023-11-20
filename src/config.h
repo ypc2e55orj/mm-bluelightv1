@@ -8,6 +8,10 @@ namespace config {
 struct Config {
   // 停止電圧 [mV]
   int low_voltage = 3500;
+  // 車輪間距離 [mm]
+  float wheel_track_width = 30.9f;
+  // タイヤ幅 [mm]
+  float tire_tread_width = 3.8f;
   // タイヤの直径 [mm]
   float tire_diameter = 12.80f;
   // ギア比
