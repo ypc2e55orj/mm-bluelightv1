@@ -23,7 +23,7 @@ class MovingAverage {
     sums_ = static_cast<U>(0);
   }
 
-  U update(T &sample) {
+  U update(T sample) {
     if (samples_.size() == 0) [[unlikely]] {
       sums_ = static_cast<U>(0);
       // 初回は与えられた値でバッファを満たす
