@@ -14,11 +14,11 @@ class Sensor::SensorImpl final : public task::Task {
   motion::Motion &mot_;
 
   void update() const {
+    dri_.battery->update();
     dri_.photo->update();
     dri_.imu->update();
     dri_.encoder_left->update();
     dri_.encoder_right->update();
-    dri_.battery->update();
     dri_.indicator->update();
     dri_.photo->wait();
   }
