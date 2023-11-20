@@ -61,9 +61,8 @@ class Photo::PhotoImpl final : public DriverBase {
     // 点灯
     this_ptr->gpio_[this_ptr->index_]->set(true);
     // 受光タイマー開始
-    gptimer_start(
-        this_ptr
-            ->receive_timer_);  // ESP_ERROR_CHECK(gptimer_start(this_ptr->receive_timer_));
+    // ESP_ERROR_CHECK(gptimer_start(this_ptr->receive_timer_));
+    gptimer_start(this_ptr->receive_timer_);
     // portYIELD_FROM_ISRと同等
     return false;
   }
@@ -79,11 +78,11 @@ class Photo::PhotoImpl final : public DriverBase {
     // 消灯
     this_ptr->gpio_[this_ptr->index_]->set(false);
     // タイマー停止
-    gptimer_stop(timer);  // ESP_ERROR_CHECK(gptimer_stop(timer));
+    // ESP_ERROR_CHECK(gptimer_stop(timer));
+    gptimer_stop(timer);
     if (this_ptr->index_ == 0x03) {
-      gptimer_stop(
-          this_ptr
-              ->flash_timer_);  // ESP_ERROR_CHECK(gptimer_stop(this_ptr->flash_timer_));
+      // ESP_ERROR_CHECK(gptimer_stop(this_ptr->flash_timer_));
+      gptimer_stop(this_ptr->flash_timer_);
       vTaskNotifyGiveFromISR(this_ptr->task_,
                              &xHigherPriorityTaskWoken);  // NOLINT
     }
