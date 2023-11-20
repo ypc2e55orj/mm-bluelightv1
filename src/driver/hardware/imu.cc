@@ -119,7 +119,7 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     reg[BIT_CTRL2_G_ODR_G1] = false;
     reg[BIT_CTRL2_G_ODR_G0] = false;
     reg[BIT_CTRL2_G_FS1_G] = true;
-    reg[BIT_CTRL2_G_FS0_G] = false;
+    reg[BIT_CTRL2_G_FS0_G] = true;
     reg[BIT_CTRL2_G_FS_125] = false;
     reg[BIT_CTRL2_G_FS_4000] = false;
     write_byte(REG_CTRL2_G, static_cast<uint8_t>(reg.to_ulong()));
