@@ -5,15 +5,15 @@
 namespace data {
 class Pid {
  private:
-  float kp_;
-  float ki_;
-  float kd_;
+  float kp_{};
+  float ki_{};
+  float kd_{};
 
-  float prev_target_;
-  float prev_;
+  float prev_target_{};
+  float prev_{};
 
-  float sum_target_;
-  float sum_;
+  float sum_target_{};
+  float sum_{};
 
  public:
   explicit Pid() { reset(); }
