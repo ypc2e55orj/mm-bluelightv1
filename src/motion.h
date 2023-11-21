@@ -16,16 +16,21 @@ class Motion {
 
  public:
   enum class Mode {
-    Stop,
+    Stop, /// 停止
     Straight,
     PivotTurn,
     SlalomTurn,
   };
   struct Target {
-    Mode mode;
-    float target_velocity;
-    float target_angular_velocity;
-    float target_degree;
+    Mode mode; // 走行モード
+    float max_velocity; //
+    float max_acceleration;
+    float max_jerk;
+    float max_length;
+    float max_angular_velocity;
+    float max_angular_acceleration;
+    float max_angular_jerk;
+    float max_degree;
   };
 
   explicit Motion(driver::Driver &dri, config::Config &conf,

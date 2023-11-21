@@ -16,6 +16,34 @@
 #include "task.h"
 
 namespace motion {
+struct Run {
+  /**
+   * @brief 子クラスの走行モードを定義
+   * @return 走行モード
+   */
+  virtual Motion::Mode mode() = 0;
+  /**
+   * @brief 完了したかどうかを返す
+   * @return trueのとき完了
+   */
+  virtual bool done() = 0;
+  /**
+   * @brief 1周期での動作を定義する
+   * @return 成功したか
+   */
+  virtual bool tick() = 0;
+};
+
+class Stop final : public Run {
+ private:
+  bool done_{false};
+
+ public:
+  bool tick() override { return true; }
+  Motion::Mode mode() override { return Motion::Mode::Stop; }
+  bool done() override { return done_; }
+};
+
 class Motion::MotionImpl final : public task::Task {
  private:
   driver::Driver &dri_;
@@ -37,7 +65,6 @@ class Motion::MotionImpl final : public task::Task {
     } else {
       // センサ取得通知
       if (conf_.low_voltage > dri_.battery->average()) {
-        // TODO: 移動平均した電圧が停止電圧を下回っている場合、ユーザーに通知
         for (uint16_t i = 0; i < dri_.indicator->counts(); i++) {
           dri_.indicator->set(i, 0xFF, 0, 0);
           dri_.motor_left->brake();
