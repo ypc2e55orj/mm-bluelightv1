@@ -169,18 +169,18 @@ class Wheels {
     // 中心速度 [mm/s]
     const auto vel_left = left_.velocity();
     const auto vel_right = right_.velocity();
-    velocity_ = (vel_right + vel_left) / 2.0f;
+    velocity_ = (vel_left + vel_right) / 2.0f;
     // 中心並進移動距離 [mm]
     length_ += velocity_ / 1000.0f;
 
     // 中心角速度 [rad/s]
-    angular_velocity_ = (vel_right - vel_left) / wheel_track_width_;
+    angular_velocity_ = (vel_left - vel_right) / wheel_track_width_;
     // 中心角度 [rad]
     const auto radian_prev = radian_;
     radian_ += angular_velocity_ / 1000.0f;
 
     // x, yの位置を推定
-    if (std::fabs(vel_right - vel_left) <=
+    if (std::fabs(vel_left - vel_right) <=
         std::numeric_limits<float>::epsilon()) {
       // 直線運動
       auto a = velocity_ * static_cast<float>(delta_us) / 1000'000.0f;
