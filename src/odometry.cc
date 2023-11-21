@@ -21,25 +21,25 @@ namespace odometry {
  */
 class Wheel {
  private:
-  ///! 車輪の直径 [mm]
+  //! 車輪の直径 [mm]
   const float tire_diameter_;
 
-  ///! エンコーダーの回転方向を反転するか
+  //! エンコーダーの回転方向を反転するか
   const bool invert_;
 
-  ///! 初期化後かどうか
+  //! 初期化後かどうか
   bool reset_{true};
 
-  ///! 一つ前の観測角度 [rad]
+  //! 一つ前の観測角度 [rad]
   float previous_{0.0f};
 
-  ///! 車輪の角速度 [rad/s]
+  //! 車輪の角速度 [rad/s]
   float angular_velocity_{0.0f};
 
-  ///! 車輪位置の移動速度 [mm/s]
+  //! 車輪位置の移動速度 [mm/s]
   float velocity_{0.0f};
 
-  ///! 車輪の移動距離 [mm]
+  //! 車輪の移動距離 [mm]
   float length_{0.0f};
 
   /**
@@ -113,25 +113,25 @@ class Wheel {
  */
 class Wheels {
  private:
-  ///! 車輪間隔
+  //! 車輪間隔
   const float wheel_track_width_;
 
-  ///! 車輪
+  //! 車輪
   Wheel left_, right_;
 
-  ///! 車体並進速度 [mm/s]
+  //! 車体並進速度 [mm/s]
   float velocity_{0.0f};
 
-  ///! 車体並進移動距離 [mm]
+  //! 車体並進移動距離 [mm]
   float length_{0.0f};
 
-  ///! 車体角速度 [rad/s]
+  //! 車体角速度 [rad/s]
   float angular_velocity_{0.0f};
 
-  ///! 車体角度 [rad]
+  //! 車体角度 [rad]
   float radian_{0.0f};
 
-  ///! 車体位置 [mm]
+  //! 車体位置 [mm]
   float x_{0.0f}, y_{0.0f};
 
  public:
@@ -149,9 +149,7 @@ class Wheels {
     // 右
     right_.reset();
     // 車体
-    velocity_ = 0.0f;
     length_ = 0.0f;
-    angular_velocity_ = 0.0f;
     radian_ = 0.0f;
     x_ = 0.0f;
     y_ = 0.0f;
@@ -205,10 +203,10 @@ class Wheels {
 
 class Odometry::OdometryImpl {
  private:
-  ///! センサ値を取得するためのドライバクラス
+  //! センサ値を取得するためのドライバクラス
   driver::Driver &dri_;
 
-  ///! エンコーダーを用いた推定
+  //! エンコーダーを用いた推定
   Wheels wheels_;
 
  public:
