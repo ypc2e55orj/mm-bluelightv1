@@ -22,5 +22,6 @@ class Encoder final : public DriverBase {
 
   float radian();
   float degree();
+  uint16_t raw();
 };
 }  // namespace driver::hardware

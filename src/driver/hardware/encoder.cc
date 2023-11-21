@@ -89,6 +89,8 @@ class Encoder::As5050aImpl final : public DriverBase {
     return ret;
   }
 
+  [[nodiscard]] uint16_t raw() const { return angle_; }
+
   [[nodiscard]] float radian() const {
     return static_cast<float>(angle_) * RESOLUTION_PER_RADIAN;
   }
@@ -105,4 +107,5 @@ Encoder::~Encoder() = default;
 bool Encoder::update() { return impl_->update(); }
 float Encoder::radian() { return impl_->radian(); }
 float Encoder::degree() { return impl_->degree(); }
+uint16_t Encoder::raw() { return impl_->raw(); }
 }  // namespace driver::hardware
