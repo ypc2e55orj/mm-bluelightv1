@@ -12,7 +12,7 @@
  * @brief マウスの自己位置を推定する。
  * @details
  * 以下の記事を参考にした。
- * https://www.mech.tohoku-gakuin.ac.jp/rde/contents/course/robotics/wheelrobot.htm
+ * https://www.mech.tohoku-gakuin.ac.jp/rde/contents/course/robotics/wheelrobot.html
  * https://rikei-tawamure.com/entry/2020/05/22/232227
  */
 namespace odometry {
