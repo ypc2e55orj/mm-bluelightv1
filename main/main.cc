@@ -42,41 +42,47 @@ sensor::Sensor *sens = nullptr;
   mot->start(8192, 10, 0);
   sens->start(8192, 20, 0);
 
+  uint64_t index = 0;
   printf(
-      "\x02SenseDelta,MotionDelta,"
-      "BatteryVoltage,BatteryVoltageAverage,"
-      "AmbientLeft90,AmbientLeft45,AmbientRight45,AmbientRight90,"
-      "FlashLeft90,FlashLeft45,FlashRight45,FlashRight90,"
-      "GyroX,GyroY,GyroZ,"
-      "AccelX,AccelY,AccelZ,"
-      "EncoderLeft,WheelVelocityLeft,WheelLengthLeft,"
-      "EncoderRight,WheelVelocityRight,WheelLengthRight\x03");
+      "Index"
+      ",SensorDelta,MotionDelta"
+      ",BatteryVoltage,BatteryVoltageAverage"
+      ",AmbientLeft90,AmbientLeft45,AmbientRight45,AmbientRight90"
+      ",FlashLeft90,FlashLeft45,FlashRight45,FlashRight90"
+      ",GyroX,GyroY,GyroZ"
+      ",AccelX,AccelY,AccelZ"
+      ",EncoderLeft,EncoderRight"
+      ",Radian,X,Y"
+      "\n");
   auto xLastWakeTime = xTaskGetTickCount();
   while (true) {
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));  // NOLINT
     dri->indicator->rainbow_yield();
     auto gyro = dri->imu->gyro();
     auto accel = dri->imu->accel();
-    auto wheels = odom->wheels();
 
     // clang-format off
     printf(
-        "\x02%ld,%ld,"
-        "%d,%d,"
-        "%d,%d,%d,%d,"
-        "%d,%d,%d,%d,"
-        "%f,%f,%f,"
-        "%f,%f,%f,"
-        "%f,%f,%f,"
-        "%f,%f,%f\n\x03",
+        "%lld"
+        ",%ld,%ld"
+        ",%d,%d"
+        ",%d,%d,%d,%d"
+        ",%d,%d,%d,%d"
+        ",%f,%f,%f"
+        ",%f,%f,%f"
+        ",%f,%f"
+        ",%f,%f,%f"
+        "\n",
+        index++,
         sens->delta_us(), mot->delta_us(),
         dri->battery->voltage(), dri->battery->average(),
         dri->photo->left90().ambient, dri->photo->left45().ambient, dri->photo->right45().ambient, dri->photo->right90().ambient,
         dri->photo->left90().flash, dri->photo->left45().flash, dri->photo->right45().flash, dri->photo->right90().flash,
         static_cast<double>(gyro.x), static_cast<double>(gyro.y), static_cast<double>(gyro.z),
         static_cast<double>(accel.x), static_cast<double>(accel.y), static_cast<double>(accel.z),
-        static_cast<double>(dri->encoder_left->radian()), static_cast<double>(wheels.left.velocity), static_cast<double>(wheels.left.length),
-        static_cast<double>(dri->encoder_right->radian()), static_cast<double>(wheels.right.velocity), static_cast<double>(wheels.right.length));
+        static_cast<double>(dri->encoder_left->radian()), static_cast<double>(dri->encoder_right->radian()),
+        static_cast<double>(odom->radian()), static_cast<double>(odom->x()), static_cast<double>(odom->y())
+    );
     // clang-format on
   }
 }

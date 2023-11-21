@@ -10,6 +10,7 @@
 
 // Project
 #include "config.h"
+#include "data/pid.h"
 #include "driver/driver.h"
 #include "odometry.h"
 #include "task.h"
@@ -26,17 +27,28 @@ class Motion::MotionImpl final : public task::Task {
   void setup() override {}
   void loop() override {
     uint32_t delta_us;
-    if (xTaskNotifyWait(0, 0, &delta_us, portMAX_DELAY) != pdTRUE) {
-      return;
-    }
+    // センサタスクからの通知を待つ
+    xTaskNotifyWait(0, 0, &delta_us, portMAX_DELAY);
+
     if (delta_us == 0) {
-      // 開始
+      // 開始通知
+      // オドメトリをリセット
+      odom_.reset();
     } else {
       // センサ取得通知
       if (conf_.low_voltage > dri_.battery->average()) {
-        esp_restart();
+        // TODO: 移動平均した電圧が停止電圧を下回っている場合、ユーザーに通知
+        for (uint16_t i = 0; i < dri_.indicator->counts(); i++) {
+          dri_.indicator->set(i, 0xFF, 0, 0);
+          dri_.motor_left->brake();
+          dri_.motor_right->brake();
+          while (true) {
+            vTaskDelay(pdMS_TO_TICKS(1));
+          }
+        }
       }
       odom_.update(delta_us);
+      // TODO: 走行モードに応じて制御
       dri_.motor_left->enable();
       dri_.motor_right->enable();
       dri_.motor_left->disable();
