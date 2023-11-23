@@ -19,7 +19,6 @@ class Sensor::SensorImpl final : public task::Task {
     dri_.imu->update();
     dri_.encoder_left->update();
     dri_.encoder_right->update();
-    dri_.indicator->update();
     dri_.photo->wait();
   }
 

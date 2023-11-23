@@ -7,6 +7,11 @@ namespace driver {
 Driver::Driver() = default;
 Driver::~Driver() = default;
 
+/**
+ * @brief Core 0で使用されるドライバ
+ * @details
+ * Core 0 (Sensorタスク、Motionタスク)で使用されるドライバ
+ */
 void Driver::init_pro() {
   // clang-format off
   battery = std::make_unique<hardware::Battery>(
@@ -58,17 +63,21 @@ void Driver::init_pro() {
           GPIO_NUM_PHOTO_RIGHT45,
           GPIO_NUM_PHOTO_RIGHT90}};
   photo = std::make_unique<hardware::Photo>(config);
-
-  indicator = std::make_unique<hardware::Indicator>(
-    GPIO_NUM_INDICATOR,
-    NUM_INDICATORS);
   // clang-format off
 }
-
+/**
+ * @brief Core 1で使用されるドライバ
+ * @details
+ * Core 1 (Mainタスク、Uiタスク)で使用されるドライバ
+ */
 void Driver::init_app() {
   // clang-format off
   console = std::make_unique<system::Console>();
   fs = std::make_unique<system::Fs>(10);
+
+  indicator = std::make_unique<hardware::Indicator>(
+  GPIO_NUM_INDICATOR,
+  NUM_INDICATORS);
 
   buzzer = std::make_unique<hardware::Buzzer>(
     GPIO_NUM_BUZZER);
