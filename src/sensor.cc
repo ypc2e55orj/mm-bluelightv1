@@ -28,12 +28,12 @@ class Sensor::SensorImpl final : public task::Task {
       update();
     }
     // motionタスクに開始通知
-    mot_.update_notify(0);
+    mot_.set_sensor_notify(0);
   }
   void loop() override {
     update();
     // motionタスクにセンサ値更新完了通知
-    mot_.update_notify(delta_us());
+    mot_.set_sensor_notify(delta_us());
   }
   void end() override {}
 

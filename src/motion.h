@@ -15,21 +15,38 @@ class Motion {
   std::shared_ptr<MotionImpl> impl_;
 
  public:
-  enum class Mode {
-    Stop, /// 停止
+  enum class RunMode {
+    /// 停止
+    Stop,
+    /// 直進
     Straight,
+    /// 超信地旋回
     PivotTurn,
+    /// スラローム旋回
     SlalomTurn,
   };
-  struct Target {
-    Mode mode; // 走行モード
-    float max_velocity; //
+  struct RunConfig {
+    /// 走行モード
+    RunMode mode;
+    /// 横壁補正有効
+    bool enable_side_wall_adjust;
+    /// 前壁補正有効
+    bool enable_front_wall_adjust;
+    /// 目標速度 [mm/s]
+    float max_velocity;
+    /// 目標加速度 [mm/s^2]
     float max_acceleration;
+    /// 目標躍度 [mm/s^3]
     float max_jerk;
+    /// 目標距離 [mm]
     float max_length;
+    /// 目標角加速度 [rad/s]
     float max_angular_velocity;
+    /// 目標角加速度 [rad/s^2]
     float max_angular_acceleration;
+    /// 目標角躍度 [rad/s^3]
     float max_angular_jerk;
+    /// 目標角度 [deg]
     float max_degree;
   };
 
@@ -42,7 +59,8 @@ class Motion {
 
   uint32_t delta_us();
 
-  bool update_notify(uint32_t delta_us);
-  bool enqueue(Target &target);
+  bool set_sensor_notify(uint32_t delta_us);
+  bool get_error_notify();
+  bool enqueue(RunConfig &target);
 };
 }  // namespace motion
