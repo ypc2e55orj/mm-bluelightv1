@@ -83,5 +83,7 @@ class Task {
   TaskHandle_t handle() { return task_; }
   // 計測実行周期の取得
   [[nodiscard]] uint32_t delta_us() const { return delta_us_; }
+  // 停止中か
+  [[nodiscard]] bool is_stopping() const { return req_stop_; }
 };
 }  // namespace task
