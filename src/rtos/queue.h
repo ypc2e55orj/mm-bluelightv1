@@ -39,8 +39,9 @@ class Queue {
   bool overwrite(const T* item) {
     return xQueueOverwrite(queue_, item) == pdTRUE;
   }
-  bool overwrite_isr(const T* item) {
-    return xQueueOverwriteFromISR(queue_, item) == pdTRUE;
+  bool overwrite_isr(const T* item, BaseType_t* pxHigherPriorityTaskWoken) {
+    return xQueueOverwriteFromISR(queue_, item, pxHigherPriorityTaskWoken) ==
+           pdTRUE;
   }
 
   // 受信
