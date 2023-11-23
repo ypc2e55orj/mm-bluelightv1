@@ -6,9 +6,11 @@
 
 // ESP-IDF
 #include <driver/rmt_tx.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 // Project
-#include "task.h"
+#include "base.h"
 
 [[maybe_unused]] static constexpr uint32_t C4 = 261;
 [[maybe_unused]] static constexpr uint32_t Cs4 = 277;
@@ -203,7 +205,7 @@ class RmtBuzzer {
   }
 };
 
-class Buzzer::BuzzerImpl final : public task::Task {
+class Buzzer::BuzzerImpl final : public DriverBase {
  private:
   // ブザー操作
   RmtBuzzer buzzer_;
@@ -214,15 +216,28 @@ class Buzzer::BuzzerImpl final : public task::Task {
   // ループするかどうか
   bool loop_;
 
-  void setup() override {
+ public:
+  explicit BuzzerImpl(gpio_num_t buzzer_num)
+      : buzzer_(buzzer_num, 4, false),
+        melody_(nullptr),
+        index_(0),
+        loop_(false) {
     buzzer_.enable();
-    index_ = 0;
   }
-  void loop() override {
+  ~BuzzerImpl() { buzzer_.disable(); }
+
+  void set(Mode mode, bool loop) {
+    Melody *melody = &melodies[static_cast<int>(mode)];
+    melody_ = melody;
+    loop_ = loop;
+  }
+
+  bool update() override {
+    bool ret = true;
     if (index_ < melody_->size) {
       const Note *p = melody_->notes + index_;
       if (p->frequency != 0 && p->duration != 0) {
-        buzzer_.tone(p);
+        ret = buzzer_.tone(p);
       } else if (p->duration != 0) {
         auto xLastWakeTime = xTaskGetTickCount();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(p->duration));  // NOLINT
@@ -231,36 +246,12 @@ class Buzzer::BuzzerImpl final : public task::Task {
     } else if (loop_) {
       index_ = 0;
     }
-  }
-  void end() override { buzzer_.disable(); }
-
- public:
-  explicit BuzzerImpl(gpio_num_t buzzer_num)
-      : task::Task(__func__, pdMS_TO_TICKS(10)),
-        buzzer_(buzzer_num, 4, false),
-        melody_(nullptr),
-        index_(0),
-        loop_(false) {}
-
-  ~BuzzerImpl() override = default;
-
-  void set(Mode mode, bool loop) {
-    Melody *melody = &melodies[static_cast<int>(mode)];
-    melody_ = melody;
-    loop_ = loop;
+    return ret;
   }
 };
 
 Buzzer::Buzzer(gpio_num_t buzzer_num) : impl_(new BuzzerImpl(buzzer_num)) {}
-
 Buzzer::~Buzzer() = default;
-
-bool Buzzer::start(const uint32_t usStackDepth, UBaseType_t uxPriority,
-                   BaseType_t xCoreID) {
-  return impl_->start(usStackDepth, uxPriority, xCoreID);
-}
-
-bool Buzzer::stop() { return impl_->stop(); }
-
+bool Buzzer::update() { return impl_->update(); }
 void Buzzer::set(Mode mode, bool loop) { impl_->set(mode, loop); }
 }  // namespace driver::hardware

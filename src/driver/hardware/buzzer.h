@@ -8,8 +8,11 @@
 #include <freertos/FreeRTOS.h>
 #include <hal/gpio_types.h>
 
+// Project
+#include "base.h"
+
 namespace driver::hardware {
-class Buzzer {
+class Buzzer final : public DriverBase {
  public:
   enum class Mode {
     None [[maybe_unused]],               // 無音
@@ -33,9 +36,7 @@ class Buzzer {
   explicit Buzzer(gpio_num_t buzzer_num);
   ~Buzzer();
 
-  bool start(uint32_t usStackDepth, UBaseType_t uxPriority, BaseType_t xCoreID);
-  bool stop();
-
+  bool update() override;
   void set(Mode mode, bool loop);
 
  private:

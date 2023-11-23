@@ -37,8 +37,8 @@ sensor::Sensor *sens = nullptr;
   }
   conf->write_stdout();
 
-  dri->buzzer->start(8192, 10, 1);
   dri->buzzer->set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
+  dri->buzzer->update();
   mot->start(8192, 10, 0);
   sens->start(8192, 20, 0);
 
