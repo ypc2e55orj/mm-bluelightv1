@@ -15,7 +15,7 @@ class Queue {
  public:
   explicit Queue(UBaseType_t uxQueueLength) {
     queue_ = xQueueCreate(uxQueueLength, sizeof(T));
-    assert(queue_ == nullptr);
+    assert(queue_ != nullptr);
   }
   ~Queue() { vQueueDelete(queue_); }
 
