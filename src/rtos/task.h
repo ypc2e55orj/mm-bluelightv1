@@ -8,7 +8,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-namespace task {
+namespace rtos {
 // タスク基底クラス
 class Task {
  private:

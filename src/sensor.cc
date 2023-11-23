@@ -3,10 +3,10 @@
 // Project
 #include "driver/driver.h"
 #include "motion.h"
-#include "task.h"
+#include "rtos/task.h"
 
 namespace sensor {
-class Sensor::SensorImpl final : public task::Task {
+class Sensor::SensorImpl final : public rtos::Task {
  private:
   static constexpr uint32_t WARM_UP_COUNTS = 10;
 
@@ -38,7 +38,7 @@ class Sensor::SensorImpl final : public task::Task {
 
  public:
   explicit SensorImpl(driver::Driver &dri, motion::Motion &mot)
-      : task::Task(__func__, pdMS_TO_TICKS(1)), dri_(dri), mot_(mot) {}
+      : rtos::Task(__func__, pdMS_TO_TICKS(1)), dri_(dri), mot_(mot) {}
   ~SensorImpl() override = default;
 };
 

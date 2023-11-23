@@ -13,7 +13,7 @@
 #include "data/pid.h"
 #include "driver/driver.h"
 #include "odometry.h"
-#include "task.h"
+#include "rtos/task.h"
 
 namespace motion {
 class Run {
@@ -77,7 +77,7 @@ class SlalomTurn final : public Run {
   bool done() override { return done_; }
 };
 
-class Motion::MotionImpl final : public task::Task {
+class Motion::MotionImpl final : public rtos::Task {
  private:
   driver::Driver &dri_;
   config::Config &conf_;
@@ -128,7 +128,7 @@ class Motion::MotionImpl final : public task::Task {
  public:
   explicit MotionImpl(driver::Driver &dri, config::Config &conf,
                       odometry::Odometry &odom)
-      : task::Task(__func__, pdMS_TO_TICKS(1)),
+      : rtos::Task(__func__, pdMS_TO_TICKS(1)),
         dri_(dri),
         conf_(conf),
         odom_(odom) {
