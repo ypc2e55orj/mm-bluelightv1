@@ -24,11 +24,11 @@ class Encoder::As5050aImpl final : public DriverBase {
   static constexpr size_t BUFFER_SIZE = 2;
 
   // 分解能あたりの角度
-  static constexpr uint16_t RESOLUTION = 1024;  // 10 bit
+  static constexpr uint16_t RESOLUTION = 1024 - 1;  // 10 bit
   static constexpr float RESOLUTION_PER_RADIAN =
-      (2.0f * std::numbers::pi_v<float>) / static_cast<float>(RESOLUTION - 1);
+      (2.0f * std::numbers::pi_v<float>) / static_cast<float>(RESOLUTION);
   static constexpr float RESOLUTION_PER_DEGREE =
-      360.f / static_cast<float>(RESOLUTION - 1);
+      360.f / static_cast<float>(RESOLUTION);
 
   // レジスタ
   static constexpr uint16_t REG_MASTER_RESET = 0x33A5;
@@ -90,12 +90,12 @@ class Encoder::As5050aImpl final : public DriverBase {
   }
 
   [[nodiscard]] uint16_t raw() const { return raw_; }
-  [[nodiscard]] float resolution() const { return RESOLUTION; }
+  [[nodiscard]] static uint16_t resolution() { return RESOLUTION; }
 
-  [[nodiscard]] float to_radian(uint16_t raw) const {
+  [[nodiscard]] static float to_radian(uint16_t raw) {
     return static_cast<float>(raw) * RESOLUTION_PER_RADIAN;
   }
-  [[nodiscard]] float to_degree(uint16_t raw) const {
+  [[nodiscard]] static float to_degree(uint16_t raw) {
     return static_cast<float>(raw) * RESOLUTION_PER_DEGREE;
   }
 };
@@ -106,7 +106,7 @@ Encoder::~Encoder() = default;
 
 bool Encoder::update() { return impl_->update(); }
 uint16_t Encoder::raw() { return impl_->raw(); }
-uint16_t Encoder::resolution() { return impl_->resolution(); }
-float Encoder::to_radian(uint16_t raw) { return impl_->to_radian(raw); }
-float Encoder::to_degree(uint16_t raw) { return impl_->to_degree(raw); }
+uint16_t Encoder::resolution() { return As5050aImpl::resolution(); }
+float Encoder::to_radian(uint16_t raw) { return As5050aImpl::to_radian(raw); }
+float Encoder::to_degree(uint16_t raw) { return As5050aImpl::to_degree(raw); }
 }  // namespace driver::hardware

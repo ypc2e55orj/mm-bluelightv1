@@ -21,9 +21,8 @@ class Encoder final : public DriverBase {
   bool update() override;
 
   uint16_t raw();
-  uint16_t resolution();
-
-  float to_radian(uint16_t raw);
-  float to_degree(uint16_t raw);
+  static uint16_t resolution();
+  static float to_radian(uint16_t raw);
+  static float to_degree(uint16_t raw);
 };
 }  // namespace driver::hardware
