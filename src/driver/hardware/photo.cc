@@ -20,11 +20,11 @@ class Photo::PhotoImpl final : public DriverBase {
  private:
   static constexpr auto TAG = "driver::hardware::Photo::PhotoImpl";
 
-  static constexpr uint32_t TIMER_RESOLUTION_HZ = 1'000'000;   // 1MHz
-  static constexpr uint32_t INTERVAL_TIMER_FREQUENCY = 4'000;  // 4kHz
+  static constexpr uint32_t TIMER_RESOLUTION_HZ = 1'000'000;   // [Hz]
+  static constexpr uint32_t INTERVAL_TIMER_FREQUENCY = 5'000;  // [Hz]
   static constexpr uint32_t INTERVAL_TIMER_COUNTS =
       TIMER_RESOLUTION_HZ / INTERVAL_TIMER_FREQUENCY;
-  static constexpr uint32_t FLASH_TIMER_FREQUENCY = 10'000;  // 10kHz
+  static constexpr uint32_t FLASH_TIMER_FREQUENCY = 10'000;  // [Hz]
   static constexpr uint32_t FLASH_TIMER_COUNTS =
       TIMER_RESOLUTION_HZ / FLASH_TIMER_FREQUENCY;
 
