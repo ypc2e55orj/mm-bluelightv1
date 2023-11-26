@@ -8,6 +8,11 @@
 #include "driver/driver.h"
 
 namespace odometry {
+struct Velocity {
+  float left;
+  float right;
+};
+
 class Odometry {
  private:
   class OdometryImpl;
@@ -23,5 +28,8 @@ class Odometry {
   float radian();
   float x();
   float y();
+
+  const Velocity &wheels_velocity();
+  const Velocity &wheels_angular_velocity();
 };
 }  // namespace odometry

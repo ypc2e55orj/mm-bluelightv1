@@ -18,7 +18,7 @@ class Encoder::As5050aImpl final : public DriverBase {
   int index_;
   uint8_t *tx_buffer_;
   uint8_t *rx_buffer_;
-  uint16_t angle_;
+  uint16_t raw_;
 
   // 送受信バッファサイズ
   static constexpr size_t BUFFER_SIZE = 2;
@@ -52,7 +52,7 @@ class Encoder::As5050aImpl final : public DriverBase {
 
  public:
   explicit As5050aImpl(peripherals::Spi &spi, gpio_num_t spics_io_num)
-      : spi_(spi), angle_(0) {
+      : spi_(spi), raw_(0) {
     // 転送用バッファを確保
     tx_buffer_ = reinterpret_cast<uint8_t *>(
         heap_caps_calloc(BUFFER_SIZE, sizeof(uint8_t), MALLOC_CAP_DMA));
@@ -84,19 +84,19 @@ class Encoder::As5050aImpl final : public DriverBase {
   bool update() override {
     bool ret = spi_.transmit(index_);
     uint16_t res = rx_buffer_[0] << 8 | rx_buffer_[1];
-    if (verify_angle(res)) angle_ = (res >> 2) & 0x3FF;
+    if (verify_angle(res)) raw_ = (res >> 2) & 0x3FF;
 
     return ret;
   }
 
-  [[nodiscard]] uint16_t raw() const { return angle_; }
+  [[nodiscard]] uint16_t raw() const { return raw_; }
+  [[nodiscard]] float resolution() const { return RESOLUTION; }
 
-  [[nodiscard]] float radian() const {
-    return static_cast<float>(angle_) * RESOLUTION_PER_RADIAN;
+  [[nodiscard]] float to_radian(uint16_t raw) const {
+    return static_cast<float>(raw) * RESOLUTION_PER_RADIAN;
   }
-
-  [[nodiscard]] float degree() const {
-    return static_cast<float>(angle_) * RESOLUTION_PER_DEGREE;
+  [[nodiscard]] float to_degree(uint16_t raw) const {
+    return static_cast<float>(raw) * RESOLUTION_PER_DEGREE;
   }
 };
 
@@ -105,7 +105,8 @@ Encoder::Encoder(peripherals::Spi &spi, gpio_num_t spics_io_num)
 Encoder::~Encoder() = default;
 
 bool Encoder::update() { return impl_->update(); }
-float Encoder::radian() { return impl_->radian(); }
-float Encoder::degree() { return impl_->degree(); }
 uint16_t Encoder::raw() { return impl_->raw(); }
+uint16_t Encoder::resolution() { return impl_->resolution(); }
+float Encoder::to_radian(uint16_t raw) { return impl_->to_radian(raw); }
+float Encoder::to_degree(uint16_t raw) { return impl_->to_degree(raw); }
 }  // namespace driver::hardware
