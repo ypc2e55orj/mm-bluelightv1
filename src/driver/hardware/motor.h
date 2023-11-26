@@ -25,5 +25,6 @@ class Motor {
   void brake();
   void coast();
   void speed(int motor_voltage, int battery_voltage);
+  int voltage();
 };
 }  // namespace driver::hardware

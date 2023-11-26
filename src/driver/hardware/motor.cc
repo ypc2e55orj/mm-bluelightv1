@@ -28,10 +28,12 @@ class Motor::MotorImpl {
     mcpwm_gen_handle_t a, b;
   } generator_;
 
+  int motor_voltage_;
+
  public:
   explicit MotorImpl(int mcpwm_timer_group_id, gpio_num_t a_num,
                      gpio_num_t b_num)
-      : timer_(), operator_(), comparator_(), generator_() {
+      : timer_(), operator_(), comparator_(), generator_(), motor_voltage_() {
     // タイマーを初期化
     mcpwm_timer_config_t timer_config = {};
     timer_config.group_id = mcpwm_timer_group_id;
@@ -123,7 +125,8 @@ class Motor::MotorImpl {
     mcpwm_generator_set_force_level(generator_.a, 0, true);
     mcpwm_generator_set_force_level(generator_.b, 0, true);
   }
-  void speed(int motor_voltage, int battery_voltage) const {
+  void speed(int motor_voltage, int battery_voltage) {
+    motor_voltage_ = motor_voltage;
     auto duty =
         static_cast<float>(motor_voltage) / static_cast<float>(battery_voltage);
     mcpwm_generator_set_force_level(generator_.a, duty < 0.0f ? 0 : -1, true);
@@ -133,6 +136,8 @@ class Motor::MotorImpl {
     mcpwm_comparator_set_compare_value(comparator_.a, duty_ticks);
     mcpwm_comparator_set_compare_value(comparator_.b, duty_ticks);
   }
+
+  [[nodiscard]] int voltage() const { return motor_voltage_; }
 };
 
 Motor::Motor(int mcpwm_timer_group_id, gpio_num_t a_num, gpio_num_t b_num)
@@ -146,4 +151,5 @@ void Motor::coast() { return impl_->coast(); }
 void Motor::speed(int motor_voltage, int battery_voltage) {
   return impl_->speed(motor_voltage, battery_voltage);
 }
+int Motor::voltage() { return impl_->voltage(); }
 }  // namespace driver::hardware
