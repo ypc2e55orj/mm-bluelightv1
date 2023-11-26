@@ -21,7 +21,59 @@ driver::Driver *dri = nullptr;
 config::Config *conf = nullptr;
 sensor::Sensor *sens = nullptr;
 
-[[noreturn]] void mainTask(void *) {
+[[noreturn]] void printSummary() {
+  uint64_t index = 0;
+  printf(
+      "Index"
+      ",SensorDelta,MotionDelta"
+      ",BatteryVoltage,BatteryVoltageAverage"
+      ",MotorVoltageLeft,MotorVoltageRight"
+      ",WheelAngularVelocityLeft,WheelAngularVelocityRight"
+      ",AmbientLeft90,AmbientLeft45,AmbientRight45,AmbientRight90"
+      ",FlashLeft90,FlashLeft45,FlashRight45,FlashRight90"
+      ",GyroX,GyroY,GyroZ"
+      ",AccelX,AccelY,AccelZ"
+      ",EncoderLeft,EncoderRight"
+      ",Radian,X,Y"
+      "\n");
+  auto xLastWakeTime = xTaskGetTickCount();
+  while (true) {
+    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));  // NOLINT
+    auto gyro = dri->imu->gyro();
+    auto accel = dri->imu->accel();
+    auto velocity = odom->wheels_velocity();
+    auto angular_velocity = odom->wheels_angular_velocity();
+    // clang-format off
+    printf(
+      "%lld"
+      ",%ld,%ld"
+      ",%d,%d"
+      ",%d,%d"
+      ",%f,%f"
+      ",%d,%d,%d,%d"
+      ",%d,%d,%d,%d"
+      ",%f,%f,%f"
+      ",%f,%f,%f"
+      ",%f,%f"
+      ",%f,%f,%f"
+      "\n",
+      index++,
+      sens->delta_us(), mot->delta_us(),
+      dri->battery->voltage(), dri->battery->average(),
+      dri->motor_left->voltage(), dri->motor_right->voltage(),
+      static_cast<double>(velocity.left), static_cast<double>(velocity.right),
+      dri->photo->left90().ambient, dri->photo->left45().ambient, dri->photo->right45().ambient, dri->photo->right90().ambient,
+      dri->photo->left90().flash, dri->photo->left45().flash, dri->photo->right45().flash, dri->photo->right90().flash,
+      static_cast<double>(gyro.x), static_cast<double>(gyro.y), static_cast<double>(gyro.z),
+      static_cast<double>(accel.x), static_cast<double>(accel.y), static_cast<double>(accel.z),
+      static_cast<double>(angular_velocity.left), static_cast<double>(angular_velocity.right),
+      static_cast<double>(odom->radian()), static_cast<double>(odom->x()), static_cast<double>(odom->y())
+    );
+    // clang-format on
+  }
+}
+
+void mainTask(void *) {
   ESP_LOGI(TAG, "mainTask() is started. Core ID: %d", xPortGetCoreID());
   ESP_LOGI(TAG, "Initializing driver (for app cpu)");
   dri->init_app();
@@ -39,52 +91,9 @@ sensor::Sensor *sens = nullptr;
 
   dri->buzzer->set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
   dri->buzzer->update();
-  mot->start(8192, 10, 0);
   sens->start(8192, 20, 0);
-
-  uint64_t index = 0;
-  printf(
-      "Index"
-      ",SensorDelta,MotionDelta"
-      ",BatteryVoltage,BatteryVoltageAverage"
-      ",AmbientLeft90,AmbientLeft45,AmbientRight45,AmbientRight90"
-      ",FlashLeft90,FlashLeft45,FlashRight45,FlashRight90"
-      ",GyroX,GyroY,GyroZ"
-      ",AccelX,AccelY,AccelZ"
-      ",EncoderLeft,EncoderRight"
-      ",Radian,X,Y"
-      "\n");
-  auto xLastWakeTime = xTaskGetTickCount();
-  while (true) {
-    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));  // NOLINT
-    dri->indicator->rainbow_yield();
-    auto gyro = dri->imu->gyro();
-    auto accel = dri->imu->accel();
-
-    // clang-format off
-    printf(
-        "%lld"
-        ",%ld,%ld"
-        ",%d,%d"
-        ",%d,%d,%d,%d"
-        ",%d,%d,%d,%d"
-        ",%f,%f,%f"
-        ",%f,%f,%f"
-        ",%f,%f"
-        ",%f,%f,%f"
-        "\n",
-        index++,
-        sens->delta_us(), mot->delta_us(),
-        dri->battery->voltage(), dri->battery->average(),
-        dri->photo->left90().ambient, dri->photo->left45().ambient, dri->photo->right45().ambient, dri->photo->right90().ambient,
-        dri->photo->left90().flash, dri->photo->left45().flash, dri->photo->right45().flash, dri->photo->right90().flash,
-        static_cast<double>(gyro.x), static_cast<double>(gyro.y), static_cast<double>(gyro.z),
-        static_cast<double>(accel.x), static_cast<double>(accel.y), static_cast<double>(accel.z),
-        static_cast<double>(dri->encoder_left->radian()), static_cast<double>(dri->encoder_right->radian()),
-        static_cast<double>(odom->radian()), static_cast<double>(odom->x()), static_cast<double>(odom->y())
-    );
-    // clang-format on
-  }
+  mot->start(8192, 10, 0);
+  printSummary();
 }
 
 // entrypoint
@@ -94,7 +103,7 @@ extern "C" [[maybe_unused]] void app_main(void) {
   conf = new config::Config();
   odom = new odometry::Odometry(*dri, *conf);
   mot = new motion::Motion(*dri, *conf, *odom);
-  sens = new sensor::Sensor(*dri, *mot);
+  sens = new sensor::Sensor(*dri, *odom);
   ESP_LOGI(TAG, "Initializing driver (for pro cpu)");
   dri->init_pro();
   xTaskCreatePinnedToCore(mainTask, "mainTask", 8192 * 2, nullptr, 10, nullptr,
