@@ -51,23 +51,18 @@ class Wheel {
    * @param delta_us 更新周期 [us]
    * @return 車輪の角速度 [rad/s]
    */
-  float calculate_angular_velocity(uint16_t current, uint32_t delta_us) {
-    const auto resolution_max = (resolution_ - 1);
+  [[nodiscard]] float calculate_angular_velocity(uint16_t current,
+                                                 uint32_t delta_us) const {
     const auto resolution_half = resolution_ / 2;
     const auto resolution_per_radian =
-        (2.0f * std::numbers::pi_v<float>) / static_cast<float>(resolution_max);
-    // 回転方向を反転
-    if (invert_) {
-      previous_ = (resolution_ - 1) - previous_;
-      current = (resolution_ - 1) - current;
-    }
+        (2.0f * std::numbers::pi_v<float>) / static_cast<float>(resolution_);
     // センサ値更新間隔(delta_us)での観測値の変化量を計算
     auto delta = current - previous_;
     if (std::abs(delta) >= resolution_half) {
-      if (previous_ > resolution_half) {
-        delta = resolution_max + delta;
+      if (previous_ >= resolution_half) {
+        delta += resolution_;
       } else {
-        delta = resolution_max - delta;
+        delta -= resolution_;
       }
     }
     // 角度に変換
@@ -94,6 +89,10 @@ class Wheel {
    * @param delta_us 更新周期 [us]
    */
   void update(uint16_t current, uint32_t delta_us) {
+    // 回転方向を反転
+    if (invert_) {
+      current = resolution_ - current;
+    }
     if (reset_) [[unlikely]] {
       previous_ = current;
       reset_ = false;
