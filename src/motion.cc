@@ -6,13 +6,13 @@
 // ESP-IDF
 #include <esp_system.h>
 #include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
 
 // Project
 #include "config.h"
 #include "data/pid.h"
 #include "driver/driver.h"
 #include "odometry.h"
+#include "rtos/queue.h"
 #include "rtos/task.h"
 
 namespace motion {
@@ -42,13 +42,29 @@ class Run {
    */
   virtual bool done() = 0;
 };
-
+// 停止
 class Stop final : public Run {
  public:
   Motion::RunMode mode() override { return Motion::RunMode::Stop; }
-  std::pair<float, float> tick() override { return {0.0f, 0.0f}; }
+  std::pair<float, float> tick() override {
+    // 速度0にフィードバックする
+    float v_l = 0.0f, v_r = 0.0f;
+
+    return {v_l, v_r};
+  }
   bool done() override { return true; }
 };
+// UI用触覚フィードバック
+class HapticFeedback final : public Run {
+ private:
+  bool done_{false};
+
+ public:
+  Motion::RunMode mode() override { return Motion::RunMode::HapticFeedback; }
+  std::pair<float, float> tick() override { return {0.0f, 0.0f}; }
+  bool done() override { return done_; }
+};
+// 直線
 class Straight final : public Run {
  private:
   bool done_{false};
@@ -58,6 +74,7 @@ class Straight final : public Run {
   std::pair<float, float> tick() override { return {0.0f, 0.0f}; }
   bool done() override { return done_; }
 };
+// 超信地旋回
 class PivotTurn final : public Run {
  private:
   bool done_{false};
@@ -67,6 +84,7 @@ class PivotTurn final : public Run {
   std::pair<float, float> tick() override { return {0.0f, 0.0f}; }
   bool done() override { return done_; }
 };
+// スラローム旋回
 class SlalomTurn final : public Run {
  private:
   bool done_{false};
@@ -83,45 +101,35 @@ class Motion::MotionImpl final : public rtos::Task {
   config::Config &conf_;
   odometry::Odometry &odom_;
 
-  QueueHandle_t queue_;
+  data::Pid velocity_pid_;
+  data::Pid angular_velocity_pid_;
+  rtos::Queue<RunConfig> queue_;
 
-  void setup() override {}
+  void setup() override {
+    queue_.reset();
+    velocity_pid_.reset();
+    angular_velocity_pid_.reset();
+  }
   void loop() override {
-    uint32_t delta_us;
-    // センサタスクからの通知を待つ
-    xTaskNotifyWait(0, 0, &delta_us, portMAX_DELAY);
-
-    if (delta_us == 0) {
-      // 開始通知
-      // オドメトリをリセット
-      odom_.reset();
-    } else {
-      // センサ取得通知
-
+    // センサ取得通知
+    if (conf_.low_voltage > dri_.battery->average()) {
       // 移動平均が停止電圧の場合
-      if (conf_.low_voltage > dri_.battery->average()) {
-        for (uint16_t i = 0; i < dri_.indicator->counts(); i++) {
-          dri_.indicator->set(i, 0xFF, 0, 0);
-        }
-        // ブレーキ
-        dri_.motor_left->brake();
-        dri_.motor_right->brake();
-        // 停止を待つ
-        vTaskDelay(pdMS_TO_TICKS(10));
-        dri_.motor_left->disable();
-        dri_.motor_right->disable();
-        // 停止されるまで待つ
-        while (!is_stopping()) {
-          vTaskDelay(pdMS_TO_TICKS(1));
-        }
+      for (uint16_t i = 0; i < dri_.indicator->counts(); i++) {
+        dri_.indicator->set(i, 0xFF, 0, 0);
       }
-      odom_.update(delta_us);
-      // TODO: 走行モードに応じて制御
-      dri_.motor_left->enable();
-      dri_.motor_right->enable();
+      // ブレーキ
+      dri_.motor_left->brake();
+      dri_.motor_right->brake();
+      // 停止を待つ
+      vTaskDelay(pdMS_TO_TICKS(10));
       dri_.motor_left->disable();
       dri_.motor_right->disable();
+      // 停止されるまで待つ
+      while (!is_stopping()) {
+        vTaskDelay(pdMS_TO_TICKS(1));
+      }
     }
+    // TODO: 走行モードに応じて制御
   }
   void end() override {}
 
@@ -131,18 +139,11 @@ class Motion::MotionImpl final : public rtos::Task {
       : rtos::Task(__func__, pdMS_TO_TICKS(1)),
         dri_(dri),
         conf_(conf),
-        odom_(odom) {
-    queue_ = xQueueCreate(1, sizeof(RunConfig));
-  }
-  ~MotionImpl() override { vQueueDelete(queue_); }
+        odom_(odom),
+        queue_(1) {}
+  ~MotionImpl() override = default;
 
-  bool set_sensor_notify(uint32_t delta_us) {
-    auto pdRet = xTaskNotify(handle(), delta_us, eSetValueWithOverwrite);
-    return pdRet == pdTRUE;
-  }
-  bool enqueue(RunConfig &target) {
-    return xQueueSend(queue_, &target, 0) == pdTRUE;
-  }
+  bool run(RunConfig &target) { return queue_.send(&target, 0); }
 };
 
 Motion::Motion(driver::Driver &dri, config::Config &conf,
@@ -155,13 +156,8 @@ bool Motion::start(uint32_t usStackDepth, UBaseType_t uxPriority,
   return impl_->start(usStackDepth, uxPriority, xCoreID);
 }
 bool Motion::stop() { return impl_->stop(); }
-
 uint32_t Motion::delta_us() { return impl_->delta_us(); };
-
-bool Motion::set_sensor_notify(uint32_t delta_us) {
-  return impl_->set_sensor_notify(delta_us);
-}
-bool Motion::enqueue(motion::Motion::RunConfig &target) {
-  return impl_->enqueue(target);
+bool Motion::run(motion::Motion::RunConfig &target) {
+  return impl_->run(target);
 }
 }  // namespace motion

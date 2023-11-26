@@ -24,6 +24,8 @@ class Motion {
     PivotTurn,
     /// スラローム旋回
     SlalomTurn,
+    /// UI用触覚フィードバック
+    HapticFeedback,
   };
   struct RunConfig {
     /// 走行モード
@@ -59,8 +61,6 @@ class Motion {
 
   uint32_t delta_us();
 
-  bool set_sensor_notify(uint32_t delta_us);
-  bool get_error_notify();
-  bool enqueue(RunConfig &target);
+  bool run(motion::Motion::RunConfig &target);
 };
 }  // namespace motion
