@@ -28,12 +28,12 @@ sensor::Sensor *sens = nullptr;
       ",SensorDelta,MotionDelta"
       ",BatteryVoltage,BatteryVoltageAverage"
       ",MotorVoltageLeft,MotorVoltageRight"
-      ",WheelAngularVelocityLeft,WheelAngularVelocityRight"
+      ",WheelVelocityLeft,WheelVelocityRight"
       ",AmbientLeft90,AmbientLeft45,AmbientRight45,AmbientRight90"
       ",FlashLeft90,FlashLeft45,FlashRight45,FlashRight90"
       ",GyroX,GyroY,GyroZ"
       ",AccelX,AccelY,AccelZ"
-      ",EncoderLeft,EncoderRight"
+      ",WheelAngularVelocityLeft,WheelAngularVelocityRight"
       ",Radian,X,Y"
       "\n");
   auto xLastWakeTime = xTaskGetTickCount();
