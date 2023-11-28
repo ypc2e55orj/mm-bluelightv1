@@ -5,9 +5,12 @@
 namespace data {
 class Pid {
  private:
-  float kp_{};
-  float ki_{};
-  float kd_{};
+  struct Gain {
+    struct {
+      bool enable;
+      float value;
+    } kp, ki, kd;
+  } gain_{};
 
   float prev_target_{};
   float prev_{};
@@ -16,7 +19,17 @@ class Pid {
   float sum_{};
 
  public:
-  explicit Pid() { reset(); }
+  explicit Pid(float kp, float ki, float kd) {
+    gain_.kp.enable = true;
+    gain_.ki.enable = true;
+    gain_.kd.enable = true;
+
+    gain_.kp.value = kp;
+    gain_.ki.value = ki;
+    gain_.kd.value = kd;
+    reset();
+  }
+  Gain &gain() { return gain_; }
 
   void reset() {
     prev_target_ = 0.0f;
@@ -24,14 +37,19 @@ class Pid {
     sum_target_ = 0.0f;
     sum_ = 0.0f;
   }
-  void gain(float kp, float ki, float kd) {
-    kp_ = kp;
-    ki_ = ki;
-    kd_ = kd;
-  }
+
   float update(float target, float current, float dt) {
-    float ret = kp_ * (target - current) + ki_ * (sum_target_ - sum_) +
-                kd_ * (prev_target_ - prev_) / dt;
+    float ret = 0.0f;
+
+    if (gain_.kp.enable) {
+      ret += gain_.kp.value * (target - current);
+    }
+    if (gain_.ki.enable) {
+      ret += gain_.ki.value * (sum_target_ - sum_);
+    }
+    if (gain_.kd.enable) {
+      ret += gain_.kd.value * (prev_target_ - prev_) / dt;
+    }
 
     if ((!std::signbit(target) && (sum_target_ + target) > sum_target_) ||
         (std::signbit(target) && (sum_target_ + target) < sum_target_)) {
