@@ -14,122 +14,133 @@
 #include "odometry.h"
 #include "rtos/queue.h"
 #include "rtos/task.h"
+#include "run.h"
 
 namespace motion {
-class Run {
- protected:
-  Motion::RunConfig &config_;
+/**
+ * 参考:
+ * 車体モデル
+ * https://rt-net.jp/mobility/archives/16525
+ * https://rt-net.jp/mobility/archives/12621
+ *
+ * DCモータを使ったマイクロマウス入門シリーズ
+ * https://www.rt-shop.jp/blog/archives/2387
+ *
+ * MK06-4.5特性
+ * http://hidejrlab.blog104.fc2.com/blog-entry-1234.html
+ * http://hidejrlab.blog104.fc2.com/blog-entry-1233.html
+ */
+class Model {
+ private:
+  /// 逆起電圧定数
+  static constexpr float MOTOR_BACK_EMF = 0.062f / 1000.0f;  // [V/rpm]
+  /// インダクタンス
+  static constexpr float MOTOR_INDUCTANCE = 29.1f / 1000'000.0f;  // [H]
+  /// 抵抗
+  static constexpr float MOTOR_RESISTANCE = 5.0f;  // [ohm]
+  /// トルク定数
+  static constexpr float MOTOR_TORQUE = 0.59f / 1000.0f;  // [Nm/A]
+  /// 機械的抵抗 (左右)
+  static constexpr float WHEEL_MECHANICAL_RESISTANCE[2] = {0.0f, 0.0f};
+  /// 車輪トルク定数(ギア比?)
+  static constexpr float WHEEL_GEAR_RATIO = 38.0f / 9.0f;  // 1:n
+  /// 車体質量
+  static constexpr float WEIGHT = 10.0f / 1000.0f;  // [kg]
+
+  /// 設定
+  config::Config &conf_;
+  /// オドメトリ
+  odometry::Odometry &odom_;
+  /// 速度PID制御
+  data::Pid velocity_pid_{0.0f, 0.0f, 0.0f};
+  /// 角速度PID制御
+  data::Pid angular_velocity_pid_{0.0f, 0.0f, 0.0f};
 
  public:
-  /**
-   * @brief 走行設定を初期化
-   */
-  explicit Run(Motion::RunConfig &config) : config_(config) {}
+  explicit Model(config::Config &conf, odometry::Odometry &odom)
+      : conf_(conf), odom_(odom) {}
+  ~Model() = default;
 
   /**
-   * @brief 子クラスの走行モードを定義
-   * @return 走行モード
+   * リセット
    */
-  virtual Motion::RunMode mode() = 0;
-  /**
-   * @brief 1周期での動作を定義する
-   * @return 左右のモーター電圧を返す
-   */
-  virtual std::pair<float, float> tick() = 0;
-  /**
-   * @brief 完了したかどうかを返す
-   * @return trueのとき完了
-   */
-  virtual bool done() = 0;
-};
-// 停止
-class Stop final : public Run {
- public:
-  Motion::RunMode mode() override { return Motion::RunMode::Stop; }
-  std::pair<float, float> tick() override {
-    // 速度0にフィードバックする
-    float v_l = 0.0f, v_r = 0.0f;
-
-    return {v_l, v_r};
+  void reset() {
+    velocity_pid_.reset();
+    angular_velocity_pid_.reset();
   }
-  bool done() override { return true; }
-};
-// UI用触覚フィードバック
-class HapticFeedback final : public Run {
- private:
-  bool done_{false};
 
- public:
-  Motion::RunMode mode() override { return Motion::RunMode::HapticFeedback; }
-  std::pair<float, float> tick() override { return {0.0f, 0.0f}; }
-  bool done() override { return done_; }
-};
-// 直線
-class Straight final : public Run {
- private:
-  bool done_{false};
+  /**
+   * フィードフォワード・フィードバック制御
+   * @param target 目標値
+   * @return 左右のモーター電圧[V]
+   */
+  std::pair<int, int> update(run::Target &target) {
+    auto &wheels = odom_.wheels_velocity();
+    auto radian = odom_.radian();
+    auto velocity = (wheels.left + wheels.right) / 2.0f;
 
- public:
-  Motion::RunMode mode() override { return Motion::RunMode::Straight; }
-  std::pair<float, float> tick() override { return {0.0f, 0.0f}; }
-  bool done() override { return done_; }
-};
-// 超信地旋回
-class PivotTurn final : public Run {
- private:
-  bool done_{false};
+    auto velocity_error = velocity_pid_.update(target.velocity, velocity, 1.0f);
+    auto angular_velocity_error =
+        angular_velocity_pid_.update(target.angular_velocity, radian, 1.0f);
 
- public:
-  Motion::RunMode mode() override { return Motion::RunMode::PivotTurn; }
-  std::pair<float, float> tick() override { return {0.0f, 0.0f}; }
-  bool done() override { return done_; }
-};
-// スラローム旋回
-class SlalomTurn final : public Run {
- private:
-  bool done_{false};
+    auto tire_radius = conf_.tire_diameter / 2.0f;
+    auto torque_left = tire_radius;
 
- public:
-  Motion::RunMode mode() override { return Motion::RunMode::SlalomTurn; }
-  std::pair<float, float> tick() override { return {0.0f, 0.0f}; }
-  bool done() override { return done_; }
+    return {0, 0};
+  }
 };
 
 class Motion::MotionImpl final : public rtos::Task {
  private:
   driver::Driver &dri_;
   config::Config &conf_;
-  odometry::Odometry &odom_;
+  /// モデル
+  Model model_;
+  /// 走行モードを受け取るキュー
+  rtos::Queue<run::Parameter> queue_;
+  /// 目標値
+  run::Parameter parameter{};
+  /// 走行目標値生成クラス
+  run::Run run_;
 
-  data::Pid velocity_pid_;
-  data::Pid angular_velocity_pid_;
-  rtos::Queue<RunConfig> queue_;
-
-  void setup() override {
-    queue_.reset();
-    velocity_pid_.reset();
-    angular_velocity_pid_.reset();
+  // 緊急停止
+  void emergency_stop() {
+    for (uint16_t i = 0; i < dri_.indicator->counts(); i++) {
+      dri_.indicator->set(i, 0xFF, 0, 0);
+    }
+    // ブレーキ
+    dri_.motor_left->brake();
+    dri_.motor_right->brake();
+    // 停止を待つ
+    vTaskDelay(pdMS_TO_TICKS(10));
+    dri_.motor_left->disable();
+    dri_.motor_right->disable();
+    // 停止されるまで待つ
+    while (!is_stopping()) {
+      vTaskDelay(pdMS_TO_TICKS(1));
+    }
   }
+
+  void setup() override { queue_.reset(); }
   void loop() override {
     // センサ取得通知
     if (conf_.low_voltage > dri_.battery->average()) {
-      // 移動平均が停止電圧の場合
-      for (uint16_t i = 0; i < dri_.indicator->counts(); i++) {
-        dri_.indicator->set(i, 0xFF, 0, 0);
-      }
-      // ブレーキ
-      dri_.motor_left->brake();
-      dri_.motor_right->brake();
-      // 停止を待つ
-      vTaskDelay(pdMS_TO_TICKS(10));
-      dri_.motor_left->disable();
-      dri_.motor_right->disable();
-      // 停止されるまで待つ
-      while (!is_stopping()) {
-        vTaskDelay(pdMS_TO_TICKS(1));
-      }
+      emergency_stop();
     }
-    // TODO: 走行モードに応じて制御
+    // キューから最新の走行モードを取得
+    if (queue_.receive(&parameter, 0)) {
+      model_.reset();
+    }
+    // 走行パターンから目標値を生成
+    auto target = run_.run(parameter);
+
+    // 目標値から電圧値に変換
+    auto [voltage_left, voltage_right] = model_.update(target);
+
+    // 反映
+    auto battery_voltage = dri_.battery->voltage();
+    dri_.motor_left->speed(voltage_left, battery_voltage);
+    dri_.motor_right->speed(voltage_right, battery_voltage);
   }
   void end() override {}
 
@@ -139,11 +150,11 @@ class Motion::MotionImpl final : public rtos::Task {
       : rtos::Task(__func__, pdMS_TO_TICKS(1)),
         dri_(dri),
         conf_(conf),
-        odom_(odom),
+        model_(conf, odom),
         queue_(1) {}
   ~MotionImpl() override = default;
 
-  bool run(RunConfig &target) { return queue_.send(&target, 0); }
+  bool set(run::Parameter *param) { return queue_.overwrite(param); }
 };
 
 Motion::Motion(driver::Driver &dri, config::Config &conf,
@@ -157,7 +168,4 @@ bool Motion::start(uint32_t usStackDepth, UBaseType_t uxPriority,
 }
 bool Motion::stop() { return impl_->stop(); }
 uint32_t Motion::delta_us() { return impl_->delta_us(); };
-bool Motion::run(motion::Motion::RunConfig &target) {
-  return impl_->run(target);
-}
 }  // namespace motion
