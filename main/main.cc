@@ -39,8 +39,8 @@ sensor::Sensor *sens = nullptr;
   auto xLastWakeTime = xTaskGetTickCount();
   while (true) {
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));  // NOLINT
-    auto gyro = dri->imu->gyro();
-    auto accel = dri->imu->accel();
+    auto gyro = dri->imu->raw_angular_rate();
+    auto accel = dri->imu->raw_linear_acceleration();
     auto velocity = odom->wheels_velocity();
     auto angular_velocity = odom->wheels_angular_velocity();
     // clang-format off

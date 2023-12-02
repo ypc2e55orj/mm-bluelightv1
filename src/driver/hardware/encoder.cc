@@ -1,8 +1,5 @@
 #include "encoder.h"
 
-// C++
-#include <numbers>
-
 // ESP-IDF
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
@@ -22,13 +19,6 @@ class Encoder::As5050aImpl final : public DriverBase {
 
   // 送受信バッファサイズ
   static constexpr size_t BUFFER_SIZE = 2;
-
-  // 分解能あたりの角度
-  static constexpr uint16_t RESOLUTION = 1024 - 1;  // 10 bit
-  static constexpr float RESOLUTION_PER_RADIAN =
-      (2.0f * std::numbers::pi_v<float>) / static_cast<float>(RESOLUTION);
-  static constexpr float RESOLUTION_PER_DEGREE =
-      360.f / static_cast<float>(RESOLUTION);
 
   // レジスタ
   static constexpr uint16_t REG_MASTER_RESET = 0x33A5;
@@ -90,14 +80,6 @@ class Encoder::As5050aImpl final : public DriverBase {
   }
 
   [[nodiscard]] uint16_t raw() const { return raw_; }
-  [[nodiscard]] static uint16_t resolution() { return RESOLUTION; }
-
-  [[nodiscard]] static float to_radian(uint16_t raw) {
-    return static_cast<float>(raw) * RESOLUTION_PER_RADIAN;
-  }
-  [[nodiscard]] static float to_degree(uint16_t raw) {
-    return static_cast<float>(raw) * RESOLUTION_PER_DEGREE;
-  }
 };
 
 Encoder::Encoder(peripherals::Spi &spi, gpio_num_t spics_io_num)
@@ -106,7 +88,4 @@ Encoder::~Encoder() = default;
 
 bool Encoder::update() { return impl_->update(); }
 uint16_t Encoder::raw() { return impl_->raw(); }
-uint16_t Encoder::resolution() { return As5050aImpl::resolution(); }
-float Encoder::to_radian(uint16_t raw) { return As5050aImpl::to_radian(raw); }
-float Encoder::to_degree(uint16_t raw) { return As5050aImpl::to_degree(raw); }
 }  // namespace driver::hardware

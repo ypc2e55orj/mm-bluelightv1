@@ -20,8 +20,8 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
   uint8_t *rx_buffer_;
   uint8_t *tx_buffer_;
 
-  Axis gyro_;
-  Axis accel_;
+  RawAxis gyro_;
+  RawAxis accel_;
 
   // 送受信バッファサイズ
   static constexpr size_t BUFFER_SIZE = 12;
@@ -142,21 +142,19 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
 
   bool update() override { return spi_.transmit(index_); }
 
-  const Axis &gyro() {
-    constexpr float gyro_const = 70.0f;  // 2000dps
+  const RawAxis &raw_angular_rate() {
     auto res = reinterpret_cast<int16_t *>(rx_buffer_);
-    gyro_.x = static_cast<float>(res[0]) * gyro_const;
-    gyro_.y = static_cast<float>(res[1]) * gyro_const;
-    gyro_.z = static_cast<float>(res[2]) * gyro_const;
+    gyro_.x = res[0];
+    gyro_.y = res[1];
+    gyro_.z = res[2];
     return gyro_;
   }
 
-  const Axis &accel() {
-    constexpr float accel_const = 9.80665f * 0.061f;  // fs2g
+  const RawAxis &raw_linear_acceleration() {
     auto res = reinterpret_cast<int16_t *>(rx_buffer_);
-    accel_.x = static_cast<float>(res[3]) * accel_const;
-    accel_.y = static_cast<float>(res[4]) * accel_const;
-    accel_.z = static_cast<float>(res[5]) * accel_const;
+    accel_.x = res[3];
+    accel_.y = res[4];
+    accel_.z = res[5];
     return accel_;
   }
 };
@@ -166,6 +164,10 @@ Imu::Imu(peripherals::Spi &spi, gpio_num_t spics_io_num)
 Imu::~Imu() = default;
 
 bool Imu::update() { return impl_->update(); }
-const Imu::Axis &Imu::gyro() { return impl_->gyro(); }
-const Imu::Axis &Imu::accel() { return impl_->accel(); }
+const Imu::RawAxis &Imu::raw_angular_rate() {
+  return impl_->raw_angular_rate();
+}
+const Imu::RawAxis &Imu::raw_linear_acceleration() {
+  return impl_->raw_linear_acceleration();
+}
 }  // namespace driver::hardware

@@ -15,10 +15,13 @@ class Imu final : public DriverBase {
   std::unique_ptr<Lsm6dsrxImpl> impl_;
 
  public:
-  struct Axis {
-    float x;
-    float y;
-    float z;
+  static constexpr float ANGULAR_RATE_SENSITIVITY = 70.0f;          // 2000dps
+  static constexpr float LINEAR_ACCELERATION_SENSITIVITY = 0.061f;  // fs2g
+
+  struct RawAxis {
+    int16_t x;
+    int16_t y;
+    int16_t z;
   };
 
   explicit Imu(peripherals::Spi &spi, gpio_num_t spics_io_num);
@@ -26,7 +29,14 @@ class Imu final : public DriverBase {
 
   bool update() override;
 
-  const Axis &gyro();
-  const Axis &accel();
+  const RawAxis &raw_angular_rate();
+  const RawAxis &raw_linear_acceleration();
+
+  static constexpr float angular_rate_sensitivity() {
+    return ANGULAR_RATE_SENSITIVITY;
+  }
+  static constexpr float linear_acceleration_sensitivity() {
+    return LINEAR_ACCELERATION_SENSITIVITY;
+  }
 };
 }  // namespace driver::hardware
