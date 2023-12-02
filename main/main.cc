@@ -67,7 +67,7 @@ sensor::Sensor *sens = nullptr;
       static_cast<double>(gyro.x), static_cast<double>(gyro.y), static_cast<double>(gyro.z),
       static_cast<double>(accel.x), static_cast<double>(accel.y), static_cast<double>(accel.z),
       static_cast<double>(angular_velocity.left), static_cast<double>(angular_velocity.right),
-      static_cast<double>(odom->radian()), static_cast<double>(odom->x()), static_cast<double>(odom->y())
+      static_cast<double>(odom->angle()), static_cast<double>(odom->x()), static_cast<double>(odom->y())
     );
     // clang-format on
   }

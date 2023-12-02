@@ -52,9 +52,9 @@ class Model {
   /// オドメトリ
   odometry::Odometry &odom_;
   /// 速度PID制御
-  data::Pid velocity_pid_{0.0f, 0.0f, 0.0f};
+  data::Pid velo_pid_{0.0f, 0.0f, 0.0f};
   /// 角速度PID制御
-  data::Pid angular_velocity_pid_{0.0f, 0.0f, 0.0f};
+  data::Pid ang_velo_pid_{0.0f, 0.0f, 0.0f};
 
  public:
   explicit Model(config::Config &conf, odometry::Odometry &odom)
@@ -65,26 +65,34 @@ class Model {
    * リセット
    */
   void reset() {
-    velocity_pid_.reset();
-    angular_velocity_pid_.reset();
+    velo_pid_.reset();
+    ang_velo_pid_.reset();
   }
 
   /**
    * フィードフォワード・フィードバック制御
    * @param target 目標値
-   * @return 左右のモーター電圧[V]
+   * @return 左右のモーター電圧[mV]
    */
-  std::pair<int, int> update(run::Target &target) {
-    auto &wheels = odom_.wheels_velocity();
-    auto radian = odom_.radian();
-    auto velocity = (wheels.left + wheels.right) / 2.0f;
+  std::pair<int, int> update(const run::Target &target) {
+    // 速度フィードバック
+    const auto &velo_wheels = odom_.wheels_velocity();
+    auto velo_left = velo_wheels.left / 1000.f;     // [mm/s] -> [m/s]
+    auto velo_right = velo_wheels.right / 1000.0f;  // [mm/s] -> [m/s]
+    auto velo = (velo_left + velo_right) / 2.0f;
+    auto velo_target = target.velocity / 1000.0f;  // [mm/s] -> [m/s]
+    auto velo_err = velo_pid_.update(velo_target, velo, 1.0f);
 
-    auto velocity_error = velocity_pid_.update(target.velocity, velocity, 1.0f);
-    auto angular_velocity_error =
-        angular_velocity_pid_.update(target.angular_velocity, radian, 1.0f);
+    // 角速度フィードバック
+    auto ang_velo = target.angular_velocity;
+    auto ang_velo_target = odom_.velocity();
+    auto ang_velo_err = ang_velo_pid_.update(ang_velo, ang_velo_target, 1.0f);
 
-    auto tire_radius = conf_.tire_diameter / 2.0f;
-    auto torque_left = tire_radius;
+    // フィードフォワード
+    auto tire_rad = (conf_.tire_diameter / 2.0f) / 1000.0f;  // [mm] -> [m]
+    auto tire_rad_div = tire_rad / 2.0f;
+    auto tire_tread = conf_.tire_tread_width / 1000.0f;  // [mm] -> [m]
+    auto tire_tread_div = tire_rad / tire_tread;
 
     return {0, 0};
   }
@@ -132,7 +140,7 @@ class Motion::MotionImpl final : public rtos::Task {
       model_.reset();
     }
     // 走行パターンから目標値を生成
-    auto target = run_.run(parameter);
+    const auto &target = run_.run(parameter);
 
     // 目標値から電圧値に変換
     auto [voltage_left, voltage_right] = model_.update(target);

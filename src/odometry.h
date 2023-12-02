@@ -8,7 +8,7 @@
 #include "driver/driver.h"
 
 namespace odometry {
-struct Velocity {
+struct WheelsPair {
   float left;
   float right;
 };
@@ -25,11 +25,12 @@ class Odometry {
   void reset();
   void update(uint32_t delta_us);
 
-  float radian();
+  float angle();
   float x();
   float y();
 
-  const Velocity &wheels_velocity();
-  const Velocity &wheels_angular_velocity();
+  const WheelsPair &wheels_angular_acceleration();
+  const WheelsPair &wheels_angular_velocity();
+  const WheelsPair &wheels_velocity();
 };
 }  // namespace odometry
