@@ -18,11 +18,13 @@ class Imu final : public DriverBase {
   static constexpr float ANGULAR_RATE_SENSITIVITY = 70.0f;          // 2000dps
   static constexpr float LINEAR_ACCELERATION_SENSITIVITY = 0.061f;  // fs2g
 
-  struct RawAxis {
-    int16_t x;
-    int16_t y;
-    int16_t z;
+  template <typename T>
+  struct Axis {
+    T x;
+    T y;
+    T z;
   };
+  using RawAxis = Axis<int16_t>;
 
   explicit Imu(peripherals::Spi &spi, gpio_num_t spics_io_num);
   ~Imu();
@@ -31,6 +33,8 @@ class Imu final : public DriverBase {
 
   const RawAxis &raw_angular_rate();
   const RawAxis &raw_linear_acceleration();
+
+  void calibration();
 
   static constexpr float angular_rate_sensitivity() {
     return ANGULAR_RATE_SENSITIVITY;

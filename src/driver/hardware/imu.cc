@@ -2,6 +2,7 @@
 
 // C++
 #include <bitset>
+#include <vector>
 
 // ESP-IDF
 #include <driver/gpio.h>
@@ -76,20 +77,30 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
 
   static constexpr uint8_t REG_OUTX_L_G = 0x22;
 
+  static constexpr uint8_t REG_X_OFS_USR = 0x73;
+  static constexpr uint8_t REG_Y_OFS_USR = 0x74;
+  static constexpr uint8_t REG_Z_OFS_USR = 0x75;
+
   uint8_t read_byte(uint8_t reg) {
     auto trans = spi_.transaction(index_);
     uint8_t *p = trans->rx_data;
     trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
-    trans->length = 8;
+    trans->tx_buffer = nullptr;
+    trans->rx_buffer = nullptr;
     trans->addr = reg | 0x80;
+    trans->length = 8;
+    trans->rxlength = 0;
     spi_.transmit(index_);
     return p[0];
   }
   bool write_byte(uint8_t reg, uint8_t data) {
     auto trans = spi_.transaction(index_);
     trans->flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
-    trans->length = 8;
+    trans->tx_buffer = nullptr;
+    trans->rx_buffer = nullptr;
     trans->addr = reg;
+    trans->length = 8;
+    trans->rxlength = 0;
     trans->tx_data[0] = data;
     bool ret = spi_.transmit(index_);
     return ret;
@@ -151,8 +162,8 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     // CTRL8_XLを反映
     write_byte(REG_CTRL8_XL, static_cast<uint8_t>(reg.to_ulong()));
     reg = read_byte(REG_CTRL6_C);
-    // オフセットの重みを2^-6 g/LSBに設定
-    reg[BIT_CTRL6_C_USR_OFF_W] = true;
+    // オフセットの重みを2^-10 g/LSBに設定
+    reg[BIT_CTRL6_C_USR_OFF_W] = false;
     // CTRL6_Cを反映
     write_byte(REG_CTRL6_C, static_cast<uint8_t>(reg.to_ulong()));
     reg = read_byte(REG_CTRL7_G);
@@ -186,8 +197,13 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     reg[BIT_CTRL6_C_FTYPE_0] = false;
     // CTRL6_Cを反映
     write_byte(REG_CTRL6_C, static_cast<uint8_t>(reg.to_ulong()));
+  }
+  ~Lsm6dsrxImpl() {
+    free(tx_buffer_);
+    free(rx_buffer_);
+  }
 
-    // 更新
+  bool update() override {
     auto trans = spi_.transaction(index_);
     trans->flags = 0;
     trans->tx_buffer = tx_buffer_;
@@ -195,14 +211,8 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     trans->addr = REG_OUTX_L_G | 0x80;
     trans->length = 12 * 8;  // OUTX_L_G(22h) ~ OUTZ_H_A(2Dh)
     trans->rxlength = trans->length;
-    spi_.transmit(index_);
+    return spi_.transmit(index_);
   }
-  ~Lsm6dsrxImpl() {
-    free(tx_buffer_);
-    free(rx_buffer_);
-  }
-
-  bool update() override { return spi_.transmit(index_); }
 
   const RawAxis &raw_angular_rate() {
     auto res = reinterpret_cast<int16_t *>(rx_buffer_);
@@ -220,12 +230,18 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     return accel_;
   }
 
-  int16_t calibration() {
-    // ジャイロは無理?
-    int16_t expect_accel[] = {0, 0, 1};
-
-    while (true) {
-
+  bool offset(int counts) {
+    // 現時点では加速度センサのみ
+    std::vector<RawAxis> accel_samples;
+    std::vector<RawAxis> gyro_samples;
+    Axis<float> accel_sums = {};
+    Axis<float> gyro_sums = {};
+    for (int i = 0; i < counts; i++) {
+      update();
+      auto &accel = raw_linear_acceleration();
+      auto &gyro = raw_angular_rate();
+      accel_samples.push_back(RawAxis{accel.x, accel.y, accel.z});
+      gyro_samples.push_back(RawAxis{gyro.x, gyro.y, gyro.z});
     }
 
     return true;
@@ -237,6 +253,7 @@ Imu::Imu(peripherals::Spi &spi, gpio_num_t spics_io_num)
 Imu::~Imu() = default;
 
 bool Imu::update() { return impl_->update(); }
+void Imu::calibration() { return impl_->calibration(); }
 const Imu::RawAxis &Imu::raw_angular_rate() {
   return impl_->raw_angular_rate();
 }
