@@ -12,8 +12,8 @@
  * @brief マウスの自己位置を推定する。
  * 速度はエンコーダーから算出。
  * 加速度はIMUから取得。
- * 角速度はIMUから算出。
- * 角加速度はIMUから取得。
+ * 角速度はIMUから取得。
+ * 角加速度はIMUから算出。
  * @details
  * 以下の記事を参考にした。
  * https://www.mech.tohoku-gakuin.ac.jp/rde/contents/course/robotics/wheelrobot.html
