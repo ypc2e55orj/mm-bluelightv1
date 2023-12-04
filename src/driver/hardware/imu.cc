@@ -30,18 +30,14 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
   static constexpr uint8_t REG_WHO_AM_I = 0x0F;
   static constexpr uint8_t DAT_WHO_AM_I = 0x6B;
 
-  static constexpr uint8_t REG_CTRL3_C = 0x12;
-  static constexpr uint8_t BIT_CTRL3_C_SW_RESET = 0;
-  static constexpr uint8_t BIT_CTRL3_C_BDU = 6;
-
-  static constexpr uint8_t REG_CTRL9_XL = 0x18;
-  static constexpr uint8_t BIT_CTRL3_I3C_DISABLE = 1;
-
   static constexpr uint8_t REG_CTRL1_XL = 0x10;
   static constexpr uint8_t BIT_CTRL1_XL_ODR_XL3 = 7;
   static constexpr uint8_t BIT_CTRL1_XL_ODR_XL2 = 6;
   static constexpr uint8_t BIT_CTRL1_XL_ODR_XL1 = 5;
   static constexpr uint8_t BIT_CTRL1_XL_ODR_XL0 = 4;
+  static constexpr uint8_t BIT_CTRL1_XL_FS1_XL = 3;
+  static constexpr uint8_t BIT_CTRL1_XL_FS0_XL = 2;
+  static constexpr uint8_t BIT_CTRL1_XL_LPF2_XL_EN = 1;
 
   static constexpr uint8_t REG_CTRL2_G = 0x11;
   static constexpr uint8_t BIT_CTRL2_G_ODR_G3 = 7;
@@ -52,6 +48,31 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
   static constexpr uint8_t BIT_CTRL2_G_FS0_G = 2;
   static constexpr uint8_t BIT_CTRL2_G_FS_125 = 1;
   static constexpr uint8_t BIT_CTRL2_G_FS_4000 = 0;
+
+  static constexpr uint8_t REG_CTRL3_C = 0x12;
+  static constexpr uint8_t BIT_CTRL3_C_BDU = 6;
+  static constexpr uint8_t BIT_CTRL3_C_SW_RESET = 0;
+
+  static constexpr uint8_t REG_CTRL4_C = 0x13;
+  static constexpr uint8_t BIT_CTRL4_C_LPF1_SEL_G = 1;
+
+  static constexpr uint8_t REG_CTRL6_C = 0x15;
+  static constexpr uint8_t BIT_CTRL6_C_USR_OFF_W = 3;
+  static constexpr uint8_t BIT_CTRL6_C_FTYPE_2 = 2;
+  static constexpr uint8_t BIT_CTRL6_C_FTYPE_1 = 1;
+  static constexpr uint8_t BIT_CTRL6_C_FTYPE_0 = 0;
+
+  static constexpr uint8_t REG_CTRL7_G = 0x16;
+  static constexpr uint8_t BIT_CTRL7_G_USR_OFF_ON_OUT = 1;
+
+  static constexpr uint8_t REG_CTRL8_XL = 0x17;
+  static constexpr uint8_t BIT_CTRL8_XL_HPCF_XL_2 = 7;
+  static constexpr uint8_t BIT_CTRL8_XL_HPCF_XL_1 = 6;
+  static constexpr uint8_t BIT_CTRL8_XL_HPCF_XL_0 = 5;
+  static constexpr uint8_t BIT_CTRL8_XL_FASTSETTL_MODE_XL = 3;
+
+  static constexpr uint8_t REG_CTRL9_XL = 0x18;
+  static constexpr uint8_t BIT_CTRL9_XL_I3C_DISABLE = 1;
 
   static constexpr uint8_t REG_OUTX_L_G = 0x22;
 
@@ -85,45 +106,86 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
 
     // バスにデバイスを追加
     index_ = spi_.add(0, 8, 3, SPI_MASTER_FREQ_10M, spics_io_num, 1);
-    // 初期設定
+
     std::bitset<8> reg;
-    // IDを取得
+    // 相手が合っているか確認
     assert(read_byte(REG_WHO_AM_I) == DAT_WHO_AM_I);
+    reg = read_byte(REG_CTRL3_C);
     // ソフトウェア・リセット
-    reg = read_byte(REG_CTRL3_C);
     reg[BIT_CTRL3_C_SW_RESET] = true;
+    // リセット実行
     write_byte(REG_CTRL3_C, static_cast<uint8_t>(reg.to_ulong()));
-    read_byte(REG_CTRL3_C);
-    // I3Cを無効化
+
+    // 初期設定
     reg = read_byte(REG_CTRL9_XL);
-    reg[BIT_CTRL3_I3C_DISABLE] = true;
+    // I3Cを無効化
+    reg[BIT_CTRL9_XL_I3C_DISABLE] = true;
+    // CTRL9_XLを反映
     write_byte(REG_CTRL9_XL, static_cast<uint8_t>(reg.to_ulong()));
-    read_byte(REG_CTRL9_XL);
-    // 読み出ししているレジスタは更新しない(Block Data Update)
     reg = read_byte(REG_CTRL3_C);
+    // 読み出ししているレジスタは更新しない(Block Data Update)
     reg[BIT_CTRL3_C_BDU] = true;
+    // CTRL3_Cを反映
     write_byte(REG_CTRL3_C, static_cast<uint8_t>(reg.to_ulong()));
-    read_byte(REG_CTRL3_C);
-    // 加速度計の更新レートを設定(1.66kHz)
+
+    // 加速度計の設定
     reg = read_byte(REG_CTRL1_XL);
+    // 出力レートを1.66kHzに設定
     reg[BIT_CTRL1_XL_ODR_XL3] = true;
     reg[BIT_CTRL1_XL_ODR_XL2] = false;
     reg[BIT_CTRL1_XL_ODR_XL1] = false;
     reg[BIT_CTRL1_XL_ODR_XL0] = false;
+    // スケールを+-2gに設定
+    reg[BIT_CTRL1_XL_FS1_XL] = false;
+    reg[BIT_CTRL1_XL_FS0_XL] = false;
+    // LPF2を有効
+    reg[BIT_CTRL1_XL_LPF2_XL_EN] = true;
+    // CTRL1_XLを反映
     write_byte(REG_CTRL1_XL, static_cast<uint8_t>(reg.to_ulong()));
-    read_byte(REG_CTRL1_XL);
-    // 角速度計の更新レートを設定(1.66kHz)、スケールを設定(+-2000dps)
+    reg = read_byte(REG_CTRL8_XL);
+    // フィルタをLow pass, ODR/10に設定
+    reg[BIT_CTRL8_XL_HPCF_XL_2] = false;
+    reg[BIT_CTRL8_XL_HPCF_XL_1] = false;
+    reg[BIT_CTRL8_XL_HPCF_XL_0] = true;
+    reg[BIT_CTRL8_XL_FASTSETTL_MODE_XL] = true;
+    // CTRL8_XLを反映
+    write_byte(REG_CTRL8_XL, static_cast<uint8_t>(reg.to_ulong()));
+    reg = read_byte(REG_CTRL6_C);
+    // オフセットの重みを2^-6 g/LSBに設定
+    reg[BIT_CTRL6_C_USR_OFF_W] = true;
+    // CTRL6_Cを反映
+    write_byte(REG_CTRL6_C, static_cast<uint8_t>(reg.to_ulong()));
+    reg = read_byte(REG_CTRL7_G);
+    // オフセットを有効
+    reg[BIT_CTRL7_G_USR_OFF_ON_OUT] = true;
+    // CTRL7_Gを有効
+    write_byte(REG_CTRL7_G, static_cast<uint8_t>(reg.to_ulong()));
+
+    // 角速度計の設定
     reg = read_byte(REG_CTRL2_G);
+    // 出力レートを1.66kHzに設定
     reg[BIT_CTRL2_G_ODR_G3] = true;
     reg[BIT_CTRL2_G_ODR_G2] = false;
     reg[BIT_CTRL2_G_ODR_G1] = false;
     reg[BIT_CTRL2_G_ODR_G0] = false;
+    // スケールを+-2000dpsに設定
     reg[BIT_CTRL2_G_FS1_G] = true;
     reg[BIT_CTRL2_G_FS0_G] = true;
     reg[BIT_CTRL2_G_FS_125] = false;
     reg[BIT_CTRL2_G_FS_4000] = false;
+    // CTRL2_Gを反映
     write_byte(REG_CTRL2_G, static_cast<uint8_t>(reg.to_ulong()));
-    read_byte(REG_CTRL2_G);
+    reg = read_byte(REG_CTRL4_C);
+    // LPF1を有効
+    reg[BIT_CTRL4_C_LPF1_SEL_G] = true;
+    // CTRL4_Cを反映
+    write_byte(REG_CTRL4_C, static_cast<uint8_t>(reg.to_ulong()));
+    reg = read_byte(REG_CTRL6_C);
+    reg[BIT_CTRL6_C_FTYPE_2] = false;
+    reg[BIT_CTRL6_C_FTYPE_1] = true;
+    reg[BIT_CTRL6_C_FTYPE_0] = false;
+    // CTRL6_Cを反映
+    write_byte(REG_CTRL6_C, static_cast<uint8_t>(reg.to_ulong()));
 
     // 更新
     auto trans = spi_.transaction(index_);
@@ -156,6 +218,17 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     accel_.y = res[4];
     accel_.z = res[5];
     return accel_;
+  }
+
+  int16_t calibration() {
+    // ジャイロは無理?
+    int16_t expect_accel[] = {0, 0, 1};
+
+    while (true) {
+
+    }
+
+    return true;
   }
 };
 
