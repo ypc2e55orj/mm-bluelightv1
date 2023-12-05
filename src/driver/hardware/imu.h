@@ -33,6 +33,8 @@ class Imu final : public DriverBase {
 
   const Axis<int16_t> &raw_angular_rate();
   const Axis<int16_t> &raw_linear_acceleration();
+  const Axis<float> &angular_rate();
+  const Axis<float> &linear_acceleration();
 
   void calibration();
 

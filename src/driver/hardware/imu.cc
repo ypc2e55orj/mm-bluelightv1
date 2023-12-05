@@ -20,11 +20,9 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
  private:
   peripherals::Spi &spi_;
   int index_;
-  uint8_t *rx_buffer_;
-  uint8_t *tx_buffer_;
-
-  Axis<int16_t> gyro_;
-  Axis<int16_t> accel_;
+  uint8_t *rx_buffer_, *tx_buffer_;
+  Axis<int16_t> raw_gyro_, raw_accel_;
+  Axis<float> gyro_, accel_;
 
   // 送受信バッファサイズ
   static constexpr size_t BUFFER_SIZE = 12;
@@ -83,6 +81,15 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
   static constexpr uint8_t REG_Y_OFS_USR = 0x74;
   static constexpr uint8_t REG_Z_OFS_USR = 0x75;
 
+  /**
+   * Accel X: -0.016088 x + -1.692139
+   * Accel Y: -0.030933 x + -45.486130
+   * Accel Z: -0.130897 x + 1004.997559
+   * -1, -46, 5
+   * Gyro X: 1.103957 x + 186.606155
+   * Gyro Y: -1.892573 x + -283.435059
+   * Gyro Z: -3.169824 x + 62.102707
+   */
   static constexpr int8_t DAT_X_OFS_USR = -1;
   static constexpr int8_t DAT_Y_OFS_USR = -46;
   static constexpr int8_t DAT_Z_OFS_USR = 5;
@@ -114,7 +121,7 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
 
  public:
   explicit Lsm6dsrxImpl(peripherals::Spi &spi, gpio_num_t spics_io_num)
-      : spi_(spi), gyro_(), accel_() {
+      : spi_(spi), raw_gyro_(), raw_accel_(), gyro_(), accel_() {
     // 転送用バッファを確保
     tx_buffer_ = reinterpret_cast<uint8_t *>(
         heap_caps_calloc(BUFFER_SIZE, sizeof(uint8_t), MALLOC_CAP_DMA));
@@ -223,18 +230,30 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     bool ret = spi_.transmit(index_);
     if (ret) {
       auto res = reinterpret_cast<int16_t *>(rx_buffer_);
-      gyro_.x = res[0];
-      gyro_.y = res[1];
-      gyro_.z = res[2];
-      accel_.x = res[3];
-      accel_.y = res[4];
-      accel_.z = res[5];
+      raw_gyro_.x = res[0];
+      raw_gyro_.y = res[1];
+      raw_gyro_.z = res[2];
+      raw_accel_.x = res[3];
+      raw_accel_.y = res[4];
+      raw_accel_.z = res[5];
+
+      gyro_.x = static_cast<float>(raw_gyro_.x) * ANGULAR_RATE_SENSITIVITY;
+      gyro_.y = static_cast<float>(raw_gyro_.y) * ANGULAR_RATE_SENSITIVITY;
+      gyro_.z = static_cast<float>(raw_gyro_.z) * ANGULAR_RATE_SENSITIVITY;
+      accel_.x =
+          static_cast<float>(raw_accel_.x) * LINEAR_ACCELERATION_SENSITIVITY;
+      accel_.y =
+          static_cast<float>(raw_accel_.y) * LINEAR_ACCELERATION_SENSITIVITY;
+      accel_.z =
+          static_cast<float>(raw_accel_.z) * LINEAR_ACCELERATION_SENSITIVITY;
     }
     return ret;
   }
 
-  const Axis<int16_t> &raw_angular_rate() { return gyro_; }
-  const Axis<int16_t> &raw_linear_acceleration() { return accel_; }
+  const Axis<int16_t> &raw_angular_rate() { return raw_gyro_; }
+  const Axis<int16_t> &raw_linear_acceleration() { return raw_accel_; }
+  const Axis<float> &angular_rate() { return gyro_; }
+  const Axis<float> &linear_acceleration() { return accel_; }
 
   void offset(int n) {
     const float output_data_rate = 1660;  // [Hz]
@@ -342,5 +361,9 @@ const Imu::Axis<int16_t> &Imu::raw_angular_rate() {
 }
 const Imu::Axis<int16_t> &Imu::raw_linear_acceleration() {
   return impl_->raw_linear_acceleration();
+}
+const Imu::Axis<float> &Imu::angular_rate() { return impl_->angular_rate(); }
+const Imu::Axis<float> &Imu::linear_acceleration() {
+  return impl_->linear_acceleration();
 }
 }  // namespace driver::hardware
