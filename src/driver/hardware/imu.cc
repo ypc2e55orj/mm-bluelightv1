@@ -245,6 +245,12 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     Axis<float> accel_coeff{}, accel_inter{}, gyro_coeff{}, gyro_inter{};
     Axis<float> sum_accel_xy{}, sum_accel_y{}, sum_gyro_xy{}, sum_gyro_y{};
     Axis<int8_t> accel_offset{}, gyro_offset{};
+
+    // 現在の設定をクリア
+    write_byte(REG_X_OFS_USR, 0);
+    write_byte(REG_Y_OFS_USR, 0);
+    write_byte(REG_Z_OFS_USR, 0);
+
     for (int i = 0; i < n; i++) {
       ets_delay_us(static_cast<uint32_t>(delay * 1000'000.0f));
       update();
