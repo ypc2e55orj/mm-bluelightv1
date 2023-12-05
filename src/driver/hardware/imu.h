@@ -25,15 +25,14 @@ class Imu final : public DriverBase {
     T y;
     T z;
   };
-  using RawAxis = Axis<int16_t>;
 
   explicit Imu(peripherals::Spi &spi, gpio_num_t spics_io_num);
   ~Imu();
 
   bool update() override;
 
-  const RawAxis &raw_angular_rate();
-  const RawAxis &raw_linear_acceleration();
+  const Axis<int16_t> &raw_angular_rate();
+  const Axis<int16_t> &raw_linear_acceleration();
 
   void calibration();
 

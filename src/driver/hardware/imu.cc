@@ -23,8 +23,8 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
   uint8_t *rx_buffer_;
   uint8_t *tx_buffer_;
 
-  RawAxis gyro_;
-  RawAxis accel_;
+  Axis<int16_t> gyro_;
+  Axis<int16_t> accel_;
 
   // 送受信バッファサイズ
   static constexpr size_t BUFFER_SIZE = 12;
@@ -82,6 +82,10 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
   static constexpr uint8_t REG_X_OFS_USR = 0x73;
   static constexpr uint8_t REG_Y_OFS_USR = 0x74;
   static constexpr uint8_t REG_Z_OFS_USR = 0x75;
+
+  static constexpr int8_t DAT_X_OFS_USR = -1;
+  static constexpr int8_t DAT_Y_OFS_USR = -46;
+  static constexpr int8_t DAT_Z_OFS_USR = 5;
 
   uint8_t read_byte(uint8_t reg) {
     auto trans = spi_.transaction(index_);
@@ -171,8 +175,11 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     reg = read_byte(REG_CTRL7_G);
     // オフセットを有効
     reg[BIT_CTRL7_G_USR_OFF_ON_OUT] = true;
-    // CTRL7_Gを有効
+    // CTRL7_Gを反映
     write_byte(REG_CTRL7_G, static_cast<uint8_t>(reg.to_ulong()));
+    write_byte(REG_X_OFS_USR, static_cast<uint8_t>(DAT_X_OFS_USR));
+    write_byte(REG_Y_OFS_USR, static_cast<uint8_t>(DAT_Y_OFS_USR));
+    write_byte(REG_Z_OFS_USR, static_cast<uint8_t>(DAT_Z_OFS_USR));
 
     // 角速度計の設定
     reg = read_byte(REG_CTRL2_G);
@@ -226,8 +233,8 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     return ret;
   }
 
-  const RawAxis &raw_angular_rate() { return gyro_; }
-  const RawAxis &raw_linear_acceleration() { return accel_; }
+  const Axis<int16_t> &raw_angular_rate() { return gyro_; }
+  const Axis<int16_t> &raw_linear_acceleration() { return accel_; }
 
   void offset(int n) {
     const float output_data_rate = 1660;  // [Hz]
@@ -284,12 +291,10 @@ class Imu::Lsm6dsrxImpl final : public DriverBase {
     accel_inter.x = inter_b(sum_accel_xy.x, sum_accel_y.x);
     accel_inter.y = inter_b(sum_accel_xy.y, sum_accel_y.y);
     accel_inter.z = inter_b(sum_accel_xy.z, sum_accel_y.z);
-    accel_offset.x =
-        static_cast<int8_t>(accel_inter.x / user_offset_weight);
-    accel_offset.y =
-        static_cast<int8_t>(accel_inter.y / user_offset_weight);
-    accel_offset.z = static_cast<int8_t>((accel_inter.z - 1000.0f) /
-                                         user_offset_weight);
+    accel_offset.x = static_cast<int8_t>(accel_inter.x / user_offset_weight);
+    accel_offset.y = static_cast<int8_t>(accel_inter.y / user_offset_weight);
+    accel_offset.z =
+        static_cast<int8_t>((accel_inter.z - 1000.0f) / user_offset_weight);
     write_byte(REG_X_OFS_USR, static_cast<uint8_t>(accel_offset.x));
     write_byte(REG_Y_OFS_USR, static_cast<uint8_t>(accel_offset.y));
     write_byte(REG_Z_OFS_USR, static_cast<uint8_t>(accel_offset.z));
@@ -326,10 +331,10 @@ Imu::~Imu() = default;
 
 bool Imu::update() { return impl_->update(); }
 void Imu::calibration() { return impl_->calibration(); }
-const Imu::RawAxis &Imu::raw_angular_rate() {
+const Imu::Axis<int16_t> &Imu::raw_angular_rate() {
   return impl_->raw_angular_rate();
 }
-const Imu::RawAxis &Imu::raw_linear_acceleration() {
+const Imu::Axis<int16_t> &Imu::raw_linear_acceleration() {
   return impl_->raw_linear_acceleration();
 }
 }  // namespace driver::hardware

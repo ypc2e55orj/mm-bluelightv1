@@ -112,7 +112,7 @@ void mainTask(void *) {
   dri->buzzer->set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
   dri->buzzer->update();
 
-  calibrateImu();
+  // calibrateImu();
   printSummary();
 }
 
