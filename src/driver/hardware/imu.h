@@ -1,6 +1,7 @@
 #pragma once
 
 // C++
+#include <cmath>
 #include <cstdint>
 #include <memory>
 
@@ -15,8 +16,8 @@ class Imu final : public DriverBase {
   std::unique_ptr<Lsm6dsrxImpl> impl_;
 
  public:
-  static constexpr float ANGULAR_RATE_SENSITIVITY = 70.0f;          // 2000dps
-  static constexpr float LINEAR_ACCELERATION_SENSITIVITY = 0.061f;  // fs2g
+  static constexpr float ANGULAR_RATE_SENSITIVITY = 70.0f;  // [mdps/LSB]
+  static constexpr float LINEAR_ACCELERATION_SENSITIVITY = 0.061f;  // [mg/LSB]
 
   template <typename T>
   struct Axis {

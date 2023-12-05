@@ -1,4 +1,5 @@
 // C++
+#include <cmath>
 #include <cstdio>
 
 // ESP-IDF
@@ -21,8 +22,12 @@ driver::Driver *dri = nullptr;
 config::Config *conf = nullptr;
 sensor::Sensor *sens = nullptr;
 
+void calibrateImu() { dri->imu->calibration(); }
+
 [[noreturn]] void printSummary() {
   uint64_t index = 0;
+
+  sens->start(8192, 20, 0);
   printf(
       "Index"
       ",SensorDelta,MotionDelta"
@@ -31,16 +36,31 @@ sensor::Sensor *sens = nullptr;
       ",WheelVelocityLeft,WheelVelocityRight"
       ",AmbientLeft90,AmbientLeft45,AmbientRight45,AmbientRight90"
       ",FlashLeft90,FlashLeft45,FlashRight45,FlashRight90"
-      ",GyroX,GyroY,GyroZ"
-      ",AccelX,AccelY,AccelZ"
+      ",RawGyroX,RawGyroY,RawGyroZ"
+      ",RawAccelX,RawAccelY,RawAccelZ"
       ",WheelAngularVelocityLeft,WheelAngularVelocityRight"
       ",Radian,X,Y"
       "\n");
   auto xLastWakeTime = xTaskGetTickCount();
   while (true) {
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));  // NOLINT
-    auto gyro = dri->imu->raw_angular_rate();
-    auto accel = dri->imu->raw_linear_acceleration();
+    auto &gyro = dri->imu->raw_angular_rate();
+    auto &accel = dri->imu->raw_linear_acceleration();
+
+    float accel_x = static_cast<float>(accel.x) *
+                    dri->imu->linear_acceleration_sensitivity();
+    float accel_y = static_cast<float>(accel.y) *
+                    dri->imu->linear_acceleration_sensitivity();
+    float accel_z = static_cast<float>(accel.z) *
+                    dri->imu->linear_acceleration_sensitivity();
+
+    float gyro_x =
+        static_cast<float>(gyro.x) * dri->imu->angular_rate_sensitivity();
+    float gyro_y =
+        static_cast<float>(gyro.y) * dri->imu->angular_rate_sensitivity();
+    float gyro_z =
+        static_cast<float>(gyro.z) * dri->imu->angular_rate_sensitivity();
+
     auto velocity = odom->wheels_velocity();
     auto angular_velocity = odom->wheels_angular_velocity();
     // clang-format off
@@ -64,8 +84,8 @@ sensor::Sensor *sens = nullptr;
       static_cast<double>(velocity.left), static_cast<double>(velocity.right),
       dri->photo->left90().ambient, dri->photo->left45().ambient, dri->photo->right45().ambient, dri->photo->right90().ambient,
       dri->photo->left90().flash, dri->photo->left45().flash, dri->photo->right45().flash, dri->photo->right90().flash,
-      static_cast<double>(gyro.x), static_cast<double>(gyro.y), static_cast<double>(gyro.z),
-      static_cast<double>(accel.x), static_cast<double>(accel.y), static_cast<double>(accel.z),
+      static_cast<double>(gyro_x), static_cast<double>(gyro_y), static_cast<double>(gyro_z),
+      static_cast<double>(accel_x), static_cast<double>(accel_y), static_cast<double>(accel_z),
       static_cast<double>(angular_velocity.left), static_cast<double>(angular_velocity.right),
       static_cast<double>(odom->angle()), static_cast<double>(odom->x()), static_cast<double>(odom->y())
     );
@@ -91,8 +111,8 @@ void mainTask(void *) {
 
   dri->buzzer->set(driver::hardware::Buzzer::Mode::InitializeSuccess, false);
   dri->buzzer->update();
-  sens->start(8192, 20, 0);
-  mot->start(8192, 10, 0);
+
+  calibrateImu();
   printSummary();
 }
 
