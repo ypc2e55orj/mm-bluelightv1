@@ -138,9 +138,6 @@ class Odometry::OdometryImpl {
   //! センサ値を取得するためのドライバクラス
   driver::Driver &dri_;
 
-  //! 車輪間隔
-  const float wheel_track_width_;
-
   //! 車輪
   Wheel left_, right_;
   WheelsPair wheel_ang_accel_{};
@@ -150,8 +147,14 @@ class Odometry::OdometryImpl {
   //! 車体並進速度 [mm/s]
   float velocity_{0.0f};
 
+  //! 車体並進加速度 [mm/s^2]
+  float acceleration_{0.0f};
+
   //! 車体角速度 [rad/s]
   float angular_velocity_{0.0f};
+
+  //! 車体角加速度 [rad/s^2]
+  float angular_acceleration_{0.0f};
 
   //! 車体角度 [rad]
   float angle_{0.0f};
@@ -162,7 +165,6 @@ class Odometry::OdometryImpl {
  public:
   explicit OdometryImpl(driver::Driver &dri, config::Config &conf)
       : dri_(dri),
-        wheel_track_width_(conf.wheel_track_width),
         left_(dri_.encoder_left->resolution(), conf.tire_diameter, false),
         right_(dri_.encoder_right->resolution(), conf.tire_diameter, true) {}
   ~OdometryImpl() = default;
@@ -196,20 +198,30 @@ class Odometry::OdometryImpl {
     wheel_ang_vel_.right = right_.angular_velocity();
     wheel_ang_accel_.right = right_.angular_acceleration();
 
-    // 中心速度 [mm/s]
+    // 車体加速度[mm/s^2]
+    auto &accel = dri_.imu->linear_acceleration();
+    acceleration_ = accel.y * 9.80665f;
+    // 車体速度 [mm/s]
     wheel_vel_.left = left_.velocity();
     wheel_vel_.right = right_.velocity();
     velocity_ = (wheel_vel_.left + wheel_vel_.right) / 2.0f;
 
-    // 中心角速度 [rad/s]
+    // 車体角加速度 [rad/s^2]
+    auto &gyro = dri_.imu->angular_rate();
+    auto angular_velocity =
+        -1.0f * gyro.z / 1000.0f * std::numbers::pi_v<float> / 180.0f;
+    angular_acceleration_ = angular_velocity - angular_velocity_;
+    // 車体角速度 [rad/s]
+    /*
     angular_velocity_ =
         (wheel_vel_.left - wheel_vel_.right) / wheel_track_width_;
-    // 中心角度 [rad]
+    */
+    angular_velocity_ = angular_velocity;
+    // 車体角度 [rad]
     auto angle = angle_ + angular_velocity_ / 1000.0f;
 
     // x, yの位置を推定
-    if (std::fabs(wheel_vel_.left - wheel_vel_.right) <=
-        std::numeric_limits<float>::epsilon()) {
+    if (std::fabs(angular_velocity_) <= std::numeric_limits<float>::epsilon()) {
       // 直線運動
       auto a = velocity_ * static_cast<float>(delta_us) / 1000'000.0f;
       x_ += a * std::cos(angle);
@@ -228,6 +240,12 @@ class Odometry::OdometryImpl {
   const WheelsPair &wheels_angular_acceleration() { return wheel_ang_accel_; }
   const WheelsPair &wheels_angular_velocity() { return wheel_ang_vel_; }
   const WheelsPair &wheels_velocity() { return wheel_vel_; }
+  [[nodiscard]] float acceleration() const { return acceleration_; }
+  [[nodiscard]] float velocity() const { return velocity_; }
+  [[nodiscard]] float angular_acceleration() const {
+    return angular_acceleration_;
+  }
+  [[nodiscard]] float angular_velocity() const { return angular_velocity_; };
   [[nodiscard]] float angle() const { return angle_; }
   [[nodiscard]] float x() const { return x_; }
   [[nodiscard]] float y() const { return y_; }
@@ -240,6 +258,10 @@ Odometry::~Odometry() = default;
 void Odometry::reset() { return impl_->reset(); }
 void Odometry::update(uint32_t delta_us) { return impl_->update(delta_us); }
 
+float Odometry::acceleration() { return impl_->acceleration(); }
+float Odometry::velocity() { return impl_->velocity(); }
+float Odometry::angular_acceleration() { return impl_->angular_acceleration(); }
+float Odometry::angular_velocity() { return impl_->angular_velocity(); }
 float Odometry::angle() { return impl_->angle(); }
 float Odometry::x() { return impl_->x(); }
 float Odometry::y() { return impl_->y(); }

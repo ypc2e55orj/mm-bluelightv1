@@ -25,6 +25,10 @@ class Odometry {
   void reset();
   void update(uint32_t delta_us);
 
+  float angular_acceleration();
+  float angular_velocity();
+  float acceleration();
+  float velocity();
   float angle();
   float x();
   float y();
