@@ -378,10 +378,12 @@ void adjust_fwall(void)
 
 		if ((now_distance - target_distance) < -30)
 		{
+                        printf("adjust_fwall: small\n");
 			accel = SEARCH_ACCEL;
 		}
 		else if ((now_distance - target_distance) > 30)
 		{
+                        printf("adjust_fwall: large\n");
 			accel = -SEARCH_ACCEL;
 		}
 		else
@@ -543,7 +545,7 @@ void adjust_turn()
 
 void start_position(void)
 {
-	straight(20, SEARCH_ACCEL, SEARCH_SPEED, SEARCH_SPEED);
+        gyro_get_ref();
 	turn_norm(90, RIGHT);
 	adjust_fwall();
 	turn_norm(90, RIGHT);

@@ -43,7 +43,7 @@ void ANIMATE(void)
 }
 
 void BEEP(void){
-	driver::buzzer::tone(4000, 100);
+	//driver::buzzer::tone(4000, 100);
 	vTaskDelay(pdMS_TO_TICKS(100));
 }
 

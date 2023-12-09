@@ -25,6 +25,9 @@
 #include <iostream>
 
 #include "../driver/motor.h"
+#include "../driver/battery.h"
+#include "../driver/indicator.h"
+
 void search_mode(void)
 {
 	ANIMATE();
@@ -97,6 +100,19 @@ void HM_StarterKit(void)
 	unsigned long i = 0;
 
 	std::cout << "HMStarterKit main()" << std::endl;
+
+        auto v_batt = driver::battery::get();
+        if (v_batt < 3500)
+        {
+          driver::indicator::set(0, 0xFF, 0, 0);
+        } else if (v_batt < 3800)
+        {
+          driver::indicator::set(0, 0xFF, 0xFF, 0);
+        } else {
+          driver::indicator::set(0, 0, 0xFF, 0);
+        }
+        driver::indicator::update();
+        wait_ms(1000);
 
 	// ブザー
 	ANIMATE();

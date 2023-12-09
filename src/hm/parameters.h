@@ -1,8 +1,8 @@
 #pragma once
 
 //物理的なパラメータ
-#define TIRE_DIAMETER	(12.80)				//タイヤの直径	[mm]
-#define TIRE_RADIUS	(TIRE_DIAMETER/2.0)		//タイヤの半径	[mm]
+#define TIRE_DIAMETER	(12.80f)				//タイヤの直径	[mm]
+#define TIRE_RADIUS	(TIRE_DIAMETER/2.0f)		//タイヤの半径	[mm]
 #define MMPP 		(TIRE_DIAMETER*PI)/(ENC_RES_MAX)	//エンコーダ1パルスあたりに進む距離[mm](TIRE_DIAMETER*PI)/(ENC_MAX)
 #define ENC_RES_MAX	(1024)
 #define ENC_RES_HALF	(512)
@@ -28,33 +28,33 @@
 #define TH_RIGHT_90		REF_SEN_FR
 #define TH_LEFT_90		REF_SEN_FL
 
-#define RIGHT_WALL_NOWALL		50.893719 //壁切れ補正用距離
-#define LEFT_WALL_NOWALL		48.694611 //壁切れ補正用距離
+#define RIGHT_WALL_NOWALL		50.893719f //壁切れ補正用距離
+#define LEFT_WALL_NOWALL		48.694611f //壁切れ補正用距離
 
 #define CONTH_SEN_R	TH_SEN_R			//制御をかけるか否かの閾値
 #define CONTH_SEN_L	TH_SEN_L			//制御をかけるか否かの閾値
-#define CON_WALL_KP	(3.0)				//壁センサによる姿勢制御の比例制御の比例定数
-#define CON_FWALL_KP	(100.0)
+#define CON_WALL_KP	(3.0f)				//壁センサによる姿勢制御の比例制御の比例定数
+#define CON_FWALL_KP	(0.0f)
 
 //フィードバックゲインパラメータ
 //Pゲイン　最初に調整する	実速度が目標速度を中心として軽く振動する程度に調整
 //Iゲイン　最後に調整する	積分値が合うようにする程度。
 //Dゲイン　二番目に調整する。	P制御によって発生した振動を抑えられる程度に調整
 //車体中心における並進方向速度に関するフィードバックゲイン
-#define SPEED_KP	(11.0)				//Pゲイン
-#define SPEED_KI	(0.05)				//Iゲイン
-#define SPEED_KD	(5.00)				//Dゲイン　
+#define SPEED_KP	(40.0f)				//Pゲイン
+#define SPEED_KI	(0.05f)				//Iゲイン
+#define SPEED_KD	(5.00f)				//Dゲイン　
 //車体中心における回転方向速度に関するフィードバックゲイン
-#define OMEGA_KP	(0.6)				//Pゲイン
-#define OMEGA_KI	(0.01)				//Iゲイン
-#define OMEGA_KD	(0.0)				//Dゲイン
+#define OMEGA_KP	(0.7f)				//Pゲイン
+#define OMEGA_KI	(0.01f)				//Iゲイン
+#define OMEGA_KD	(0.3f)				//Dゲイン
 
 //走行パラメータ
-#define SEARCH_SPEED	(0.3)				//探索走行の速度	[m/s]
-#define SEARCH_ACCEL	(1.5)				//探索走行の加速度	[m/s^2]
-#define FAST_SPEED	(1.0)				//最短走行の速度	[m/s]
-#define FAST_ACCEL	(2.5)				//最短走行の加速度	[m/s^2]
-#define MIN_SPEED	(0.1)				//最低速度	[m/s]
+#define SEARCH_SPEED	(0.3f)				//探索走行の速度	[m/s]
+#define SEARCH_ACCEL	(1.5f)				//探索走行の加速度	[m/s^2]
+#define FAST_SPEED	(1.0f)				//最短走行の速度	[m/s]
+#define FAST_ACCEL	(2.5f)				//最短走行の加速度	[m/s^2]
+#define MIN_SPEED	(0.1f)				//最低速度	[m/s]
 
 #define TURN_ACCEL	(PI*20)				//超信地旋回の加速度	[rad/s^2]
 #define	TURN_SPEED	(PI*10)				//超信地旋回の最高速度	[rad/s]
@@ -62,9 +62,9 @@
 #define SLA_SPEED	(PI*10)				//スラローム旋回の最高速度	[rad/s]
 #define SLA_FAST_ACCEL	(PI*40)			//スラローム旋回の加速度	[rad/s^2]
 #define SLA_FAST_SPEED	(PI*20)			//スラローム旋回の最高速度	[rad/s]
-#define SLA_SECTION_PRE 2.5					//スラローム旋回前に進む距離
-#define SLA_SECTION_POST 2.5					//スラローム旋回前に進む距離
-#define TURN_MIN_SPEED	(PI/10.0)			//超信地旋回の最低速度	[rad/s]
+#define SLA_SECTION_PRE 2.5f					//スラローム旋回前に進む距離
+#define SLA_SECTION_POST 2.5f					//スラローム旋回前に進む距離
+#define TURN_MIN_SPEED	(PI/10.0f)			//超信地旋回の最低速度	[rad/s]
 
 #define WAIT_TIME	5				//各動作後の待機時間	[ms]
 

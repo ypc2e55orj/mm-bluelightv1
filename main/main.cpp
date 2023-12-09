@@ -85,6 +85,6 @@ extern "C" void app_main(void)
   driver::motor::init();
   driver::photo::init();
 
-  xTaskCreatePinnedToCore(backgroundTask, "backgroundTask", 8192, nullptr, 5, nullptr, 0);
-  xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 10, nullptr, 1);
+  xTaskCreatePinnedToCore(backgroundTask, "backgroundTask", 8192, nullptr, 25, nullptr, 0);
+  xTaskCreatePinnedToCore(mainTask, "mainTask", 8192, nullptr, 25, nullptr, 1);
 }

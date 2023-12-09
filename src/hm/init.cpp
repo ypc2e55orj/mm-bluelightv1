@@ -89,6 +89,7 @@ void gyro_get_ref(void)
 		wait_ms(1);
 	}
 	gyro_ref = (gyro_ref_temp / 2500.0);
+        printf("gyro_ref: %f\r\n", gyro_ref);
 	degree = 0;
 	wait_ms(100);
 }

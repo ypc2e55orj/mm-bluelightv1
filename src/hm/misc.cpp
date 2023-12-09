@@ -5,5 +5,7 @@
 
 void wait_ms(uint32_t wtime)		//mS単位で待ち時間を生成する
 {
-	vTaskDelay(pdMS_TO_TICKS(wtime));
+  auto xLastWakeTime = xTaskGetTickCount();
+
+	vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(wtime));
 }

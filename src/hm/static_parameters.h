@@ -1,6 +1,6 @@
 #pragma once
 
-#define PI (3.141592653589793)			//円周率
+#define PI (3.141592653589793f)			//円周率
 
 //方位
 #define RIGHT	(0)

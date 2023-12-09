@@ -150,7 +150,7 @@ void adjust(void)
 				ANIMATE();
 				log_flag = 1;
 				log_timer = 0;
-                turn(90 * 4 * 5,TURN_ACCEL,TURN_SPEED,RIGHT);
+                turn(90,TURN_ACCEL,TURN_SPEED,RIGHT);
 				log_flag = 0;
 				driver::motor::disable();
 				driver::motor::brake();
@@ -237,9 +237,10 @@ void adjust(void)
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
 				ANIMATE();
-				map_copy();
-				map_view();
 				wait_ms(500);
+                                while(true) {
+                                        adjust_fwall();
+                                }
 			}
 
 			break;

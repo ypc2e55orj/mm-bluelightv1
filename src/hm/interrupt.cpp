@@ -4,13 +4,14 @@
 #include "run.h"
 #include "mytypedef.h"
 #include "interface.h"
+#include "misc.h"
 
 #include "../driver/motor.h"
 #include "../driver/photo.h"
 #include "../driver/encoder.h"
 #include "../driver/battery.h"
 #include "../driver/imu.h"
-
+#include "../driver/indicator.h"
 #include <algorithm>
 
 void int_cmt0(void)
@@ -23,7 +24,7 @@ void int_cmt0(void)
 	// 直線の場合の目標速度生成
 	if (run_mode == STRAIGHT_MODE || run_mode == F_WALL_MODE)
 	{
-		tar_speed += accel / 1000.0; // 目標速度を設定加速度で更新
+		tar_speed += accel / 1000.0f; // 目標速度を設定加速度で更新
 		// 最高速度制限
 		if (tar_speed > max_speed)
 		{
@@ -39,7 +40,7 @@ void int_cmt0(void)
 	{
 
 		// 車体中心速度更新
-		tar_speed += accel / 1000;
+		tar_speed += accel / 1000.0f;
 		// 最高速度制限
 		if (tar_speed > max_speed)
 		{
@@ -47,8 +48,8 @@ void int_cmt0(void)
 		}
 
 		// 角加速度更新
-		tar_ang_vel += ang_acc / 1000.0; // 目標角速度を設定加速度で更新
-		tar_degree += (tar_ang_vel * 180.0 / PI) / 1000.0;
+		tar_ang_vel += ang_acc / 1000.0f; // 目標角速度を設定加速度で更新
+		tar_degree += (tar_ang_vel * 180.0 / PI) / 1000.0f;
 
 		// 左回転の場合
 		if (TURN_DIR == RIGHT)
@@ -104,7 +105,7 @@ void int_cmt0(void)
 			}
 			else // 片方もしくは両方のセンサが無効だった場合の偏差を計算
 			{
-				con_wall.error = 2.0 * (sen_r.error - sen_l.error); // 片方しか使用しないので2倍する
+				con_wall.error = 2.0f * (sen_r.error - sen_l.error); // 片方しか使用しないので2倍する
 			}
 
 			// DI制御計算
@@ -121,7 +122,7 @@ void int_cmt0(void)
 			}
 
 			con_wall.p_omega = con_wall.omega;
-			con_wall.omega = con_wall.kp * con_wall.error * 0.5 + con_wall.p_omega * 0.5; // 現在の目標角速度[rad/s]を計算
+			con_wall.omega = con_wall.kp * con_wall.error * 0.5f + con_wall.p_omega * 0.5f; // 現在の目標角速度[rad/s]を計算
 			tar_ang_vel = -con_wall.omega;
 		}
 		else
@@ -147,7 +148,7 @@ void int_cmt0(void)
 			}
 			else // 片方もしくは両方のセンサが無効だった場合の偏差を計算
 			{
-				con_fwall.error = 2.0 * (sen_fl.error - sen_fr.error); // 片方しか使用しないので2倍する
+				con_fwall.error = 2.0f * (sen_fl.error - sen_fr.error); // 片方しか使用しないので2倍する
 			}
 
 			// DI制御計算
@@ -164,7 +165,7 @@ void int_cmt0(void)
 			}
 
 			con_fwall.p_omega = con_fwall.omega;
-			con_fwall.omega = con_fwall.kp * con_fwall.error * 0.5 + con_fwall.p_omega * 0.5; // 現在の目標角速度[rad/s]を計算
+			con_fwall.omega = con_fwall.kp * con_fwall.error * 0.5f + con_fwall.p_omega * 0.5f; // 現在の目標角速度[rad/s]を計算
 			tar_ang_vel = -con_fwall.omega;
 		}
 		else
@@ -185,23 +186,23 @@ void int_cmt0(void)
 	目標速度と目標角角度の積分
 	*****************************************************************************************/
 	I_tar_speed += tar_speed;
-	if (I_tar_speed > 30 * 10000000000)
+	if (I_tar_speed > 30.0f * 10000000000.0f)
 	{
-		I_tar_speed = 30 * 10000000000;
+		I_tar_speed = 30.0f * 10000000000.0f;
 	}
-	else if (I_tar_speed < -1 * 10000000000)
+	else if (I_tar_speed < -1.0f * 10000000000.0f)
 	{
-		I_tar_speed = 1 * 10000000000;
+		I_tar_speed = 1.0f * 10000000000.0f;
 	}
 
 	I_tar_ang_vel += tar_ang_vel;
-	if (I_tar_ang_vel > 30 * 10000000000)
+	if (I_tar_ang_vel > 30.0f * 10000000000.0f)
 	{
-		I_tar_ang_vel = 30 * 10000000000;
+		I_tar_ang_vel = 30.0f * 10000000000.0f;
 	}
-	else if (I_tar_ang_vel < -1 * 10000000000)
+	else if (I_tar_ang_vel < -1.0f * 10000000000.0f)
 	{
-		I_tar_ang_vel = 1 * 10000000000;
+		I_tar_ang_vel = 1.0f * 10000000000.0f;
 	}
 	/*****************************************************************************************
 	目標速度の偏差から出力電圧にフィードバック
@@ -214,26 +215,26 @@ void int_cmt0(void)
 		// 直進時のフィードバック制御
 		// 左右モータのフィードバック
 		// 速度に対するP制御
-		V_r += 1 * (tar_speed - speed) * SPEED_KP;
-		V_l += 1 * (tar_speed - speed) * SPEED_KP;
+		V_r += 1.0f * (tar_speed - speed) * SPEED_KP;
+		V_l += 1.0f * (tar_speed - speed) * SPEED_KP;
 		// 速度に対するI制御
-		V_r += 1 * (I_tar_speed - I_speed) * SPEED_KI;
-		V_l += 1 * (I_tar_speed - I_speed) * SPEED_KI;
+		V_r += 1.0f * (I_tar_speed - I_speed) * SPEED_KI;
+		V_l += 1.0f * (I_tar_speed - I_speed) * SPEED_KI;
 		// 速度に対するD制御
-		V_r -= 1 * (p_speed - speed) * SPEED_KD;
-		V_l -= 1 * (p_speed - speed) * SPEED_KD;
+		V_r -= 1.0f * (p_speed - speed) * SPEED_KD;
+		V_l -= 1.0f * (p_speed - speed) * SPEED_KD;
 
 		// 角速度に対するP制御
-		V_r += 1 * (tar_ang_vel - ang_vel) * OMEGA_KP;
-		V_l -= 1 * (tar_ang_vel - ang_vel) * OMEGA_KP;
+		V_r += 1.0f * (tar_ang_vel - ang_vel) * OMEGA_KP;
+		V_l -= 1.0f * (tar_ang_vel - ang_vel) * OMEGA_KP;
 		// 角速度に対するI制御
 
-		V_r += 1 * (I_tar_ang_vel - I_ang_vel) * OMEGA_KI; //(0.4-0.3)*0.1 -> 0.01
-		V_l -= 1 * (I_tar_ang_vel - I_ang_vel) * OMEGA_KI;
+		V_r += 1.0f * (I_tar_ang_vel - I_ang_vel) * OMEGA_KI; //(0.4-0.3)*0.1 -> 0.01
+		V_l -= 1.0f * (I_tar_ang_vel - I_ang_vel) * OMEGA_KI;
 		// 角速度に対するD制御
 
-		V_r -= 1 * (p_ang_vel - ang_vel) * OMEGA_KD; //(0.4-0.3)*0.1 -> 0.01
-		V_l += 1 * (p_ang_vel - ang_vel) * OMEGA_KD;
+		V_r -= 1.0f * (p_ang_vel - ang_vel) * OMEGA_KD; //(0.4-0.3)*0.1 -> 0.01
+		V_l += 1.0f * (p_ang_vel - ang_vel) * OMEGA_KD;
 	}
 	else if (run_mode == NON_CON_MODE)
 	{
@@ -357,18 +358,21 @@ void int_cmt1(void) // センサ読み込み用り込み
 	}
 
 	V_bat = static_cast<float>(driver::battery::get()) / 1000.0f;
-	if (V_bat < 3.5)
+	if (V_bat < 3.2)
 	{
-
 		// モータ止める
 		Duty_r = 0;
 		Duty_l = 0;
 		driver::motor::brake();
 
+                driver::indicator::set(0, 0xFF0000);
+          driver::indicator::set(1, 0xFF0000);
+          driver::indicator::set(2, 0xFF0000);
+          driver::indicator::set(3, 0xFF0000);
 		// ブザー鳴らし続ける
 		while (1)
 		{
-			BEEP_BUSY();
+                        wait_ms(1000);
 		}
 	}
 	/*****************************************************************************************
@@ -450,26 +454,26 @@ void int_cmt2(void)
 	speed_old_l = speed_l;
 
 	// 速度のローパスフィルタ
-	speed_r = speed_new_r * 0.1 + speed_old_r * 0.9;
-	speed_l = speed_new_l * 0.1 + speed_old_l * 0.9;
+	speed_r = speed_new_r * 0.1f + speed_old_r * 0.9f;
+	speed_l = speed_new_l * 0.1f + speed_old_l * 0.9f;
 
 	p_speed = speed;
 	// 車体速度を計算
-	speed = ((speed_r + speed_l) / 2.0);
+	speed = ((speed_r + speed_l) / 2.0f);
 
 	// I成分のオーバーフローとアンダーフロー対策
 	I_speed += speed;
-	if (I_speed > 30 * 10000000000)
+	if (I_speed > 30.0f * 10000000000.0f)
 	{
-		I_speed = 30 * 10000000000;
+		I_speed = 30.0f * 10000000000.0f;
 	}
-	else if (I_speed < -1 * 10000000000)
+	else if (I_speed < -1.0f * 10000000000.0f)
 	{
-		I_speed = -1 * 10000000000;
+		I_speed = -1.0f * 10000000000.0f;
 	}
 
 	// 距離の計算
-	len_mouse += (speed_new_r + speed_new_l) / 2.0;
+	len_mouse += (speed_new_r + speed_new_l) / 2.0f;
 
 	// 過去の値を保存
 	before_locate_r = locate_r;
@@ -481,23 +485,23 @@ void int_cmt2(void)
 	*****************************************************************************************/
 	auto [gyro_unused_x, gyro_unused_y, gyro_z] = driver::imu::gyro_raw();
 
-	gyro_x_new = (float)gyro_z * 70.0f;
-	gyro_x = gyro_x_new - gyro_ref;
+	gyro_x_new = (float)gyro_z;
+	gyro_x = (gyro_ref - gyro_x_new) * 70.0f;
 
 	// 角速度の更新
 	p_ang_vel = ang_vel;
-	ang_vel = -1.0f * (gyro_x / 1000.0f * PI / 180.0);
+	ang_vel = gyro_x * PI / 180.0f / 1000.0f;
 	// 積分値の更新
 	I_ang_vel += ang_vel;
-	if (I_ang_vel > 30 * 10000000000)
+	if (I_ang_vel > 30.0f * 10000000000.0f)
 	{
-		I_ang_vel = 30 * 10000000000;
+		I_ang_vel = 30.0f * 10000000000.0f;
 	}
-	else if (I_ang_vel < -1 * 10000000000)
+	else if (I_ang_vel < -1.0f * 10000000000.0f)
 	{
-		I_ang_vel = -1 * 10000000000;
+		I_ang_vel = -1.0f * 10000000000.0f;
 	}
 
 	// ジャイロの値を角度に変換
-	degree += -1.0f * (gyro_x / 1'000'000.0f);
+	degree += gyro_x / 1'000'000.0f;
 }
