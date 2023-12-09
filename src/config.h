@@ -36,8 +36,8 @@ struct Config {
   float slalom_turn_offset_pre = 0.0f;
   float slalom_turn_offset_post = 0.0f;
   // 迷路情報
-  std::array<int, 2> maze_goal{0, 0};
-  std::array<int, 2> maze_size{0, 0};
+  std::array<int, 2> maze_goal{7, 7};
+  std::array<int, 2> maze_size{32, 32};
 
   [[maybe_unused]] bool read_file(std::string_view path);
   [[maybe_unused]] bool read_stdin();
