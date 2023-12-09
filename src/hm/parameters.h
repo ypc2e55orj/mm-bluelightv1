@@ -15,25 +15,25 @@
 //センサ関連パラメータ
 #define WAITLOOP_SLED	180				//LEDを光らせてからAD変換を開始するまでの時間稼ぎ用定数
 
-#define REF_SEN_R	2951				//マウスを迷路中央に置いた時のセンサの値
-#define REF_SEN_L	1920				//マウスを迷路中央に置いた時のセンサの値
-#define REF_SEN_FR	3020			//マウスを迷路中央に置いた時のセンサの値
-#define REF_SEN_FL	3000			//マウスを迷路中央に置いた時のセンサの値
+#define REF_SEN_R	840				//マウスを迷路中央に置いた時のセンサの値
+#define REF_SEN_L	782				//マウスを迷路中央に置いた時のセンサの値
+#define REF_SEN_FR	2835			//マウスを迷路中央に置いた時のセンサの値
+#define REF_SEN_FL	2175			//マウスを迷路中央に置いた時のセンサの値
 
-#define TH_SEN_R	1287			//壁があるか否かの閾値	車体を区画の左へ寄せた時のセンサ値(壁あり)
-#define TH_SEN_L	815				//壁があるか否かの閾値	車体を区画の右へ寄せた時のセンサ値(壁あり)
-#define TH_SEN_FR	1300				//壁があるか否かの閾値
-#define TH_SEN_FL	959				//壁があるか否かの閾値
+#define TH_SEN_R	296			//壁があるか否かの閾値	車体を区画の左へ寄せた時のセンサ値(壁あり)
+#define TH_SEN_L	338				//壁があるか否かの閾値	車体を区画の右へ寄せた時のセンサ値(壁あり)
+#define TH_SEN_FR	486				//壁があるか否かの閾値
+#define TH_SEN_FL	340				//壁があるか否かの閾値
 
-#define TH_RIGHT_90		1300
-#define TH_LEFT_90		959
+#define TH_RIGHT_90		REF_SEN_FR
+#define TH_LEFT_90		REF_SEN_FL
 
-#define RIGHT_WALL_NOWALL		59.435032			//壁切れ補正用距離
-#define LEFT_WALL_NOWALL		56.097076		//壁切れ補正用距離
+#define RIGHT_WALL_NOWALL		50.893719 //壁切れ補正用距離
+#define LEFT_WALL_NOWALL		48.694611 //壁切れ補正用距離
 
 #define CONTH_SEN_R	TH_SEN_R			//制御をかけるか否かの閾値
 #define CONTH_SEN_L	TH_SEN_L			//制御をかけるか否かの閾値
-#define CON_WALL_KP	(1.0)				//壁センサによる姿勢制御の比例制御の比例定数
+#define CON_WALL_KP	(3.0)				//壁センサによる姿勢制御の比例制御の比例定数
 #define CON_FWALL_KP	(100.0)
 
 //フィードバックゲインパラメータ
@@ -41,9 +41,9 @@
 //Iゲイン　最後に調整する	積分値が合うようにする程度。
 //Dゲイン　二番目に調整する。	P制御によって発生した振動を抑えられる程度に調整
 //車体中心における並進方向速度に関するフィードバックゲイン
-#define SPEED_KP	(9.0)				//Pゲイン
+#define SPEED_KP	(11.0)				//Pゲイン
 #define SPEED_KI	(0.05)				//Iゲイン
-#define SPEED_KD	(0.10)				//Dゲイン　
+#define SPEED_KD	(5.00)				//Dゲイン　
 //車体中心における回転方向速度に関するフィードバックゲイン
 #define OMEGA_KP	(0.6)				//Pゲイン
 #define OMEGA_KI	(0.01)				//Iゲイン
@@ -62,15 +62,15 @@
 #define SLA_SPEED	(PI*10)				//スラローム旋回の最高速度	[rad/s]
 #define SLA_FAST_ACCEL	(PI*40)			//スラローム旋回の加速度	[rad/s^2]
 #define SLA_FAST_SPEED	(PI*20)			//スラローム旋回の最高速度	[rad/s]
-#define SLA_SECTION_PRE	10					//スラローム旋回前に進む距離
-#define SLA_SECTION_POST	13					//スラローム旋回前に進む距離
+#define SLA_SECTION_PRE 2.5					//スラローム旋回前に進む距離
+#define SLA_SECTION_POST 2.5					//スラローム旋回前に進む距離
 #define TURN_MIN_SPEED	(PI/10.0)			//超信地旋回の最低速度	[rad/s]
 
 #define WAIT_TIME	5				//各動作後の待機時間	[ms]
 
 //迷路関連パラメータ
-#define GOAL_X	11		//ゴール座標(x)
-#define GOAL_Y	10		//ゴール座標(y)
+#define GOAL_X	8		//ゴール座標(x)
+#define GOAL_Y	7		//ゴール座標(y)
 
 //決定用センサパラメータ
 #define	SEN_DECISION	3000	//メニュー決定用の光センサ閾値

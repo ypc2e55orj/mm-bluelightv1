@@ -204,25 +204,23 @@ void adjust(void)
 			// センサーの前に手をかざしてスタート
 			if (sen_fr.value + sen_fl.value + sen_r.value + sen_l.value > SEN_DECISION * 4)
 			{
-				ANIMATE();
-				gyro_get_ref();
-				ANIMATE();
-				log_flag = 1;
-				log_timer = 0;
-				while (true)
-				{
-					adjust_fwall();
-                    SCI_printf("sen_r.value: %d\n\r", sen_r.value);
-                    SCI_printf("sen_l.value: %d\n\r", sen_l.value);
-                    SCI_printf("sen_fr.value: %d\n\r", sen_fr.value);
-                    SCI_printf("sen_fl.value: %d\n\r", sen_fl.value);
-				}
-				log_flag = 0;
-				driver::motor::disable();
-				driver::motor::brake();
-				ANIMATE();
-				wait_ms(500);
-			}
+                                BEEP();
+                                wait_ms(500);
+                                straight(HALF_SECTION, SEARCH_ACCEL, SEARCH_SPEED, SEARCH_SPEED);
+                                BEEP();
+                                check_straight(SEARCH_SPEED);
+                                BEEP();
+                                straight(HALF_SECTION, SEARCH_ACCEL, SEARCH_SPEED, 0);
+                                BEEP();
+                                driver::motor::disable();
+                                driver::motor::brake();
+                                while (true) {
+                                        float r_len, l_len;
+                                        get_adjust_len(&r_len, &l_len);
+                                        SCI_printf("%f, %f\r\n", r_len, l_len);
+                                        wait_ms(1);
+                                }
+                        }
 
 			break;
 

@@ -376,11 +376,11 @@ void adjust_fwall(void)
 	{
 		short now_distance = sen_fr.value + sen_fl.value;
 
-		if ((now_distance - target_distance) < -20)
+		if ((now_distance - target_distance) < -30)
 		{
 			accel = SEARCH_ACCEL;
 		}
-		else if ((now_distance - target_distance) > 20)
+		else if ((now_distance - target_distance) > 30)
 		{
 			accel = -SEARCH_ACCEL;
 		}
@@ -389,7 +389,7 @@ void adjust_fwall(void)
 			accel = 0;
 			tar_speed = 0;
 			// 角度合わせを待つ
-			if (-10 < con_fwall.error && con_fwall.error < 10)
+			if (-15 < con_fwall.error && con_fwall.error < 15)
 				break;
 		}
 		wait_ms(1);
@@ -543,7 +543,7 @@ void adjust_turn()
 
 void start_position(void)
 {
-	straight(20, SEARCH_ACCEL, SEARCH_SPEED, 0);
+	straight(20, SEARCH_ACCEL, SEARCH_SPEED, SEARCH_SPEED);
 	turn_norm(90, RIGHT);
 	adjust_fwall();
 	turn_norm(90, RIGHT);
