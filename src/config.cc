@@ -90,7 +90,7 @@ bool Config::to_struct(std::string_view str) {
 [[maybe_unused]] bool Config::read_stdin() {
   std::string buf, str;
   while (std::getline(std::cin, buf)) {
-    if (buf[0] == '$') {
+    if (buf[0] == '\n') {
       break;
     }
     std::cout << buf << std::endl;
