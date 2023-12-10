@@ -34,20 +34,20 @@
 #define CONTH_SEN_R	TH_SEN_R			//制御をかけるか否かの閾値
 #define CONTH_SEN_L	TH_SEN_L			//制御をかけるか否かの閾値
 #define CON_WALL_KP	(3.0f)				//壁センサによる姿勢制御の比例制御の比例定数
-#define CON_FWALL_KP	(0.0f)
+#define CON_FWALL_KP	(15.0f)
 
 //フィードバックゲインパラメータ
 //Pゲイン　最初に調整する	実速度が目標速度を中心として軽く振動する程度に調整
 //Iゲイン　最後に調整する	積分値が合うようにする程度。
 //Dゲイン　二番目に調整する。	P制御によって発生した振動を抑えられる程度に調整
 //車体中心における並進方向速度に関するフィードバックゲイン
-#define SPEED_KP	(40.0f)				//Pゲイン
+#define SPEED_KP	(10.0f)				//Pゲイン
 #define SPEED_KI	(0.05f)				//Iゲイン
-#define SPEED_KD	(5.00f)				//Dゲイン　
+#define SPEED_KD	(0.10f)				//Dゲイン　
 //車体中心における回転方向速度に関するフィードバックゲイン
 #define OMEGA_KP	(0.7f)				//Pゲイン
 #define OMEGA_KI	(0.01f)				//Iゲイン
-#define OMEGA_KD	(0.3f)				//Dゲイン
+#define OMEGA_KD	(0.1f)				//Dゲイン
 
 //走行パラメータ
 #define SEARCH_SPEED	(0.3f)				//探索走行の速度	[m/s]

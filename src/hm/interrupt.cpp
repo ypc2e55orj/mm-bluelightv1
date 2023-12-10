@@ -360,20 +360,6 @@ void int_cmt1(void) // センサ読み込み用り込み
 	V_bat = static_cast<float>(driver::battery::get()) / 1000.0f;
 	if (V_bat < 3.2)
 	{
-		// モータ止める
-		Duty_r = 0;
-		Duty_l = 0;
-		driver::motor::brake();
-
-                driver::indicator::set(0, 0xFF0000);
-          driver::indicator::set(1, 0xFF0000);
-          driver::indicator::set(2, 0xFF0000);
-          driver::indicator::set(3, 0xFF0000);
-		// ブザー鳴らし続ける
-		while (1)
-		{
-                        wait_ms(1000);
-		}
 	}
 	/*****************************************************************************************
 	1kHzごとにログを取得
@@ -486,7 +472,7 @@ void int_cmt2(void)
 	auto [gyro_unused_x, gyro_unused_y, gyro_z] = driver::imu::gyro_raw();
 
 	gyro_x_new = (float)gyro_z;
-	gyro_x = (gyro_ref - gyro_x_new) * 70.0f;
+	gyro_x = (gyro_x_new) * -70.0f;
 
 	// 角速度の更新
 	p_ang_vel = ang_vel;

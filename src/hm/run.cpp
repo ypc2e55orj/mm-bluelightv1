@@ -19,6 +19,7 @@
 #include "misc.h"
 
 #include "../driver/motor.h"
+#include "../driver/indicator.h"
 
 extern unsigned int timer;
 float r_adjust_len, l_adjust_len;
@@ -264,7 +265,6 @@ void slalom_turn(int deg, float ang_accel, float max_ang_velocity, short dir, fl
 		}
 	}
 	// 角減速区間に入るため、角加速度設定
-	driver::motor::enable();
 	if (dir == RIGHT)
 	{
 		ang_acc = -ang_accel; // 角加速度を設定
@@ -369,34 +369,49 @@ void adjust_fwall(void)
 	// 最高速度を設定
 	max_speed = MIN_SPEED;
 
-	short target_distance = sen_fr.ref + sen_fl.ref;
+        short target_distance = sen_fr.ref + sen_fl.ref;
+        uint8_t flick = 0;
+
+        driver::indicator::clear();
+        driver::indicator::update();
 
 	driver::motor::enable();
-	while (true)
-	{
-		short now_distance = sen_fr.value + sen_fl.value;
+	while (true) {
+                short now_distance = sen_fr.value + sen_fl.value;
 
-		if ((now_distance - target_distance) < -30)
-		{
+                if ((now_distance - target_distance) < -10) {
+                        // now_distance > target_distance
+                        // 近すぎる
                         printf("adjust_fwall: small\n");
-			accel = SEARCH_ACCEL;
-		}
-		else if ((now_distance - target_distance) > 30)
-		{
+                        accel = 1.0f;
+                } else if ((now_distance - target_distance) > 10) {
+                        // 遠い
                         printf("adjust_fwall: large\n");
-			accel = -SEARCH_ACCEL;
-		}
-		else
-		{
-			accel = 0;
-			tar_speed = 0;
+                        accel = -1.0f;
+                }
+                else {
+                        accel = 0;
+                        tar_speed = 0;
+                        I_tar_ang_vel = 0;
+                        I_ang_vel = 0;
+                        I_tar_speed = 0;
+                        I_speed = 0;
+                        break;
+                }
+        }
+		while (con_fwall.error <= -5 || 5 <= con_fwall.error ){
 			// 角度合わせを待つ
-			if (-15 < con_fwall.error && con_fwall.error < 15)
-				break;
+                          driver::indicator::set(0, flick, flick, 0);
+                          flick = ~flick;
+                          driver::indicator::update();
+
+                  wait_ms(1);
 		}
-		wait_ms(1);
-	}
-	max_speed = 0;
+                run_mode = NON_CON_MODE;
+        driver::indicator::set(0, 0, 0xFF, 0);
+        driver::indicator::update();
+
+        max_speed = 0;
 	tar_ang_vel = 0;
 	ang_acc = 0;
 	// 現在距離を0にリセット
