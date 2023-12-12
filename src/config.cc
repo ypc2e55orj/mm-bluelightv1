@@ -56,8 +56,6 @@ bool Config::to_struct(std::string_view str) {
   JSON_READ_NUMBER(json, wheel_track_width);
   JSON_READ_NUMBER(json, tire_tread_width);
   JSON_READ_NUMBER(json, tire_diameter);
-  JSON_READ_NUMBER(json, spur_gear_teeth);
-  JSON_READ_NUMBER(json, pinion_gear_teeth);
   JSON_READ_NUMBER_ARRAY(json, photo_wall_threshold);
   JSON_READ_NUMBER_ARRAY(json, photo_wall_reference);
   JSON_READ_NUMBER_ARRAY(json, velocity_pid);
@@ -129,8 +127,6 @@ std::string Config::to_str() {
   JSON_WRITE_NUMBER(json, wheel_track_width);
   JSON_WRITE_NUMBER(json, tire_tread_width);
   JSON_WRITE_NUMBER(json, tire_diameter);
-  JSON_WRITE_NUMBER(json, spur_gear_teeth);
-  JSON_WRITE_NUMBER(json, pinion_gear_teeth);
   JSON_WRITE_NUMBER_ARRAY(json, photo_wall_threshold);
   JSON_WRITE_NUMBER_ARRAY(json, photo_wall_reference);
   JSON_WRITE_NUMBER_ARRAY(json, velocity_pid);

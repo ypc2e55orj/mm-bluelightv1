@@ -14,9 +14,6 @@ struct Config {
   float tire_tread_width = 3.8f;
   // タイヤの直径 [mm]
   float tire_diameter = 12.80f;
-  // ギア比
-  float spur_gear_teeth = 38.0f;
-  float pinion_gear_teeth = 9.0f;
   // 壁センサ 壁があるかないかのしきい値
   std::array<int, 4> photo_wall_threshold{0, 0, 0, 0};
   // 壁センサ 迷路中央にいるときの値
