@@ -22,19 +22,15 @@ struct Config {
   // 壁センサ 迷路中央にいるときの値
   std::array<int, 4> photo_wall_reference{0, 0, 0, 0};
   // 走行パラメータ
-  std::array<float, 3> straight_pid{0.0f, 0.0f, 0.0f};
-  float straight_velocity = 0.0f;
-  float straight_accel = 0.0f;
-  float straight_jerk = 0.0f;
-  std::array<float, 3> turn_pid{0.0f, 0.0f, 0.0f};
-  float turn_velocity = 0.0f;
-  float turn_accel = 0.0f;
-  float turn_jerk = 0.0f;
-  float slalom_turn_velocity = 0.0f;
-  float slalom_turn_accel = 0.0f;
-  float slalom_turn_jerk = 0.0f;
-  float slalom_turn_offset_pre = 0.0f;
-  float slalom_turn_offset_post = 0.0f;
+  std::array<float, 3> velocity_pid{0.0f, 0.0f, 0.0f};
+  float velocity = 0.0f;
+  float acceleration = 0.0f;
+  float jerk = 0.0f;
+  std::array<float, 3> angular_velocity_pid{0.0f, 0.0f, 0.0f};
+  float angular_velocity = 0.0f;
+  float angular_acceleration = 0.0f;
+  float angular_jerk = 0.0f;
+
   // 迷路情報
   std::array<int, 2> maze_goal{7, 7};
   std::array<int, 2> maze_size{32, 32};
