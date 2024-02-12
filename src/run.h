@@ -89,8 +89,8 @@ struct Target {
   float angular_acceleration;
   /// 目標角躍度 [rad/s^3]
   float angular_jerk;
-  /// 目標角度 [deg]
-  float degree;
+  /// 目標角度 [rad]
+  float angle;
 };
 
 class Run {

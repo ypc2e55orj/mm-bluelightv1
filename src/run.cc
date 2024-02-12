@@ -18,7 +18,7 @@ class Run::RunImpl {
     target_.velocity = 0;
     target_.length = 0;
     target_.angular_velocity = 0;
-    target_.degree = 0;
+    target_.angle = 0;
 
     return target_;
   }

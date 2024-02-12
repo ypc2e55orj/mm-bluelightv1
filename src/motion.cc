@@ -42,7 +42,7 @@ class Model {
   static constexpr float MOTOR_TORQUE = 0.59f / 1000.0f;  // [Nm/A]
   /// 機械的抵抗 (左右)
   static constexpr float WHEEL_MECHANICAL_RESISTANCE[2] = {0.0f, 0.0f};
-  /// 車輪トルク定数(ギア比?)
+  /// ギア比
   static constexpr float WHEEL_GEAR_RATIO = 38.0f / 9.0f;  // 1:n
   /// 車体質量
   static constexpr float WEIGHT = 10.0f / 1000.0f;  // [kg]
@@ -52,9 +52,12 @@ class Model {
   /// オドメトリ
   odometry::Odometry &odom_;
   /// 速度PID制御
-  data::Pid velo_pid_{0.0f, 0.0f, 0.0f};
+  data::Pid velo_pid_{conf_.velocity_pid[0], conf_.velocity_pid[1],
+                      conf_.velocity_pid[2]};
   /// 角速度PID制御
-  data::Pid ang_velo_pid_{0.0f, 0.0f, 0.0f};
+  data::Pid ang_velo_pid_{conf_.angular_velocity_pid[0],
+                          conf_.angular_velocity_pid[1],
+                          conf_.angular_velocity_pid[2]};
 
  public:
   explicit Model(config::Config &conf, odometry::Odometry &odom)
@@ -129,7 +132,11 @@ class Motion::MotionImpl final : public rtos::Task {
     }
   }
 
-  void setup() override { queue_.reset(); }
+  void setup() override {
+    queue_.reset();
+    dri_.motor_left->enable();
+    dri_.motor_right->enable();
+  }
   void loop() override {
     // センサ取得通知
     if (conf_.low_voltage > dri_.battery->average()) {
@@ -150,7 +157,12 @@ class Motion::MotionImpl final : public rtos::Task {
     dri_.motor_left->speed(voltage_left, battery_voltage);
     dri_.motor_right->speed(voltage_right, battery_voltage);
   }
-  void end() override {}
+  void end() override {
+    dri_.motor_left->speed(0, dri_.battery->voltage());
+    dri_.motor_right->speed(0, dri_.battery->voltage());
+    dri_.motor_left->disable();
+    dri_.motor_right->disable();
+  }
 
  public:
   explicit MotionImpl(driver::Driver &dri, config::Config &conf,
